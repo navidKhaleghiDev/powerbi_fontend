@@ -1,0 +1,310 @@
+{
+  "dataPlatform": {
+    "title": "پلتفرم داده",
+    "subtitle": "آماده‌سازی و پایش داده‌های سازمان شما",
+    "nav": {
+      "dashboard": "داشبورد",
+      "sources": "منابع",
+      "ingestion": "مانیتور دریافت",
+      "schema": "کاتالگ اسکما",
+      "scenarios": "سناریوهای تاب‌آوری"
+    },
+    "overview": {
+      "title": "نمای کلی معماری",
+      "description": "معماری مبتنی بر دریافت با سرویس OLAP و حالت‌های تحویل صریح Power BI",
+      "controlPlane": "صفحه کنترل",
+      "dataPlane": "صفحه داده / اجرا",
+      "controlPlaneDesc": "تنظیمات سازمان، اتصالات، کاتالوگ، کارها و دسترسی‌ها",
+      "dataPlaneDesc": "اتصال‌دهنده‌های منبع، دسته‌های دریافت، بارگذاری انبار داده و انتشار",
+      "layers": "لایه‌های انبار داده",
+      "raw": "خام / فرود",
+      "staging": "مرحله‌ای",
+      "core": "هسته",
+      "marts": "مارت‌های داده"
+    },
+    "observability": {
+      "title": "معیارهای مشاهده‌پذیری",
+      "p95DataAge": "سن داده P95",
+      "syncBacklog": "مانده همگام‌سازی",
+      "errorRate": "نرخ خطا",
+      "throughput": "توان عملیاتی (ردیف/ثانیه)",
+      "queryPerformance": "عملکرد پرسش (P95 ms)",
+      "healthy": "سالم",
+      "warning": "هشدار",
+      "critical": "بحرانی"
+    },
+    "sources": {
+      "title": "مدیریت منابع",
+      "description": "اتصالات، مجموعه‌داده‌ها و سیاست‌های همگام‌سازی سازمان شما",
+      "organization": "سازمان",
+      "residencyPolicy": "سیاست اقامت داده",
+      "connection": "اتصال",
+      "engineType": "نوع موتور",
+      "agent": "عامل",
+      "dataset": "مجموعه‌داده",
+      "sourceLocator": "مکان‌نمای منبع",
+      "recordGrain": "دانه رکورد",
+      "syncMode": "حالت همگام‌سازی",
+      "schedule": "زمان‌بندی",
+      "deleteStrategy": "استراتژی حذف",
+      "noAgent": "مستقیم ابری",
+      "datasetsCount": "{count} مجموعه‌داده",
+      "residencyPolicies": {
+        "cloud-first": "اولویت ابری",
+        "hybrid-restricted": "ترکیبی محدود",
+        "fully-onprem": "کاملاً درون‌سازمانی"
+      },
+      "syncModes": {
+        "log-cdc": "ثبت تغییرات مبتنی بر لاگ",
+        "incremental-polling": "همگام‌سازی افزایشی",
+        "full-snapshot": "نسخه کامل داده‌ها"
+      },
+      "connectionCount": "اتصالات منابع"
+    },
+    "ingestion": {
+      "title": "مانیتور دریافت",
+      "description": "ماشین حالت چرخه حیات دسته — از استخراج تا انتشار",
+      "batchId": "شناسه دسته",
+      "runId": "شناسه اجرا",
+      "status": "وضعیت",
+      "rowCount": "تعداد ردیف",
+      "cursor": "مکان‌نمای منبع",
+      "manifest": "URI مانیفست",
+      "attempt": "تلاش",
+      "startedAt": "شروع در",
+      "qualityVerdict": "کیفیت",
+      "checkpoint": "نقطه بازرسی",
+      "committedCursor": "مکان‌نمای ثبت‌شده",
+      "stateMachine": "چرخه حیات دسته",
+      "statuses": {
+        "extracted": "استخراج‌شده",
+        "uploaded": "بارگذاری‌شده",
+        "verified": "تأییدشده",
+        "applied": "اعمال‌شده",
+        "published": "منتشرشده"
+      },
+      "runStatuses": {
+        "pending": "در انتظار",
+        "running": "در حال اجرا",
+        "succeeded": "موفق",
+        "failed": "ناموفق",
+        "quarantined": "قرنطینه‌شده"
+      }
+    },
+    "schema": {
+      "title": "کاتالگ اسکما",
+      "description": "اسکماهای کشف‌شده، اثر انگشتی و طبقه‌بندی فیلدها",
+      "dataset": "مجموعه‌داده",
+      "version": "نسخه",
+      "fingerprint": "اثر انگشتی",
+      "fieldName": "نام فیلد",
+      "sourceType": "نوع منبع",
+      "nullable": "Nullable",
+      "classification": "طبقه‌بندی",
+      "pii": "PII",
+      "classifications": {
+        "identifier": "شناسه",
+        "pii": "PII",
+        "money": "پول",
+        "timestamp": "زمان",
+        "dimension": "بُعد",
+        "measure": "معیار",
+        "reference": "مرجع",
+        "unknown": "نامشخص"
+      },
+      "discoveryPhases": {
+        "discover": "کشف",
+        "profile": "پروفایل",
+        "classify": "طبقه‌بندی",
+        "version": "نسخه",
+        "review": "بازبینی",
+        "propose": "پیشنهاد"
+      }
+    },
+    "scenarios": {
+      "title": "اجراکننده سناریوی تاب‌آوری",
+      "description": "تمرین‌های شکست که باید قبل از تولید با موفقیت انجام شوند — از PDF معماری (صفحه ۴۶)",
+      "runAll": "اجرای همه سناریوها",
+      "run": "اجرا",
+      "passed": "موفق",
+      "failed": "ناموفق",
+      "running": "در حال اجرا...",
+      "steps": "مراحل",
+      "finalStatus": "وضعیت نهایی دسته",
+      "finalCursor": "مکان‌نمای نهایی",
+      "duplicateCheck": "بررسی تکرار",
+      "noDuplicates": "بدون تکرار",
+      "duplicatesDetected": "تکرار شناسایی شد",
+      "allPassed": "همه سناریوها موفق شدند",
+      "someFailed": "{count} سناریو ناموفق شد",
+      "scenarios": {
+        "crash-after-upload": "فروپاشی پس از بارگذاری خام",
+        "ack-lost-after-commit": "گم‌شدن تأیید پس از ثبت انبار",
+        "api-rate-limit": "محدودیت نرخ API (429)",
+        "breaking-schema-change": "تغییر اسکنشی اسکما",
+        "cdc-retention-expired": "انقضای نگهداری CDC",
+        "agent-outage-24h": "قطعی ۲۴ ساعته عامل",
+        "out-of-order-delete": "رویداد خارج از ترتیب / حذف"
+      },
+      "behaviors": {
+        "crash-after-upload": "بازپخش مانیفست؛ نقطه بازرسی پیش از موعد جابه‌جا نمی‌شود",
+        "ack-lost-after-commit": "تلاش مجدد idempotent است؛ ردیف تکراری تولید نمی‌شود",
+        "api-rate-limit": "backoff با jitter و retry-after؛ تلاش‌های محدود",
+        "breaking-schema-change": "حفظ خام، قرنطینه نسخه جدید، مسدود کردن انتشار",
+        "cdc-retention-expired": "شکست صریح + تطبیق یا resnapshot",
+        "agent-outage-24h": "spool رمزنگاری‌شده محدود؛ هشدار خطر نگهداری",
+        "out-of-order-delete": "ادغام آگاه از نسخه و قوانین tombstone"
+      }
+    },
+    "warehouse": {
+      "title": "کاوشگر انبار داده",
+      "layer": "لایه",
+      "recordKey": "کلید رکورد",
+      "sourceVersion": "نسخه منبع",
+      "batchId": "شناسه دسته"
+    },
+    "loading": "در حال بارگذاری...",
+    "noData": "داده‌ای موجود نیست",
+    "reports": {
+      "title": "گزارش‌های پلتفرم داده",
+      "throughputTrend": "روند توان عملیاتی (ردیف/ثانیه)",
+      "batchStatusDistribution": "توزیع وضعیت دسته",
+      "errorRateTrend": "روند نرخ خطا",
+      "last24h": "۲۴ ساعت گذشته",
+      "exportReport": "خروجی گزارش",
+      "realtime": "زنده",
+      "lastUpdated": "آخرین به‌روزرسانی: {time}"
+    },
+    "gis": {
+      "title": "جریان جغرافیایی داده",
+      "description": "اقامت داده و مکان منابع در سراسر مناطق",
+      "cloudFirst": "اولویت ابری",
+      "hybridRestricted": "ترکیبی محدود",
+      "fullyOnprem": "کاملاً در محل",
+      "sourceLocation": "مکان منبع",
+      "dataFlow": "جریان داده",
+      "regions": {
+        "us-east": "شرق آمریکا",
+        "eu-west": "غرب اروپا",
+        "me-central": "خاورمیانه",
+        "ap-south": "آسیای شرقی"
+      },
+      "legend": {
+        "cloud": "منبع ابری",
+        "onprem": "منبع در محل",
+        "flow": "جهت جریان داده"
+      },
+      "analytics": {
+        "title": "تحلیل‌های جغرافیایی",
+        "totalSources": "کل منابع",
+        "cloudSources": "منابع ابری",
+        "onpremSources": "منابع در محل",
+        "dataFlowRate": "نرخ جریان داده",
+        "regionBreakdown": "تفکیک منطقه‌ای",
+        "throughputByRegion": "توان عملیاتی بر اساس منطقه",
+        "residencyDistribution": "توزیع اقامت داده"
+      }
+    },
+    "realtime": {
+      "title": "مانیتور بلادرنگ",
+      "live": "زنده",
+      "refreshInterval": "به‌روزرسانی خودکار هر {seconds} ثانیه",
+      "paused": "متوقف",
+      "resume": "ادامه",
+      "pause": "توقف",
+      "currentThroughput": "توان عملیاتی فعلی",
+      "currentBacklog": "مانده فعلی",
+      "activeBatches": "دسته‌های فعال",
+      "lastUpdated": "آخرین به‌روزرسانی: {time}"
+    },
+    "calendar": {
+      "title": "فیلتر تقویم خورشیدی",
+      "selectDateRange": "انتخاب بازه تاریخ",
+      "from": "از",
+      "to": "تا",
+      "apply": "اعمال فیلتر",
+      "clear": "پاک کردن",
+      "today": "امروز",
+      "filteredData": "نمایش داده‌ها برای دوره انتخاب‌شده"
+    },
+    "pivot": {
+      "title": "جدول محوری — تحلیل آنلاین داده‌ها",
+      "description": "ابزار تحلیل داده قدرتمند با پشتیبانی کامل از زبان فارسی و راست به چپ. امکان تحلیل سریع و آسان داده‌ها با رابط کاربری drag & drop.",
+      "fields": "فیلدهای موجود",
+      "rows": "ردیف‌ها",
+      "columns": "ستون‌ها",
+      "values": "مقادیر",
+      "dropHere": "فیلدها را اینجا بکشید",
+      "dragHint": "فیلدها را به بخش‌های ردیف، ستون و مقدار بکشید تا جدول محوری ساخته شود",
+      "aggregation": "تجمیع",
+      "sum": "مجموع",
+      "count": "تعداد",
+      "average": "میانگین",
+      "exportCsv": "خروجی CSV",
+      "exportExcel": "خروجی Excel",
+      "keyFeatures": "قابلیت‌های کلیدی",
+      "loadData": "بارگذاری داده",
+      "filter": "فیلتر",
+      "sort": "مرتب‌سازی",
+      "conditionalFormat": "فرمت‌دهی شرطی",
+      "calculatedFields": "فیلدهای محاسباتی",
+      "drillDown": "دریل دان",
+      "saveLayout": "ذخیره چیدمان",
+      "print": "چاپ (راست به چپ)",
+      "responsive": "رابط کاربری ریسپانسیو",
+      "highPerformance": "عملکرد بالا با داده‌های حجیم"
+    },
+    "security": {
+      "title": "امنیت و احراز هویت",
+      "description": "MFA، امتیازدهی ریسک تطبیقی، قفل ضد بروت‌فورس، اعتماد دستگاه، و لاگ ممیزی امنیتی کامل",
+      "mfa": "احراز هویت چندمرحله‌ای",
+      "totp": "TOTP (گوگل احراز هویت)",
+      "passkey": "Passkey / FIDO2",
+      "otpEmail": "OTP ایمیلی",
+      "otpSms": "OTP پیامکی",
+      "riskScoring": "امتیازدهی ریسک تطبیقی",
+      "bruteForce": "قفل ضد بروت‌فورس",
+      "deviceTrust": "اعتماد دستگاه",
+      "auditLog": "لاگ ممیزی امنیتی",
+      "enabled": "فعال",
+      "disabled": "غیرفعال",
+      "configure": "پیکربندی"
+    },
+    "reportManagement": {
+      "title": "مدیریت گزارش‌ها",
+      "description": "تاریخچه نسخه‌های گزارش، آمار بازدید، و اشتراک زمان‌بندی‌شده",
+      "versionHistory": "تاریخچه نسخه‌ها",
+      "uploadedBy": "آپلودکننده",
+      "uploadedAt": "زمان آپلود",
+      "fileSize": "حجم فایل",
+      "download": "دانلود",
+      "delete": "حذف",
+      "viewStatistics": "آمار بازدید",
+      "dailyViews": "بازدید روزانه",
+      "topReports": "برترین گزارش‌ها بر اساس بازدید",
+      "activeUsers": "فعال‌ترین کاربران",
+      "subscriptions": "اشتراک زمان‌بندی‌شده",
+      "subscribe": "عضویت",
+      "daily": "روزانه",
+      "weekly": "هفتگی",
+      "monthly": "ماهانه",
+      "rlsNote": "هر ارسال با همان امنیت ردیفی (RLS) گیرنده تولید می‌شود — هر کاربر فقط داده‌ای را دریافت می‌کند که مجاز به دیدن آن است."
+    },
+    "deployment": {
+      "title": "استقرار",
+      "description": "در کنار سرور PBRS موجود شما نصب می‌شود. هر مشتری نمونه مستقل خودش را دارد. داده‌ها از شبکه شما خارج نمی‌شوند. پیکربندی PBRS دست‌نخورده می‌ماند.",
+      "onPremises": "استقرار در محل",
+      "isolatedInstance": "نمونه مستقل برای هر مشتری",
+      "noDataEgress": "داده‌ها در شبکه شما می‌مانند",
+      "noPbrsChanges": "پیکربندی PBRS دست‌نخورده"
+    },
+    "organizationContext": "سازمان: {name}"
+  },
+  "workspace": {
+    "title": "مرکز مدیریت پاور بی‌آی",
+    "demo": "محیط نمایشی با داده‌های نمونه؛ اتصال LDAP، SSAS و PBRS برقرار نیست.",
+    "navigation": "ناوبری فضای کاری",
+    "language": "English",
+    "overview": "نمای کلی"
+  }
+}

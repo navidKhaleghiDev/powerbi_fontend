@@ -1,0 +1,57 @@
+services:
+  finance_postgres:
+    image: postgres:17.11-bookworm
+    container_name: crm-finance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finance_db
+      POSTGRES_USER: finance_admin
+      POSTGRES_PASSWORD: FinancePass2026!
+    ports:
+      - "5431:5432"
+    volumes:
+      - finance_pg_data:/var/lib/postgresql/data
+      - ./init/finance/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - crm-net
+
+  hr_postgres:
+    image: postgres:17.11-bookworm
+    container_name: crm-hr-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hr_db
+      POSTGRES_USER: hr_admin
+      POSTGRES_PASSWORD: HRPass2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - hr_pg_data:/var/lib/postgresql/data
+      - ./init/hr/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - crm-net
+
+  sales_postgres:
+    image: postgres:17.11-bookworm
+    container_name: crm-sales-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sales_db
+      POSTGRES_USER: sales_admin
+      POSTGRES_PASSWORD: SalesPass2026!
+    ports:
+      - "5433:5432"
+    volumes:
+      - sales_pg_data:/var/lib/postgresql/data
+      - ./init/sales/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - crm-net
+
+volumes:
+  finance_pg_data:
+  hr_pg_data:
+  sales_pg_data:
+
+networks:
+  crm-net:
+    driver: bridge

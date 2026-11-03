@@ -1,0 +1,10 @@
+node_modules
+.next
+.data
+.git
+.env*
+*.tsbuildinfo
+coverage
+docs/*.pdf
+docs/*.pptx
+docs/*.tar.gz

@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env*
+*.tsbuildinfo
+coverage/
+crm-extraction-backup.tar.gz
+
+.data/
+
+.env.compose

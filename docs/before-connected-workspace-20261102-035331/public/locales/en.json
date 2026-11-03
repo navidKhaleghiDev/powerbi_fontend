@@ -1,0 +1,310 @@
+{
+  "dataPlatform": {
+    "title": "Data Platform",
+    "subtitle": "Data preparation and monitoring for your organization",
+    "nav": {
+      "dashboard": "Dashboard",
+      "sources": "Sources",
+      "ingestion": "Ingestion Monitor",
+      "schema": "Schema Catalog",
+      "scenarios": "Resilience Scenarios"
+    },
+    "overview": {
+      "title": "Architecture Overview",
+      "description": "Ingestion-first architecture with OLAP serving and explicit Power BI delivery modes",
+      "controlPlane": "Control Plane",
+      "dataPlane": "Data / Execution Plane",
+      "controlPlaneDesc": "Organization settings, connections, catalog, jobs, and access",
+      "dataPlaneDesc": "Source connectors, ingestion batches, warehouse loading, and publication",
+      "layers": "Warehouse Layers",
+      "raw": "Raw / Landing",
+      "staging": "Staging",
+      "core": "Core",
+      "marts": "Data Marts"
+    },
+    "observability": {
+      "title": "Observability Metrics",
+      "p95DataAge": "P95 Data Age",
+      "syncBacklog": "Sync Backlog",
+      "errorRate": "Error Rate",
+      "throughput": "Throughput (rows/s)",
+      "queryPerformance": "Query Performance (P95 ms)",
+      "healthy": "Healthy",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "sources": {
+      "title": "Source Management",
+      "description": "Connections, datasets, and synchronization policies for your organization",
+      "organization": "Organization",
+      "residencyPolicy": "Residency Policy",
+      "connection": "Connection",
+      "engineType": "Engine Type",
+      "agent": "Agent",
+      "dataset": "Dataset",
+      "sourceLocator": "Source Locator",
+      "recordGrain": "Record Grain",
+      "syncMode": "Sync Mode",
+      "schedule": "Schedule",
+      "deleteStrategy": "Delete Strategy",
+      "noAgent": "Cloud direct",
+      "datasetsCount": "{count} datasets",
+      "residencyPolicies": {
+        "cloud-first": "Cloud first",
+        "hybrid-restricted": "Restricted hybrid",
+        "fully-onprem": "Fully on premises"
+      },
+      "syncModes": {
+        "log-cdc": "Log-based CDC",
+        "incremental-polling": "Incremental polling",
+        "full-snapshot": "Full snapshot"
+      },
+      "connectionCount": "Source connections"
+    },
+    "ingestion": {
+      "title": "Ingestion Monitor",
+      "description": "Batch lifecycle state machine — EXTRACTED to PUBLISHED",
+      "batchId": "Batch ID",
+      "runId": "Run ID",
+      "status": "Status",
+      "rowCount": "Row Count",
+      "cursor": "Source Cursor",
+      "manifest": "Manifest URI",
+      "attempt": "Attempt",
+      "startedAt": "Started At",
+      "qualityVerdict": "Quality",
+      "checkpoint": "Checkpoint",
+      "committedCursor": "Committed Cursor",
+      "stateMachine": "Batch Lifecycle",
+      "statuses": {
+        "extracted": "Extracted",
+        "uploaded": "Uploaded",
+        "verified": "Verified",
+        "applied": "Applied",
+        "published": "Published"
+      },
+      "runStatuses": {
+        "pending": "Pending",
+        "running": "Running",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "quarantined": "Quarantined"
+      }
+    },
+    "schema": {
+      "title": "Schema Catalog",
+      "description": "Discovered schemas, fingerprints, and field classifications",
+      "dataset": "Dataset",
+      "version": "Version",
+      "fingerprint": "Fingerprint",
+      "fieldName": "Field Name",
+      "sourceType": "Source Type",
+      "nullable": "Nullable",
+      "classification": "Classification",
+      "pii": "PII",
+      "classifications": {
+        "identifier": "Identifier",
+        "pii": "PII",
+        "money": "Money",
+        "timestamp": "Timestamp",
+        "dimension": "Dimension",
+        "measure": "Measure",
+        "reference": "Reference",
+        "unknown": "Unknown"
+      },
+      "discoveryPhases": {
+        "discover": "Discover",
+        "profile": "Profile",
+        "classify": "Classify",
+        "version": "Version",
+        "review": "Review",
+        "propose": "Propose"
+      }
+    },
+    "scenarios": {
+      "title": "Resilience Scenario Runner",
+      "description": "Failure drills that must pass before production — from the architecture PDF (page 46)",
+      "runAll": "Run All Scenarios",
+      "run": "Run",
+      "passed": "Passed",
+      "failed": "Failed",
+      "running": "Running...",
+      "steps": "Steps",
+      "finalStatus": "Final Batch Status",
+      "finalCursor": "Final Cursor",
+      "duplicateCheck": "Duplicate Check",
+      "noDuplicates": "No duplicates",
+      "duplicatesDetected": "Duplicates detected",
+      "allPassed": "All scenarios passed",
+      "someFailed": "{count} scenario(s) failed",
+      "scenarios": {
+        "crash-after-upload": "Crash After Raw Upload",
+        "ack-lost-after-commit": "ACK Lost After Warehouse Commit",
+        "api-rate-limit": "API Rate-Limit (429)",
+        "breaking-schema-change": "Breaking Schema Change",
+        "cdc-retention-expired": "CDC Retention Expired",
+        "agent-outage-24h": "24h Agent Outage",
+        "out-of-order-delete": "Out-of-Order / Delete Event"
+      },
+      "behaviors": {
+        "crash-after-upload": "Manifest replay; checkpoint does not move prematurely",
+        "ack-lost-after-commit": "Retry is idempotent; no duplicated current-state row",
+        "api-rate-limit": "Backoff with jitter and retry-after; bounded attempts",
+        "breaking-schema-change": "Keep raw, quarantine new version, block publication",
+        "cdc-retention-expired": "Explicit failure + reconciliation or resnapshot",
+        "agent-outage-24h": "Bounded encrypted spool; alert on retention risk",
+        "out-of-order-delete": "Version-aware merge and tombstone rules"
+      }
+    },
+    "warehouse": {
+      "title": "Warehouse Explorer",
+      "layer": "Layer",
+      "recordKey": "Record Key",
+      "sourceVersion": "Source Version",
+      "batchId": "Batch ID"
+    },
+    "loading": "Loading...",
+    "noData": "No data available",
+    "reports": {
+      "title": "Data Platform Reports",
+      "throughputTrend": "Throughput Trend (rows/s)",
+      "batchStatusDistribution": "Batch Status Distribution",
+      "errorRateTrend": "Error Rate Trend",
+      "last24h": "Last 24 hours",
+      "exportReport": "Export Report",
+      "realtime": "Live",
+      "lastUpdated": "Last updated: {time}"
+    },
+    "gis": {
+      "title": "Geographic Data Flow",
+      "description": "Data residency and source locations across regions",
+      "cloudFirst": "Cloud-First",
+      "hybridRestricted": "Hybrid Restricted",
+      "fullyOnprem": "Fully On-Prem",
+      "sourceLocation": "Source Location",
+      "dataFlow": "Data Flow",
+      "regions": {
+        "us-east": "US East",
+        "eu-west": "EU West",
+        "me-central": "Middle East",
+        "ap-south": "Asia Pacific"
+      },
+      "legend": {
+        "cloud": "Cloud Source",
+        "onprem": "On-Prem Source",
+        "flow": "Data Flow Direction"
+      },
+      "analytics": {
+        "title": "Geographic Analytics",
+        "totalSources": "Total Sources",
+        "cloudSources": "Cloud Sources",
+        "onpremSources": "On-Prem Sources",
+        "dataFlowRate": "Data Flow Rate",
+        "regionBreakdown": "Region Breakdown",
+        "throughputByRegion": "Throughput by Region",
+        "residencyDistribution": "Residency Distribution"
+      }
+    },
+    "realtime": {
+      "title": "Real-Time Monitor",
+      "live": "LIVE",
+      "refreshInterval": "Auto-refresh every {seconds}s",
+      "paused": "Paused",
+      "resume": "Resume",
+      "pause": "Pause",
+      "currentThroughput": "Current Throughput",
+      "currentBacklog": "Current Backlog",
+      "activeBatches": "Active Batches",
+      "lastUpdated": "Last updated: {time}"
+    },
+    "calendar": {
+      "title": "Solar Calendar Filter",
+      "selectDateRange": "Select Date Range",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply Filter",
+      "clear": "Clear",
+      "today": "Today",
+      "filteredData": "Showing data for selected period"
+    },
+    "pivot": {
+      "title": "Pivot Table — Online Data Analysis",
+      "description": "Powerful data analysis tool with full Persian and RTL support. Analyze data quickly and easily with drag & drop interface.",
+      "fields": "Available Fields",
+      "rows": "Rows",
+      "columns": "Columns",
+      "values": "Values",
+      "dropHere": "Drag fields here",
+      "dragHint": "Drag fields to Rows, Columns, and Values zones to build your pivot table",
+      "aggregation": "Aggregation",
+      "sum": "Sum",
+      "count": "Count",
+      "average": "Average",
+      "exportCsv": "Export CSV",
+      "exportExcel": "Export Excel",
+      "keyFeatures": "Key Features",
+      "loadData": "Load Data",
+      "filter": "Filter",
+      "sort": "Sort",
+      "conditionalFormat": "Conditional Formatting",
+      "calculatedFields": "Calculated Fields",
+      "drillDown": "Drill Down",
+      "saveLayout": "Save Layout",
+      "print": "Print (RTL)",
+      "responsive": "Responsive UI",
+      "highPerformance": "High performance with large datasets"
+    },
+    "security": {
+      "title": "Security & Authentication",
+      "description": "MFA, adaptive risk scoring, anti-brute-force lockout, device trust, and full security audit logging",
+      "mfa": "Multi-Factor Authentication",
+      "totp": "TOTP (Google Authenticator)",
+      "passkey": "Passkey / FIDO2",
+      "otpEmail": "Email OTP",
+      "otpSms": "SMS OTP",
+      "riskScoring": "Adaptive Risk Scoring",
+      "bruteForce": "Anti-Brute-Force Lockout",
+      "deviceTrust": "Device Trust",
+      "auditLog": "Security Audit Log",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "configure": "Configure"
+    },
+    "reportManagement": {
+      "title": "Report Management",
+      "description": "Report version history, view statistics, and scheduled subscriptions",
+      "versionHistory": "Version History",
+      "uploadedBy": "Uploaded By",
+      "uploadedAt": "Uploaded At",
+      "fileSize": "File Size",
+      "download": "Download",
+      "delete": "Delete",
+      "viewStatistics": "View Statistics",
+      "dailyViews": "Daily Views",
+      "topReports": "Top Reports by Views",
+      "activeUsers": "Most Active Users",
+      "subscriptions": "Scheduled Subscriptions",
+      "subscribe": "Subscribe",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "rlsNote": "Each delivery is produced with the recipient's row-level security — users only receive data they are authorized to see."
+    },
+    "deployment": {
+      "title": "Deployment",
+      "description": "Installed alongside your existing PBRS server. Each customer has their own isolated instance. Data never leaves your network. PBRS configuration remains untouched.",
+      "onPremises": "On-Premises Deployment",
+      "isolatedInstance": "Isolated Instance per Customer",
+      "noDataEgress": "Data Stays in Your Network",
+      "noPbrsChanges": "PBRS Configuration Untouched"
+    },
+    "organizationContext": "Organization: {name}"
+  },
+  "workspace": {
+    "title": "Power BI Control Center",
+    "demo": "Demo workspace — sample data. LDAP, SSAS and PBRS are not connected.",
+    "navigation": "Workspace navigation",
+    "language": "فارسی",
+    "overview": "Overview"
+  }
+}

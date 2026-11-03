@@ -1,0 +1,12 @@
+# Local Compose data platform
+
+- The Compose project is `powerbi-local`, isolated from the host-run application and CRM. The default web port is 3003; existing port 3001 and its account store are untouched.
+- PostgreSQL, Kafka, Kafka Connect/Debezium, ClickHouse and the same application are separate services on the Compose network. Connect and ClickHouse resolve the source/broker by container DNS, never by another container's localhost.
+- Infrastructure HTTP/SQL ports are bound to host loopback; Kafka is internal only. Private PLAINTEXT Kafka is for this local pilot, not a production security configuration.
+- PostgreSQL and ClickHouse databases are initialized in new named volumes only. PostgreSQL initialization creates a synthetic sales.orders table owned by a dedicated non-superuser replication role. Never copy production customer records into seed scripts.
+- App metadata is persisted under `.data/compose-workspace`; generated credentials are in private `.env.compose` and `.data/compose-access.txt`. Neither secrets nor metadata may enter source control or Docker build context. Initialization is repeatable and never rotates existing passwords silently.
+- Automatic provisioning is opt-in and must run inside the dedicated app with LOCAL_STACK_ENABLED=1. It uses the existing auth/store helpers and server-enforced APIs, existing fixed KPI formulas, provider approval and exact reconciliation. No public backdoor/bootstrap endpoint is added.
+- A RUNNING connector is not publication evidence. Acceptance compares published ClickHouse results to independent PostgreSQL totals, verifies customer redaction, and saves private timestamped evidence. Failed live checks must not be reported as passed.
+- Initial source rows are explicitly synthetic. The `stack:exercise` command changes only reserved cdc-proof-* rows in the dedicated local database and checks insert/update/delete through raw history and the published snapshot. It does not modify external databases.
+- Starting capture, publishing a data snapshot and publishing a dashboard remain separate actions. This local bootstrap orchestrates those actions; it does not introduce continuous automatic publication or a production scheduler.
+- Stop operations preserve named volumes. Do not use compose down --volumes to fix an error; that destroys local source/warehouse data. Back up app encryption keys together with encrypted metadata and back up source/warehouse volumes separately.

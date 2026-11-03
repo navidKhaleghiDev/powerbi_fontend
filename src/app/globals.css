@@ -1,0 +1,8 @@
+@import "tailwindcss" source("../");
+@import "../styles/theme/compatibility.css";
+@import "../styles/theme/colors.css";
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant rtl (&:where([dir="rtl"] *));
+@custom-variant ltr (&:where([dir="ltr"] *));
+body { margin: 0; background: #f9fafb; color: #111827; }
+a:focus-visible, button:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
