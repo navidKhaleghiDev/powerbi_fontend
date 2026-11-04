@@ -31,7 +31,7 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[13px] text-slate-600">
+        <p className="text-sm text-text-secondary">
           {t('dataBrowser.snapshot', { rows: flow.rowCount || 0 })}
         </p>
         <Button
@@ -50,7 +50,7 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
         <Notice error={preview.error} />
       ) : preview.data ? (
         <>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-text-secondary">
             {t('dataBrowser.queriedAt', {
               time: new Intl.DateTimeFormat(locale, {
                 dateStyle: 'medium',
@@ -62,10 +62,10 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
             tabIndex={0}
             role="region"
             aria-label={t('dataBrowser.title')}
-            className="published-rows-scroll max-h-[36rem] overflow-auto rounded-xl border border-slate-200 focus-visible:outline-2 focus-visible:outline-teal-600"
+            className="published-rows-scroll max-h-[36rem] overflow-auto rounded-xl border border-border-default focus-visible:outline-2 focus-visible:outline-brand-600"
           >
-            <table className="w-full text-start text-[13px]">
-              <thead className="sticky top-0 bg-slate-100">
+            <table className="w-full text-start text-sm">
+              <thead className="sticky top-0 bg-surface-raised">
                 <tr>
                   {preview.data.columns.map((column) => (
                     <th
@@ -82,7 +82,10 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
               <tbody className="divide-y divide-slate-100">
                 {preview.data.rows.length ? (
                   preview.data.rows.map((row, index) => (
-                    <tr key={String(row[flow.primaryKey] ?? index)} className="hover:bg-teal-50/50">
+                    <tr
+                      key={String(row[flow.primaryKey] ?? index)}
+                      className="hover:bg-surface-info-subtle/50"
+                    >
                       {preview.data?.columns.map((column) => (
                         <td
                           key={column}
@@ -102,7 +105,7 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
                   <tr>
                     <td
                       colSpan={preview.data.columns.length}
-                      className="p-8 text-center text-slate-500"
+                      className="p-8 text-center text-text-secondary"
                     >
                       {t('noRows')}
                     </td>
@@ -121,7 +124,7 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
             >
               {t('dataBrowser.previous')}
             </Button>
-            <span className="text-[13px]">{t('dataBrowser.page', { page: page + 1 })}</span>
+            <span className="text-sm">{t('dataBrowser.page', { page: page + 1 })}</span>
             <Button
               variant="outline"
               size="auto"
@@ -132,7 +135,7 @@ const PublishedRows = ({ flow }: PublishedRowsProps) => {
               {t('dataBrowser.next')}
             </Button>
           </div>
-          <p className="text-xs text-slate-500">{t('dataBrowser.limit')}</p>
+          <p className="text-xs text-text-secondary">{t('dataBrowser.limit')}</p>
         </>
       ) : null}
     </div>
@@ -150,16 +153,12 @@ export const DataBrowser = ({ state }: Props) => {
     <Card
       role="region"
       aria-label={t('dataBrowser.title')}
-      className="gap-0 space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      className="glass-surface gap-0 space-y-5 rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm sm:p-6"
     >
-      <div>
-        <h2 className="text-base font-medium">{t('dataBrowser.title')}</h2>
-        <p className="mt-2 text-[13px] leading-7 text-slate-500">{t('dataBrowser.description')}</p>
-      </div>
       {!selected ? (
-        <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+        <div className="rounded-xl border border-dashed border-border-default p-8 text-center">
           <h3 className="font-medium">{t('dataBrowser.empty')}</h3>
-          <p className="mt-2 text-[13px] leading-7 text-slate-500">{t('dataBrowser.emptyHelp')}</p>
+          <p className="mt-2 text-sm leading-7 text-text-secondary">{t('dataBrowser.emptyHelp')}</p>
         </div>
       ) : (
         <>
@@ -176,7 +175,7 @@ export const DataBrowser = ({ state }: Props) => {
               ))}
             </select>
           </Field>
-          <p className="text-[13px] text-slate-500">
+          <p className="text-sm text-text-secondary">
             {t('dataBrowser.grain', { grain: selected.grain })}
           </p>
           <PublishedRows key={selected.id + selected.activeLoadId} flow={selected} />

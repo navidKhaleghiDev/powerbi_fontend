@@ -14,7 +14,6 @@ export const AnalyticsKpisPage = () => {
   if (!workspace.data) return <Notice error={workspace.error} />;
   return (
     <section className="w-full min-w-0" aria-label={t('metric.chooseKpis')}>
-      <h1 className="sr-only">{t('metric.chooseKpis')}</h1>
       <MetricCatalogPanel state={workspace.data} />
     </section>
   );
@@ -27,7 +26,6 @@ export const AnalyticsPublishedDataPage = () => {
   if (!workspace.data) return <Notice error={workspace.error} />;
   return (
     <section className="w-full min-w-0" aria-label={t('dataBrowser.title')}>
-      <h1 className="sr-only">{t('dataBrowser.title')}</h1>
       <DataBrowser state={workspace.data} />
     </section>
   );

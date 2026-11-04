@@ -27,11 +27,11 @@ const FlowCard = ({ flow }: CardProps) => {
   const action = useWorkspaceAction();
   const upload = useCsvImport();
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="glass-surface rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-medium">{flow.name}</h3>
-          <p className="mt-1 text-[13px] text-slate-500">
+          <p className="mt-1 text-sm text-text-secondary">
             {t(flow.kind === 'csv' ? 'csvSource' : 'postgresSource')} · {flow.grain}
           </p>
         </div>
@@ -49,7 +49,7 @@ const FlowCard = ({ flow }: CardProps) => {
           {t(`status.${flow.status}`)}
         </StatusBadge>
       </div>
-      <div className="mt-4 flex flex-wrap gap-4 text-[13px]">
+      <div className="mt-4 flex flex-wrap gap-4 text-sm">
         <span>{t('mappedColumns', { count: flow.columns.length })}</span>
         {flow.rowCount !== undefined && <span>{t('publishedRows', { count: flow.rowCount })}</span>}
         {flow.publishedAt && (
@@ -103,7 +103,7 @@ const FlowCard = ({ flow }: CardProps) => {
           <label
             className={`${
               secondaryClass
-            } cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal-600`}
+            } cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand-600`}
           >
             {upload.isPending ? t('working') : t('replaceCsv')}
             <Input
@@ -120,10 +120,10 @@ const FlowCard = ({ flow }: CardProps) => {
         )}
       </div>
       {flow.kind === 'postgres' && (
-        <p className="mt-3 text-xs text-slate-500">{t('captureHelp')}</p>
+        <p className="mt-3 text-xs text-text-secondary">{t('captureHelp')}</p>
       )}
       {status.data?.connector && (
-        <p className="mt-3 text-[13px]">
+        <p className="mt-3 text-sm">
           {t('connectorStatus')} <b dir="ltr">{status.data.connector}</b>
           {status.data.tasks.map((task) => (
             <span key={task.id} className="ms-3" dir="ltr">
@@ -134,13 +134,13 @@ const FlowCard = ({ flow }: CardProps) => {
       )}
       {showPlan && (
         <div className="mt-4">
-          <p className="mb-2 text-xs text-slate-500">{t('reviewHelp')}</p>
+          <p className="mb-2 text-xs text-text-secondary">{t('reviewHelp')}</p>
           {plan.isPending ? (
             <p>{t('working')}</p>
           ) : (
             <pre
               dir="ltr"
-              className="max-h-80 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-6 text-teal-100"
+              className="max-h-80 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-6 text-brand-100"
             >
               {plan.data?.sql.join(';\n\n')}
             </pre>
@@ -177,10 +177,10 @@ export const FlowList = ({ flows, runs, onCreate }: Props) => {
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="text-base font-medium tracking-tight text-slate-900">{t('flows')}</h2>
-        <p className="mt-1 text-[13px] text-slate-500">{t('publicationHelp')}</p>
+        <h2 className="text-base font-medium tracking-tight text-text-primary">{t('flows')}</h2>
+        <p className="mt-1 text-sm text-text-secondary">{t('publicationHelp')}</p>
       </div>
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="glass-surface flex flex-wrap items-end gap-3 rounded-2xl border border-border-default bg-surface-default p-4">
         <div className="min-w-0 flex-1">
           <Field label={t('experience.searchFlows')}>
             <Input
@@ -214,17 +214,17 @@ export const FlowList = ({ flows, runs, onCreate }: Props) => {
           {t('experience.createFlow')}
         </Button>
       </div>
-      <p role="status" className="text-xs text-slate-500">
+      <p role="status" className="text-xs text-text-secondary">
         {t('experience.flowResults', { count: visibleFlows.length, total: flows.length })}
       </p>
       {visibleFlows.length ? (
         visibleFlows.map((flow) => <FlowCard key={flow.id} flow={flow} />)
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-          <h3 className="font-medium text-slate-900">
+        <div className="glass-surface rounded-2xl border border-dashed border-border-default bg-surface-default p-8 text-center">
+          <h3 className="font-medium text-text-primary">
             {t(flows.length ? 'experience.noMatches' : 'noFlows')}
           </h3>
-          <p className="mx-auto mt-2 max-w-lg text-[13px] leading-7 text-slate-500">
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-text-secondary">
             {t(flows.length ? 'experience.searchHelp' : 'experience.firstFlowHelp')}
           </p>
           {flows.length > 0 && (
@@ -244,10 +244,10 @@ export const FlowList = ({ flows, runs, onCreate }: Props) => {
         </div>
       )}
       {runs.length > 0 && (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full text-[13px]">
+        <div className="glass-surface overflow-x-auto rounded-2xl border border-border-default bg-surface-default">
+          <table className="w-full text-sm">
             <caption className="p-4 text-start font-medium">{t('imports')}</caption>
-            <thead className="bg-slate-50">
+            <thead className="bg-surface-raised">
               <tr>
                 {['file', 'rows', 'state'].map((key) => (
                   <th key={key} className="p-3 text-start">
@@ -258,13 +258,13 @@ export const FlowList = ({ flows, runs, onCreate }: Props) => {
             </thead>
             <tbody>
               {runs.map((run) => (
-                <tr key={run.id} className="border-t border-slate-100">
+                <tr key={run.id} className="border-t border-border-default">
                   <td className="p-3">{run.fileName}</td>
                   <td className="p-3">{run.rowCount}</td>
                   <td className="p-3">
                     {t(`status.${run.status}`)}
                     {run.error && (
-                      <p className="mt-1 text-amber-700">
+                      <p className="mt-1 text-text-warning">
                         {t.has(`errors.${run.error}`)
                           ? t(`errors.${run.error}`)
                           : t('errors.requestFailed')}

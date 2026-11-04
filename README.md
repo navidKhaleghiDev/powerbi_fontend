@@ -1,6 +1,6 @@
 # BI Control Center — React frontend
 
-A frontend-only React application built with Vite and strict TypeScript, React Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
+A frontend-only React application built with Vite and strict TypeScript, TanStack Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
 
 ## Development
 
@@ -16,7 +16,7 @@ No application backend, database, environment secrets, or API routes are require
 
 Configuration: `/en/data-platform` or `/fa/data-platform`. Analytics: `/en/analytics/reports` or `/fa/analytics/reports`, with KPI and data-browser pages alongside it. The root opens the Persian configuration page. Invalid locales and unknown paths display a 404 view. Navigation preserves locale and query parameters, including legacy `?report=` links.
 
-CSV parsing and preview run entirely in the browser. Workspace lists start empty. There is no login, authentication, authorization, persistent storage, source discovery, ingestion, CDC, warehouse execution, or publication. Actions requiring these services report unavailability; no fake successful operations or live data are supplied. Report edits are temporary UI state.
+CSV parsing and preview run entirely in the browser. Configuration and production workspace lists start empty. The login page provides preview navigation only; there is no authentication, authorization, persistent storage, source discovery, ingestion, CDC, warehouse execution, or publication. Actions requiring these services report unavailability; no fake successful operations or live data are supplied. Report edits are temporary UI state.
 
 ## Verification
 
@@ -94,6 +94,12 @@ Stop either foreground container with Ctrl+C. Change the host side of `-p` if a 
 
 If Nexus requires credentials, add `--secret id=npmrc,src="$HOME/.npmrc"` to the appropriate `docker build` command. Keep credentials out of the committed project `.npmrc`.
 
-The default production Nginx configuration serves static files without a React Router fallback. Open `/` and navigate within the app. Direct requests or refreshes on paths such as `/en/analytics/reports` return 404 unless your hosting layer rewrites frontend routes to `/index.html`. Custom asset caching and the former `/healthz` endpoint are not configured.
+The default production Nginx configuration serves static files without a TanStack Router fallback. Open `/` and navigate within the app. Direct requests or refreshes on paths such as `/en/analytics/reports` return 404 unless your hosting layer rewrites frontend routes to `/index.html`. Custom asset caching and the former `/healthz` endpoint are not configured.
 
 Local environment files, credentials, Git metadata, dependencies, and generated builds are excluded from the Docker context. Runtime package installation and backend services are not included in the production image.
+
+## Reports development fixtures
+
+During `pnpm run dev`, the Reports panel automatically loads clearly labeled fictional data: 72 orders across six months, four regions, and three categories; two sample reports; KPI bindings; and paginated dataset rows. Charts, filters, CSV export, and local draft visualization work in the browser. Approval/publication metadata and timestamps are simulated, and all backend mutations still report unavailability. Configuration remains empty.
+
+The fixtures live in `src/lib/mocks/reports.ts` and are loaded through TanStack Query only on Analytics routes. Set `VITE_REPORTS_MOCKS=false` in `.env.local` and restart Vite to return to empty states. Production builds exclude the fixture module and never enable it, even if the environment flag is set. Mock edits are not persisted across reloads.

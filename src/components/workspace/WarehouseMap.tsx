@@ -52,14 +52,19 @@ export const WarehouseMap = ({
   const points = mapPoints(rows);
   if (!points.length)
     return (
-      <p role="status" className="rounded-xl bg-slate-50 p-6 text-[13px] leading-7 text-slate-600">
+      <p
+        role="status"
+        className="rounded-xl bg-surface-raised p-6 text-sm leading-7 text-text-secondary"
+      >
         {t('gis.noCoordinates')}
       </p>
     );
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">{t('gis.locations', { count: points.length })}</p>
+        <p className="text-xs text-text-secondary">
+          {t('gis.locations', { count: points.length })}
+        </p>
         <Button
           type="button"
           variant="outline"
@@ -72,14 +77,14 @@ export const WarehouseMap = ({
       <div
         role="region"
         aria-label={title}
-        className="relative z-0 h-[clamp(24rem,65dvh,48rem)] overflow-hidden rounded-xl border border-slate-200"
+        className="relative z-0 h-[clamp(24rem,65dvh,48rem)] overflow-hidden rounded-xl border border-border-default"
         dir="ltr"
       >
         <MapContainer
           center={[0, 0]}
           zoom={2}
           scrollWheelZoom={false}
-          className="h-full w-full bg-slate-100"
+          className="h-full w-full bg-surface-raised"
         >
           {basemap === 'openstreetmap' && (
             <TileLayer
@@ -110,12 +115,15 @@ export const WarehouseMap = ({
         </MapContainer>
       </div>
       {tileFailed && (
-        <p role="status" className="rounded-xl bg-amber-50 p-3 text-[13px] text-amber-900">
+        <p
+          role="status"
+          className="rounded-xl bg-surface-warning-subtle p-3 text-sm text-text-warning"
+        >
           {t('gis.tilesUnavailable')}
         </p>
       )}
-      <p className="text-xs leading-6 text-slate-500">{t('gis.scope')}</p>
-      <details className="rounded-xl border border-slate-200 p-3 text-[13px]">
+      <p className="text-xs leading-6 text-text-secondary">{t('gis.scope')}</p>
+      <details className="rounded-xl border border-border-default p-3 text-sm">
         <summary className="cursor-pointer font-medium">{t('gis.viewLocations')}</summary>
         <div className="mt-3 max-h-80 overflow-auto">
           <table className="w-full text-start">
@@ -133,7 +141,7 @@ export const WarehouseMap = ({
               {points.map((point) => (
                 <tr
                   key={JSON.stringify([point.latitude, point.longitude, point.label])}
-                  className="border-t border-slate-100"
+                  className="border-t border-border-default"
                 >
                   <td className="p-3">{point.label}</td>
                   <td className="p-3">{point.latitude}</td>

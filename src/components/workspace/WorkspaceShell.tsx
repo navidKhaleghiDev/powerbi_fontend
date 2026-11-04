@@ -1,6 +1,8 @@
-import { useLocation } from 'react-router';
+import { useLocation } from '@tanstack/react-router';
+import { Info } from 'lucide-react';
 
 import { ApplicationSidebar } from './ApplicationSidebar';
+import { WorkspaceHeader } from './WorkspaceHeader';
 
 import type { ReactNode } from 'react';
 
@@ -12,16 +14,22 @@ export const WorkspaceShell = ({ notice, children }: Props) => {
   const { pathname } = useLocation();
   const reporting = pathname.split('/').includes('analytics');
   return (
-    <div className="grid min-h-dvh w-full max-w-none items-start gap-0 lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="workspace-stage">
       <ApplicationSidebar />
-      <main
-        id="workspace-content"
-        tabIndex={-1}
-        className={`workspace-page w-full max-w-none min-w-0 p-4 text-[13px] leading-6 outline-none lg:px-5 ${reporting ? 'analytics-workspace' : ''}`}
-      >
-        {notice}
-        {children}
-      </main>
+      <div className="workspace-window">
+        <WorkspaceHeader />
+        <main
+          id="workspace-content"
+          tabIndex={-1}
+          className={`workspace-page ${reporting ? 'analytics-workspace' : ''}`}
+        >
+          <div className="workspace-mode-strip">
+            <Info size={14} strokeWidth={1.5} aria-hidden="true" />
+            {notice}
+          </div>
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

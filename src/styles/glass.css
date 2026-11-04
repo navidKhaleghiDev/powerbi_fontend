@@ -8,7 +8,7 @@
     ),
     radial-gradient(
       ellipse at 95% 35%,
-      color-mix(in srgb, var(--border-info) 3%, transparent),
+      color-mix(in srgb, var(--border-brand) 3%, transparent),
       transparent 48%
     );
   background-repeat: no-repeat;
@@ -28,7 +28,7 @@
     ),
     radial-gradient(
       ellipse at 100% 100%,
-      color-mix(in srgb, var(--border-info) 16%, transparent),
+      color-mix(in srgb, var(--border-brand) 16%, transparent),
       transparent 65%
     );
 }

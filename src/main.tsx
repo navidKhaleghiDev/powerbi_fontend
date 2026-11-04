@@ -1,8 +1,8 @@
+import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router';
 
-import { App } from './App';
+import { router } from './router';
 import 'leaflet/dist/leaflet.css';
 import './styles/globals.css';
 
@@ -11,8 +11,6 @@ if (!root) throw new Error('Missing application root');
 
 createRoot(root).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </StrictMode>,
 );

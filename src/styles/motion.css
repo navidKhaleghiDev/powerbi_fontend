@@ -1,0 +1,67 @@
+/* Short, interaction-driven motion; no continuous decorative animation. */
+@media (prefers-reduced-motion: no-preference) {
+  :where(.workspace-stage, .login-stage)
+    :is(a, button, summary, input, select, textarea, .login-panel-option) {
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  :is(
+      .workspace-rail-link,
+      .workspace-rail-brand,
+      .login-submit,
+      .login-password button,
+      .workspace-page button,
+      .snapshot-small-button
+    ):not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  .login-panel-option:active {
+    transform: scale(0.985);
+  }
+
+  :is(.login-preview a, .snapshot-text-button, .snapshot-small-button) svg {
+    transition: translate 160ms ease;
+  }
+  :is(.login-preview a, .snapshot-text-button, .snapshot-small-button):focus-visible svg {
+    translate: 2px -2px;
+  }
+  [dir='rtl']
+    :is(.login-preview a, .snapshot-text-button, .snapshot-small-button):focus-visible
+    svg {
+    translate: -2px -2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :is(.workspace-rail-link, .workspace-rail-brand, .login-submit):not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px color-mix(in srgb, var(--color-teal-900) 12%, transparent);
+    }
+    :is(.workspace-rail-link, .workspace-rail-brand, .login-submit):not(:disabled):active {
+      transform: translateY(0) scale(0.97);
+    }
+    .login-panel-option:hover {
+      box-shadow: 0 3px 10px color-mix(in srgb, var(--color-teal-900) 7%, transparent);
+    }
+    :is(.login-preview a, .snapshot-text-button, .snapshot-small-button):hover svg {
+      translate: 2px -2px;
+    }
+    [dir='rtl'] :is(.login-preview a, .snapshot-text-button, .snapshot-small-button):hover svg {
+      translate: -2px -2px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-stage :is(a, button, summary, input, select, textarea, .login-panel-option),
+  .login-preview a svg {
+    transition: none;
+    animation: none;
+  }
+}

@@ -60,31 +60,31 @@ The reference describes CRM-specific component families that are not present in 
 
 ## What already aligns
 
-| Area | Current evidence | Assessment |
-| --- | --- | --- |
-| Reusable primitives | `src/components/ui/`, CVA Button/Badge/Alert variants, `FormParts.tsx` | Aligned approach; shadcn is the explicitly chosen local foundation |
-| Server state | `src/hooks/useWorkspace.ts`, TanStack Query, shared workspace cache | Aligned separation; primitive UI components contain no data-fetching logic |
-| Loading | Existing extracted `LoadingSkeleton.tsx` reused without edits | Aligned |
-| Localization | English/Persian locale files and `use-intl` hooks | Aligned for reviewed UI; keep parity checks |
-| RTL structure | Document direction, logical `ms`/`me`/`text-start`, locale-prefixed links | Aligned approach; placeholder alignment can be made more explicit |
-| Dense operational text | Most form and metadata text uses `text-sm`/`text-xs` | Mostly aligned, despite inconsistent weights and label sizing |
-| Responsive content | `min-w-0`, bounded scrolling, responsive sidebar, full-width report column | Aligned with the application's explicit layout requirements |
-| Status semantics | Shared StatusBadge and Notice; fictional data remains identified | Aligned approach; dark states need work |
-| Chart/map drawing colors | Fixed colors are confined to visualization drawing code | Consistent with the reference's allowance for fixed drawing palettes |
-| Modal/grid-table rules | No corresponding CRM modal/PageTable family is present | Not applicable until an equivalent feature is introduced |
+| Area                     | Current evidence                                                           | Assessment                                                                 |
+| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Reusable primitives      | `src/components/ui/`, CVA Button/Badge/Alert variants, `FormParts.tsx`     | Aligned approach; shadcn is the explicitly chosen local foundation         |
+| Server state             | `src/hooks/useWorkspace.ts`, TanStack Query, shared workspace cache        | Aligned separation; primitive UI components contain no data-fetching logic |
+| Loading                  | Existing extracted `LoadingSkeleton.tsx` reused without edits              | Aligned                                                                    |
+| Localization             | English/Persian locale files and `use-intl` hooks                          | Aligned for reviewed UI; keep parity checks                                |
+| RTL structure            | Document direction, logical `ms`/`me`/`text-start`, locale-prefixed links  | Aligned approach; placeholder alignment can be made more explicit          |
+| Dense operational text   | Most form and metadata text uses `text-sm`/`text-xs`                       | Mostly aligned, despite inconsistent weights and label sizing              |
+| Responsive content       | `min-w-0`, bounded scrolling, responsive sidebar, full-width report column | Aligned with the application's explicit layout requirements                |
+| Status semantics         | Shared StatusBadge and Notice; fictional data remains identified           | Aligned approach; dark states need work                                    |
+| Chart/map drawing colors | Fixed colors are confined to visualization drawing code                    | Consistent with the reference's allowance for fixed drawing palettes       |
+| Modal/grid-table rules   | No corresponding CRM modal/PageTable family is present                     | Not applicable until an equivalent feature is introduced                   |
 
 ## Component-family mapping for this repository
 
-| CRM reference | Current Power BI equivalent |
-| --- | --- |
-| BaseButton / CVA styles | shadcn Button + application action variants in FormParts |
-| BaseInput | shadcn Input/Textarea + Field |
-| BaseTypography | Native semantic headings/text today; shared typography variants are a gap |
-| SectionWrapper | No dedicated equivalent yet; current pages compose Card/details/section |
-| Badge/status family | shadcn Badge + StatusBadge/Notice |
-| Table family | Semantic HTML tables and published DataBrowser |
-| Skeleton loader | Existing extracted shared LoadingSkelton |
-| BaseIcon | Local decorative SVG/CSS marks and visualization drawing; no matching BaseIcon family |
+| CRM reference           | Current Power BI equivalent                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| BaseButton / CVA styles | shadcn Button + application action variants in FormParts                              |
+| BaseInput               | shadcn Input/Textarea + Field                                                         |
+| BaseTypography          | Native semantic headings/text today; shared typography variants are a gap             |
+| SectionWrapper          | No dedicated equivalent yet; current pages compose Card/details/section               |
+| Badge/status family     | shadcn Badge + StatusBadge/Notice                                                     |
+| Table family            | Semantic HTML tables and published DataBrowser                                        |
+| Skeleton loader         | Existing extracted shared LoadingSkelton                                              |
+| BaseIcon                | Local decorative SVG/CSS marks and visualization drawing; no matching BaseIcon family |
 
 Do not install CRM-specific dependencies or copy unrelated CRM domain logic to satisfy naming differences. The reference's instruction not to edit atoms is compatible with reviewing and adjusting application compositions first; no atom edits were made for this audit.
 

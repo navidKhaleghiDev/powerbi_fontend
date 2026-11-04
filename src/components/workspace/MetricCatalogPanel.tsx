@@ -1,6 +1,6 @@
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { Button } from '@/components/ui/button';
@@ -31,22 +31,22 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
   });
   const flow = state.flows.find((item) => item.id === binding.flowId);
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="glass-surface rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
           <h3 className="font-medium">{t(`metric.catalog.${binding.metricId}.name`)}</h3>
-          <p className="mt-1 text-[13px] text-slate-500">
+          <p className="mt-1 text-sm text-text-secondary">
             {flow?.name} · {binding.currency || t('metric.records')}
           </p>
         </div>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-text-secondary">
           {t(binding.approvedAt ? 'metric.approved' : 'metric.awaitingApproval')}
         </span>
       </div>
-      <p className="my-4 text-[13px] leading-7 whitespace-pre-wrap text-slate-600">
+      <p className="my-4 text-sm leading-7 whitespace-pre-wrap text-text-secondary">
         {binding.definition}
       </p>
-      <dl className="mb-4 flex flex-wrap gap-3 text-xs text-slate-500">
+      <dl className="mb-4 flex flex-wrap gap-3 text-xs text-text-secondary">
         {Object.entries(binding.fields).map(([key, value]) => (
           <div key={key}>
             <dt className="inline">{t(`metric.field.${key}`)}: </dt>
@@ -96,7 +96,7 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
         </form>
       )}
       {binding.validatedAt && (
-        <p className="mt-3 text-[13px] text-teal-700">
+        <p className="mt-3 text-sm text-text-info">
           {t('metric.validationEvidence', {
             actual: binding.actual || '',
             at: binding.validatedAt,
@@ -148,14 +148,10 @@ export const MetricCatalogPanel = ({ state }: Props) => {
   if (!spec) return <Notice error={new Error('Selected KPI is unavailable')} />;
   return (
     <section className="space-y-6">
-      <header>
-        <h2 className="text-base font-medium">{t('metric.title')}</h2>
-        <p className="mt-2 text-[13px] leading-7 text-slate-500">{t('metric.help')}</p>
-      </header>
       {published.length === 0 && (
         <p
           role="status"
-          className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[13px] leading-7 text-amber-900"
+          className="rounded-xl border border-border-warning bg-surface-warning-subtle p-4 text-sm leading-7 text-text-warning"
         >
           {t('metric.noPublishedDataset')}
         </p>
@@ -190,16 +186,16 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                     definition: '',
                   });
                 }}
-                className={`rounded-2xl border p-5 text-start ${selected === item.id ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white'}`}
+                className={`rounded-2xl border p-5 text-start ${selected === item.id ? 'border-brand-600 bg-surface-info-subtle' : 'border-border-default bg-surface-default'}`}
               >
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium">
+                <span className="rounded-full bg-surface-raised px-2 py-1 text-xs font-medium">
                   {t(`metric.readiness.${readiness}`)}
                 </span>
                 <h3 className="mt-3 font-medium">{t(`metric.catalog.${item.id}.name`)}</h3>
-                <p className="mt-2 text-xs leading-6 text-slate-500">
+                <p className="mt-2 text-xs leading-6 text-text-secondary">
                   {t(`metric.catalog.${item.id}.definition`)}
                 </p>
-                <p className="mt-3 text-xs font-medium text-slate-600">
+                <p className="mt-3 text-xs font-medium text-text-secondary">
                   {t('metric.dependencies')}{' '}
                   {item.fields.length
                     ? item.fields
@@ -213,8 +209,8 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             );
           })}
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="mb-3 text-[13px] leading-7 text-slate-600">{t('metric.requestHelp')}</p>
+      <div className="glass-surface rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm">
+        <p className="mb-3 text-sm leading-7 text-text-secondary">{t('metric.requestHelp')}</p>
         <Button
           variant="outline"
           size="auto"
@@ -233,7 +229,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
       </div>
       {spec.supported ? (
         <form
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="glass-surface space-y-4 rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm"
           onSubmit={handleSubmit((values) =>
             save.mutate({
               path: 'metrics',
@@ -289,7 +285,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
               })}
             />
           </Field>
-          <p className="text-xs leading-6 text-slate-500">{t('metric.definitionHelp')}</p>
+          <p className="text-xs leading-6 text-text-secondary">{t('metric.definitionHelp')}</p>
           <Button
             variant="default"
             size="auto"
@@ -299,19 +295,19 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             {t('metric.propose')}
           </Button>
           {Object.keys(errors).length > 0 && (
-            <p role="alert" className="text-[13px] text-amber-700">
+            <p role="alert" className="text-sm text-text-warning">
               {t(errors.definition ? 'errors.definitionRequired' : 'errors.invalid')}
             </p>
           )}
           <Notice error={save.error} success={save.isSuccess} />
         </form>
       ) : (
-        <p className="rounded-2xl bg-amber-50 p-5 text-[13px] leading-7 text-amber-900">
+        <p className="rounded-2xl bg-surface-warning-subtle p-5 text-sm leading-7 text-text-warning">
           {t('metric.unsupportedHelp')}
         </p>
       )}
       <div className="space-y-4">
-        <h3 className="text-base font-medium tracking-tight text-slate-900">
+        <h3 className="text-base font-medium tracking-tight text-text-primary">
           {t('metric.reviewQueue')}
         </h3>
         {state.bindings
@@ -322,20 +318,20 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             ) : (
               <article
                 key={binding.id}
-                className="rounded-xl border border-amber-200 bg-amber-50 p-4"
+                className="rounded-xl border border-border-warning bg-surface-warning-subtle p-4"
               >
                 <h4 className="font-medium">{t(`metric.catalog.${binding.metricId}.name`)}</h4>
-                <p className="mt-2 text-[13px] text-amber-900">{t('metric.requestPending')}</p>
+                <p className="mt-2 text-sm text-text-warning">{t('metric.requestPending')}</p>
               </article>
             ),
           )}
       </div>
       {ready.length > 0 && (
-        <div className="space-y-4 rounded-2xl border border-teal-200 bg-teal-50 p-5">
+        <div className="space-y-4 rounded-2xl border border-brand-200 bg-surface-info-subtle p-5">
           <h3 className="font-medium">{t('metric.generate')}</h3>
-          <p className="text-[13px] leading-7 text-slate-600">{t('metric.generateHelp')}</p>
+          <p className="text-sm leading-7 text-text-secondary">{t('metric.generateHelp')}</p>
           {ready.map((binding) => (
-            <label className="flex items-center gap-2 text-[13px]" key={binding.id}>
+            <label className="flex items-center gap-2 text-sm" key={binding.id}>
               <input
                 type="checkbox"
                 checked={checked.includes(binding.id)}
@@ -373,9 +369,11 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                 {
                   onSuccess: (report) => {
                     if (reporting)
-                      void navigate(
-                        `/${locale}/analytics/reports?report=${encodeURIComponent(report.id)}`,
-                      );
+                      void navigate({
+                        to: '/$locale/analytics/reports',
+                        params: { locale },
+                        search: { report: report.id },
+                      });
                   },
                 },
               )

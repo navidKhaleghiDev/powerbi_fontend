@@ -45,9 +45,9 @@ export const PostgresSources = ({ connections }: Props) => {
     <section className="space-y-5">
       {toast && (
         <div
-          className={`fixed end-6 bottom-6 z-50 flex max-w-[calc(100vw-3rem)] items-start gap-4 rounded-xl border p-4 shadow-lg ${toast.kind === 'error' ? 'border-amber-300 bg-amber-50 text-amber-900' : toast.kind === 'success' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-900'}`}
+          className={`fixed end-6 bottom-6 z-50 flex max-w-[calc(100vw-3rem)] items-start gap-4 rounded-xl border p-4 shadow-lg ${toast.kind === 'error' ? 'border-border-warning bg-surface-warning-subtle text-text-warning' : toast.kind === 'success' ? 'border-border-success bg-surface-success-subtle text-text-success' : 'border-border-default bg-surface-default text-text-primary'}`}
         >
-          <p role={toast.kind === 'error' ? 'alert' : 'status'} className="text-[13px]">
+          <p role={toast.kind === 'error' ? 'alert' : 'status'} className="text-sm">
             {toast.message}
           </p>
           <Button
@@ -63,13 +63,13 @@ export const PostgresSources = ({ connections }: Props) => {
         </div>
       )}
       <div>
-        <h2 className="text-base font-medium tracking-tight text-slate-900">
+        <h2 className="text-base font-medium tracking-tight text-text-primary">
           {t('postgresSources')}
         </h2>
-        <p className="mt-1 text-[13px] text-slate-500">{t('postgresHelp')}</p>
+        <p className="mt-1 text-sm text-text-secondary">{t('postgresHelp')}</p>
       </div>
       {!connections.length && (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-[13px] leading-7 text-slate-600">
+        <p className="rounded-xl border border-dashed border-border-default bg-surface-default p-5 text-sm leading-7 text-text-secondary">
           {t('experience.sourceEmpty')}
         </p>
       )}
@@ -77,10 +77,10 @@ export const PostgresSources = ({ connections }: Props) => {
         {connections.map((connection) => (
           <article
             key={connection.id}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="glass-surface rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm"
           >
             <h3 className="font-medium">{connection.name}</h3>
-            <p dir="ltr" className="mt-2 text-[13px] break-all text-slate-500">
+            <p dir="ltr" className="mt-2 text-sm break-all text-text-secondary">
               {connection.host}:{connection.port} / {connection.database}
             </p>
             <Button
@@ -116,7 +116,7 @@ export const PostgresSources = ({ connections }: Props) => {
                 <Notice error={test.error} success={test.isSuccess} text={t('testSucceeded')} />
                 {test.isSuccess && test.data.walLevel && (
                   <p
-                    className={`mt-3 rounded-xl p-3 text-[13px] ${test.data.walLevel === 'logical' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-900'}`}
+                    className={`mt-3 rounded-xl p-3 text-sm ${test.data.walLevel === 'logical' ? 'bg-surface-success-subtle text-text-success' : 'bg-surface-warning-subtle text-text-warning'}`}
                   >
                     {test.data.walLevel === 'logical' ? t('walReady') : t('walRequired')}
                   </p>
@@ -127,7 +127,7 @@ export const PostgresSources = ({ connections }: Props) => {
         ))}
       </div>
       <form
-        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="glass-surface rounded-2xl border border-border-default bg-surface-default p-5 shadow-sm"
         onSubmit={handleSubmit(
           (values) => {
             setToast({ kind: 'pending', message: t('working') });
@@ -182,12 +182,12 @@ export const PostgresSources = ({ connections }: Props) => {
             />
           </Field>
         </div>
-        <label className="my-4 flex items-center gap-2 text-[13px]">
+        <label className="my-4 flex items-center gap-2 text-sm">
           <input type="checkbox" {...register('ssl')} />
           {t('requireTls')}
         </label>
         {Object.keys(errors).length > 0 && (
-          <p role="alert" className="mb-3 text-[13px] text-amber-700">
+          <p role="alert" className="mb-3 text-sm text-text-warning">
             {t('errors.invalid')}
           </p>
         )}

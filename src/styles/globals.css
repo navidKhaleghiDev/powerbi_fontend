@@ -3,6 +3,12 @@
 @import './theme/colors.css';
 @import './shadcn.css';
 @import './glass.css';
+@import './workspace.css';
+@import './login.css';
+@import './motion.css';
+@import './typography.css';
+@import './controls.css';
+@import './scrollbars.css';
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant rtl (&:where([dir="rtl"] *));
 @custom-variant ltr (&:where([dir="ltr"] *));
@@ -13,7 +19,7 @@ body {
 }
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #0d9488;
+  outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
 }
 
@@ -30,6 +36,21 @@ input[type='checkbox']:focus-visible,
 input[type='radio']:focus-visible {
   outline: 2px solid var(--border-brand);
   outline-offset: 3px;
+}
+
+/* Text controls indicate focus through their existing border only. */
+.workspace-canvas :is(input:not([type='checkbox']):not([type='radio']), select, textarea),
+.workspace-canvas :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus,
+.workspace-canvas
+  :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.workspace-canvas :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus {
+  border-color: #64748b;
+}
+.workspace-canvas :is(input, select, textarea)[aria-invalid='true'] {
+  border-color: var(--border-danger);
 }
 
 /* Data browsing keeps a viewport-sized scroll area within the sidebar layout. */
@@ -51,14 +72,14 @@ input[type='radio']:focus-visible {
 @font-face {
   font-family: Kalameh;
   src: url('../assets/fonts/KalamehWebFaNum-Bold.woff2') format('woff2');
-  font-weight: 500;
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: Kalameh;
   src: url('../assets/fonts/KalamehWebFaNum-ExtraBold.woff2') format('woff2');
-  font-weight: 600 900;
+  font-weight: 700 900;
   font-style: normal;
   font-display: swap;
 }
@@ -69,7 +90,7 @@ input[type='radio']:focus-visible {
 @font-face {
   font-family: Kalameh;
   src: url('../assets/fonts/KalamehWebFaNum-Medium.woff2') format('woff2');
-  font-weight: 300;
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }

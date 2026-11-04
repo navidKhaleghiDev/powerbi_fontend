@@ -8,10 +8,10 @@ interface Props {
 }
 
 const tones = {
-  neutral: 'border-slate-200 bg-slate-50 text-slate-700',
-  success: 'border-teal-200 bg-teal-50 text-teal-800',
-  warning: 'border-amber-200 bg-amber-50 text-amber-900',
-  danger: 'border-amber-200 bg-amber-50 text-amber-800',
+  neutral: 'border-border-default bg-surface-raised text-text-primary',
+  success: 'border-brand-200 bg-surface-info-subtle text-text-info',
+  warning: 'border-border-warning bg-surface-warning-subtle text-text-warning',
+  danger: 'border-border-warning bg-surface-warning-subtle text-text-warning',
 };
 
 export const StatusBadge = ({ children, tone = 'neutral' }: Props) => (

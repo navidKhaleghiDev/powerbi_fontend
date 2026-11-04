@@ -1,0 +1,117 @@
+/* Reference scale: heading line-height 140%; body 16/14/12; labels 10. */
+.workspace-canvas {
+  --type-h1: 32px;
+  --type-h2: 28px;
+  --type-h3: 24px;
+  --type-h4: 20px;
+  --type-h5: 18px;
+  --type-h6: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.workspace-canvas :is(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.4;
+  font-weight: 600;
+}
+.workspace-canvas h1 {
+  font-size: var(--type-h1);
+}
+.workspace-canvas h2 {
+  font-size: var(--type-h2);
+}
+.workspace-canvas h3 {
+  font-size: var(--type-h3);
+}
+.workspace-canvas h4 {
+  font-size: var(--type-h4);
+}
+.workspace-canvas h5 {
+  font-size: var(--type-h5);
+}
+.workspace-canvas h6 {
+  font-size: var(--type-h6);
+}
+.workspace-canvas .workspace-heading h1 {
+  font-size: var(--type-h1);
+  letter-spacing: -0.5px;
+}
+.workspace-canvas .workspace-heading-description {
+  font-size: 12px;
+}
+.workspace-canvas .workspace-brand strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.workspace-canvas .workspace-brand > span > span {
+  font-size: 10px;
+}
+.workspace-canvas .snapshot-card-header > h2,
+.workspace-canvas .snapshot-empty-copy > h3 {
+  font-size: 14px;
+}
+.workspace-canvas .snapshot-journey li strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.workspace-canvas .snapshot-table {
+  font-size: 12px;
+}
+.workspace-canvas .snapshot-table thead th,
+.workspace-canvas .snapshot-journey li small,
+.workspace-canvas .snapshot-card-toolbar,
+.workspace-canvas .snapshot-card-footer {
+  font-size: 10px;
+}
+.workspace-canvas .snapshot-empty-copy > p,
+.workspace-canvas .snapshot-empty-distribution > p,
+.workspace-canvas .snapshot-empty-table p,
+.workspace-canvas .snapshot-text-button,
+.workspace-canvas .snapshot-small-button {
+  font-size: 12px;
+}
+.workspace-canvas .snapshot-empty-table strong {
+  font-size: 14px;
+}
+.workspace-canvas .snapshot-stat strong {
+  font-size: 32px;
+  letter-spacing: -1px;
+}
+.workspace-canvas .snapshot-stat > span,
+.workspace-canvas .snapshot-legend > span {
+  font-size: 12px;
+}
+.workspace-canvas .login-showcase h2 {
+  font-size: var(--type-h2);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.workspace-canvas .login-showcase-copy p {
+  font-size: 14px;
+}
+.workspace-canvas .login-showcase-label {
+  font-size: 10px;
+}
+.workspace-canvas :is(.login-field label, .login-panel-choice legend, .login-panel-option) {
+  font-size: 12px;
+  font-weight: 500;
+}
+.workspace-canvas .login-submit {
+  font-size: 14px;
+  font-weight: 500;
+}
+.workspace-canvas.font-kalameh :is(h1, h2, h3, h4, h5, h6) {
+  letter-spacing: 0;
+}
+@media (max-width: 760px) {
+  .workspace-canvas .workspace-heading h1 {
+    font-size: 28px;
+  }
+}
+@media (max-height: 700px) {
+  .workspace-canvas .login-showcase h2 {
+    font-size: 24px;
+  }
+  .workspace-canvas .login-showcase-copy p {
+    font-size: 12px;
+  }
+}

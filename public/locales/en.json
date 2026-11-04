@@ -3,7 +3,8 @@
     "title": "Power BI Control Center",
     "language": "فارسی",
     "connectedNotice": "Configure sources and data flows in Configuration. Analytics uses published warehouse datasets.",
-    "frontendOnlyNotice": "Frontend only. No accounts, connected services, saved changes, or live data are available. CSV previews stay in your browser."
+    "frontendOnlyNotice": "Frontend only. No accounts, connected services, saved changes, or live data are available. CSV previews stay in your browser.",
+    "reportsMockNotice": "Development mock data · All orders, reports, approvals, and timestamps are fictional. No live services are connected. Save and publish actions require a backend."
   },
   "studio": {
     "panelLoginOnly": "To change panels, sign out and choose the panel on the login page.",
@@ -220,8 +221,6 @@
     "state": "State",
     "analyticsTitle": "Analytics workspace",
     "analyticsDescription": "Build reports from your published ClickHouse datasets. Add charts, KPIs and tables, reorder visuals, and save reports on the server. This workspace queries ClickHouse; Microsoft Power BI delivery is a separate integration.",
-    "viewMode": "Reading view",
-    "editMode": "Edit report",
     "noPublishedData": "Publish your first dataset",
     "publishFirst": "Import a CSV or configure a PostgreSQL CDC flow, then publish a snapshot. No sample customer data is mixed into this workspace.",
     "configureData": "Open data configuration",
@@ -499,6 +498,112 @@
       "openLocalWorkspace": "Open the Docker data workspace (port {port})",
       "localCredentials": "Use its local accounts from .data/compose-access.txt. This workspace and its accounts remain separate."
     },
-    "sampleDataNotice": "Sample data is enabled. SAMPLE charts and rows are fictional and demonstrate the app; they are not live Power BI or database data. Sample reports are exploratory drafts."
+    "sampleDataNotice": "Sample data is enabled. SAMPLE charts and rows are fictional and demonstrate the app; they are not live Power BI or database data. Sample reports are exploratory drafts.",
+    "design": {
+      "brand": "netsep workspace",
+      "workspaceLabel": "YOUR DATA, IN ONE PLACE",
+      "overviewTab": "Workspace snapshot",
+      "mappingTab": "Data mapping",
+      "overviewTitle": "Workspace Snapshot",
+      "workspaceSummary": "Workspace records at a glance",
+      "viewOptions": "View options",
+      "density": "Layout density",
+      "compact": "Compact",
+      "comfortable": "Comfortable",
+      "home": "Workspace home",
+      "csvShortcut": "Preview and map a CSV file",
+      "frontendLabel": "Frontend workspace",
+      "recordCount": "{count, plural, one {# workspace record} other {# workspace records}}",
+      "noWorkspaceRecords": "Your workspace starts here",
+      "counts": {
+        "sources": "Sources",
+        "flows": "Data flows",
+        "reports": "Published reports"
+      },
+      "sectionHelp": {
+        "overview": "A clear view of your sources, data flows and reports.",
+        "sources": "Explore the connection form. Connected services are not available in this frontend.",
+        "mapping": "Preview a CSV in your browser and explore its column mapping.",
+        "flows": "Review the data-flow interface and its configuration states.",
+        "metrics": "Explore KPI definitions, requirements and reporting layouts.",
+        "data": "Explore the data browser. No live datasets are connected."
+      },
+      "activityTitle": "Publication activity",
+      "activityHelp": "Published import runs recorded in this workspace, grouped by date.",
+      "publishedRuns": "Published runs",
+      "workspaceRecords": "Workspace records",
+      "noActivity": "A fresh start for your data",
+      "noActivityHelp": "Publication history will appear here when records are available.",
+      "previewCsv": "Preview a CSV file",
+      "sourcesTitle": "Flows by source",
+      "sourcesHelp": "The number of configured flows associated with each source.",
+      "noSources": "No sources configured",
+      "noSourcesHelp": "Your sources will find their place here.",
+      "distributionTitle": "Data flow status",
+      "distributionHelp": "A breakdown of recorded data flows by configuration status.",
+      "noDistribution": "No flow status to display yet",
+      "datasetSummary": "Dataset summary",
+      "datasetSummaryHelp": "Data-flow metadata from this frontend workspace.",
+      "datasetName": "Dataset",
+      "datasetSource": "Source type",
+      "datasetStatus": "Status",
+      "viewData": "Browse data",
+      "noDatasets": "Make room for your first dataset",
+      "noDatasetsHelp": "Start with a CSV preview to explore your data structure.",
+      "createFlow": "Explore mapping",
+      "datasetCount": "{count, plural, one {# published dataset} other {# published datasets}}",
+      "setupTitle": "Your next steps",
+      "notConfigured": "Not configured yet",
+      "setupHelp": "CSV preview works locally. Connecting, saving and publishing require a backend.",
+      "analyticsTitle": "Analytics Studio",
+      "analyticsHelp": "A canvas for your insights, ready for connected data.",
+      "kpisHelp": "Explore the metrics that matter to your workspace.",
+      "dataHelp": "A structured view of your published datasets when available.",
+      "dataTab": "Data browser",
+      "noPublishedDataHelp": "Charts and reports will appear when datasets are available. This frontend does not run live queries.",
+      "login": "Sign in",
+      "switchPanel": "Choose another panel"
+    }
+  },
+  "login": {
+    "brand": "Netpardaz",
+    "welcome": "Welcome to Power BI Control Center",
+    "introduction": "Your data workspace starts here. Choose a panel to get started.",
+    "product": "Power BI Control Center",
+    "language": "فارسی",
+    "title": "Sign in",
+    "username": "Username",
+    "usernamePlaceholder": "Demo username",
+    "password": "Password",
+    "passwordPlaceholder": "Demo password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "submit": "Enter selected panel",
+    "choosePanel": "Choose your panel",
+    "configuration": "Configuration",
+    "reports": "Reports",
+    "showcaseTitle": "From connected data to a clearer picture.",
+    "showcaseDescription": "One place to configure your data workspace and explore your reports. Choose the panel that fits your work.",
+    "carouselLabel": "Explore Power BI Control Center",
+    "carouselRole": "carousel",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "goToSlide": "Go to slide {number}",
+    "pauseSlides": "Pause slideshow",
+    "playSlides": "Play slideshow",
+    "slides": {
+      "overview": {
+        "title": "From connected data to a clearer picture.",
+        "description": "One place to configure your data workspace and explore your reports."
+      },
+      "configuration": {
+        "title": "Give your data a clear direction.",
+        "description": "Explore a workspace designed around sources, data flows, and warehouse planning."
+      },
+      "reports": {
+        "title": "See the story behind your data.",
+        "description": "Explore reports, charts, and visual perspectives in a focused analytics workspace."
+      }
+    }
   }
 }

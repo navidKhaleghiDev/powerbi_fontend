@@ -33,11 +33,17 @@ Native select, checkbox, and radio controls retain their existing behavior and k
 
 `components.json` configures the source directories, Tailwind v4 stylesheet, Radix-based style, and RTL support. Add further primitives through the official CLI, review generated dependencies and theme changes, and use `@/lib/utils` for class merging. New theme colors must map to reviewed semantic tokens; do not overwrite the existing theme files with a stock palette.
 
-After structural changes, run `npm run check-types` and `npm run build`, and verify the relevant English/Persian browser flows at desktop and mobile widths.
+After structural changes, run `pnpm run check-types` and `pnpm run build`, and verify the relevant English/Persian browser flows at desktop and mobile widths.
 
-## Frosted surfaces
+## Glassmorphism presentation
 
-`src/styles/glass.css` provides the decorative canvas, `glass-surface`, and `glass-hero` treatments. Glass is limited to the shell, page heading, navigation, login, and setup summary. Forms, tables, and charts retain readable solid surfaces. The stylesheet uses the existing semantic colors, supplies an opaque fallback when backdrop filtering is unavailable, and disables transparency for reduced-transparency preferences, forced colors, and printing. No animated blur or moving backgrounds are used.
+The user-supplied November 4 dashboard screenshots guide the composed layout: a compact circular icon rail, horizontal pill navigation, a blue-gray canvas, rounded panels, and a teal/green/rose chart palette. The application uses light mode: `index.html` sets the native light color scheme before first paint, independently of the operating system. The requested treatment is glassmorphism, implemented in `src/styles/workspace.css` with translucent light backgrounds, white highlight borders, static backdrop blur, and soft shadows. `src/styles/glass.css` remains a shared base. The extracted semantic palette in `src/styles/theme/colors.css` is preserved; app-specific `brand-*` utilities and workspace variables define the new visual layer separately.
+
+`WorkspaceHeader` provides contextual page tabs, workspace-home and language links, and working comfortable/compact layout controls. `ApplicationSidebar` is a circular icon rail with accessible labels and hover/focus tooltips; it becomes a horizontally scrollable navigation row on narrow screens. RTL mirrors the desktop layout, and Persian uses larger Kalameh labels for readability.
+
+The snapshot overview includes real workspace record counts, publication history, source/flow breakdowns, setup shortcuts and a dataset summary. Charts use only provided workspace records and lazy-load their rendering library when records exist. Empty workspaces show labeled empty states and an empty status ring. The screenshot's workforce figures are not copied, and no live integration is implied. CSV preview remains browser-local.
+
+Reduced transparency uses opaque panels, reduced motion disables decorative transitions, and forced-color/print styles provide readable fallbacks. The shared loading skeleton remains unchanged.
 
 ## Analytics charts
 
@@ -47,7 +53,7 @@ Axes use localized compact numbers; tooltips and the expandable data table use o
 
 ## GIS report visualization
 
-Choose **GIS map** in the report visualization builder, map two distinct numeric warehouse columns to latitude and longitude, optionally select a location label, and choose count/sum/average as with exploratory charts. Coordinates must be WGS84 degrees. The map reads the active published snapshot through the authenticated analytics API, applies existing report filters, excludes missing/non-finite/out-of-range coordinates, and displays at most 50 grouped locations. It never geocodes city names or queries unpublished source rows.
+Choose **GIS map** in the report visualization builder, map two distinct numeric warehouse columns to latitude and longitude, optionally select a location label, and choose count/sum/average as with exploratory charts. Coordinates must be WGS84 degrees. The map renders supplied rows and excludes missing, non-finite, or out-of-range coordinates. This frontend has no analytics API or live warehouse connection. A future service must supply authorized, bounded published results. The component never geocodes city names or queries source rows.
 
 Map configuration is persisted with the report draft. GIS widgets remain exploratory and cannot bypass existing governed KPI publication gates. The existing sample dataset has no coordinate fields and does not invent locations.
 
@@ -55,15 +61,15 @@ Map configuration is persisted with the report draft. GIS widgets remain explora
 
 ## Analytics pages and navigation
 
-The frontend application shell renders one `ApplicationSidebar` for both panels, including current-panel navigation, language choices, and a panel switch link. There is no login, account identity, logout, or access control. Analytics retains `analytics/kpis`, `analytics/reports`, and `analytics/data`. Links preserve the locale and use `aria-current="page"`. The desktop sidebar becomes an expandable Menu on mobile. Workspace lists start empty; no API requests are issued.
+The frontend application shell renders `WorkspaceHeader` and one `ApplicationSidebar` across both panels. There is no login, account identity, logout, or access control. Analytics retains `analytics/kpis`, `analytics/reports`, and `analytics/data`. Links preserve the locale and query parameters and mark the active page with `aria-current="page"`. The workspace starts empty and makes no backend requests.
 
 The Analytics root and Report Panel login default to the Report Editor. Existing `/analytics?report=<id>` links redirect to `/analytics/reports?report=<id>`. The report editor remains full-width within its content column. Save report edits before navigating to a different page.
 
-There is no global top header. Language links preserve the current page and query parameters. Configuration sidebar links use a validated `section` query parameter, so direct links and browser Back/Forward select the matching section. The login page remains standalone with its own language control and no sidebar. Server-side role/data-access checks remain in the panel layouts and APIs; sidebar visibility does not grant access.
+The top header uses contextual navigation and exposes language switching on every workspace page. Configuration uses a validated `section` query parameter, so direct links and browser Back/Forward select the matching section. Density changes affect presentation only and remain in React state.
 
 ## Financial visual character
 
-Workspace compositions use restrained medium-weight text, fine borders, neutral shadows, and subtle glass/background tints. Teal primarily indicates actions, selection, and status; KPI values use neutral dark text with tabular digits. Shared controls use an 8px radius and compact 40px desktop sizing while retaining 44px minimum touch sizing. Numeric published-data columns are end-aligned with left-to-right numeric direction in both locales and use exact string-preserving formatting; primary-key identities are not reformatted as amounts. The existing monetary calculations and KPI definitions remain unchanged.
+Workspace compositions use translucent rounded panels, subtle white borders and a soft blue-gray canvas. Tailwind teal indicates selection and actions; green and rose distinguish chart categories. Warning and error notices retain their distinct treatments. Exact numeric formatting, explicit empty states, and accessible chart tables remain intact.
 
 ## Sidebar iconography and branding
 
@@ -75,4 +81,18 @@ The sidebar brand row uses local assets under `public/brand`: the existing Contr
 
 Visible workspace errors use amber surfaces and readable error text while retaining `role="alert"`, linked field errors, and validation behavior. Remove/Exclude actions use neutral text. The shadcn destructive alias maps to the existing warning token; original imported theme definitions are preserved. Chart drawing colors use teal, blue, amber, purple, cyan, and slate rather than pink/red tones.
 
-The sidebar now gives the Netsep mark primary placement next to the title, with Power BI as a small secondary badge. The earlier three-equal-logo row is no longer rendered. Brand asset provenance and the Netsep recreation note remain in `public/brand/README.md`.
+The header gives the local Netsep mark primary placement beside the workspace name. Brand provenance remains in `public/brand/README.md`. The logo is not evidence of a connected Power BI service.
+
+### Minimal presentation
+
+Keep the light glass surfaces and detached sidebar/header. Use a restrained border and shadow treatment, consistent rounded cards, and generous spacing. Page titles and short descriptions establish hierarchy; avoid decorative window dots, repeated eyebrow labels, and gridlines in empty chart placeholders. Keep data, action labels, validation messages, and contextual help visible. Application navigation lives in the sidebar, with the language switcher in its footer.
+
+The `brand-*` utilities alias the installed Tailwind `teal-*` scale. Primary buttons and links use teal-700 for readable contrast; teal-500 highlights charts. The blue-gray canvas and neutral text remain unchanged.
+
+### Shared control dimensions
+
+Inputs, selects, and textareas follow the supplied control reference: 14px regular text, 12px corners (`rounded-xl`), a 1px border, and 10px padding (`p-2.5`). Single-line fields are at least 42px high; password icons are 16px. Touch inputs retain 16px text to avoid browser zoom. Text buttons use 16px semibold text, 8px corners (`rounded-lg`), and 8px padding (`p-2`). Outline and login buttons use the teal brand border. Focus remains border-only for text inputs; icon-only buttons and navigation keep their compact sizes.
+
+### Typography variants
+
+`src/lib/typography.ts` defines the supplied heading, body, label, button, and caption variants. Use the named `Typography` component in `src/components/ui/typography.tsx` with an explicit `as` for semantic headings. The size scale is 32/28/24/20/18/16/14/12/10px; headings use semibold and 1.4 line height, body and button variants follow their specified weights and line heights. Page headers and login headings consume these variants. Workspace values and KPI figures are capped at 32px, and legacy 9/11/13/30px text has been aligned with the supplied scale. Text inputs remain regular-weight per the input specification.

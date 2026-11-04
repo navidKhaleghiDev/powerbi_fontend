@@ -31,7 +31,7 @@ ChartJS.register(
   Tooltip,
 );
 
-const colors = ['#0f766e', '#2563eb', '#a16207', '#9333ea', '#0891b2', '#475569'];
+const colors = ['#14b8a6', '#81c995', '#cd8185', '#b5a5d4', '#dac38d', '#8fbcc5'];
 type VisualKind = 'bar' | 'line' | 'doughnut';
 interface Props {
   kind: 'bar' | 'line' | 'pie';
@@ -134,7 +134,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
   return (
     <div className="space-y-4">
       <div
-        className="relative h-[clamp(20rem,55dvh,40rem)] w-full min-w-0"
+        className="workspace-chart-canvas relative h-[clamp(16rem,35dvh,25rem)] w-full min-w-0"
         dir={rtl ? 'rtl' : 'ltr'}
       >
         {kind === 'bar' ? (
@@ -147,9 +147,9 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
                 {
                   label: title,
                   data: values,
-                  backgroundColor: '#0f766e',
-                  hoverBackgroundColor: '#115e59',
-                  borderRadius: 7,
+                  backgroundColor: '#14b8a6',
+                  hoverBackgroundColor: '#0d9488',
+                  borderRadius: 9,
                   maxBarThickness: 64,
                 },
               ],
@@ -165,12 +165,12 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
                 {
                   label: title,
                   data: values,
-                  borderColor: '#2563eb',
-                  backgroundColor: '#2563eb14',
+                  borderColor: '#14b8a6',
+                  backgroundColor: '#14b8a624',
                   fill: true,
-                  tension: 0.2,
-                  borderWidth: 3,
-                  pointRadius: values.length > 20 ? 0 : 3,
+                  tension: 0.35,
+                  borderWidth: 2,
+                  pointRadius: values.length > 60 ? 0 : 2.5,
                   pointHoverRadius: 6,
                   pointHitRadius: 12,
                   spanGaps: false,
@@ -190,7 +190,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
                   data: values.map((value) => value ?? 0),
                   backgroundColor: labels.map((_, index) => colors[index % colors.length]),
                   borderColor: '#ffffff',
-                  borderWidth: 3,
+                  borderWidth: 2,
                   hoverOffset: 8,
                 },
               ],
@@ -199,7 +199,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
         ) : (
           <p
             role="status"
-            className="flex h-full items-center justify-center rounded-xl bg-slate-50 p-6 text-center text-[13px] leading-7 text-slate-600"
+            className="flex h-full items-center justify-center rounded-xl bg-surface-raised p-6 text-center text-sm leading-7 text-text-secondary"
           >
             {t('charts.noDistribution')}
           </p>
@@ -213,29 +213,29 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
           {rows.map((row, index) => (
             <li
               key={JSON.stringify([row.label])}
-              className="flex min-w-0 items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-6"
+              className="flex min-w-0 items-start gap-2 rounded-lg bg-surface-raised px-3 py-2 text-xs leading-6"
             >
               <span
                 aria-hidden="true"
                 className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: colors[index % colors.length] }}
               />
-              <span className="min-w-0 flex-1 break-words text-slate-600" dir="auto">
+              <span className="min-w-0 flex-1 break-words text-text-secondary" dir="auto">
                 {labels[index]}
               </span>
-              <span className="shrink-0 font-medium text-slate-900 tabular-nums" dir="auto">
+              <span className="shrink-0 font-medium text-text-primary tabular-nums" dir="auto">
                 {formatExactValue(row.value, locale)}
               </span>
             </li>
           ))}
         </ul>
       )}
-      <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[13px]">
-        <summary className="cursor-pointer font-medium text-slate-600">
+      <details className="rounded-xl border border-border-default bg-surface-raised p-3 text-sm">
+        <summary className="cursor-pointer font-medium text-text-secondary">
           {t('charts.viewValues')}
         </summary>
         <div className="mt-3 max-h-80 overflow-auto">
-          <table className="w-full text-start text-[13px]">
+          <table className="w-full text-start text-sm">
             <caption className="sr-only">{title}</caption>
             <thead>
               <tr>
@@ -249,7 +249,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={JSON.stringify([row.label])} className="border-t border-slate-200">
+                <tr key={JSON.stringify([row.label])} className="border-t border-border-default">
                   <th scope="row" className="p-3 text-start font-normal" dir="auto">
                     {labels[index]}
                   </th>
