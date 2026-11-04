@@ -1,12 +1,13 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router";
-import { App } from "./App";
-import "leaflet/dist/leaflet.css";
-import "./styles/globals.css";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
 
-const root = document.getElementById("root");
-if (!root) throw new Error("Missing application root");
+import { App } from './App';
+import 'leaflet/dist/leaflet.css';
+import './styles/globals.css';
+
+const root = document.getElementById('root');
+if (!root) throw new Error('Missing application root');
 
 createRoot(root).render(
   <StrictMode>

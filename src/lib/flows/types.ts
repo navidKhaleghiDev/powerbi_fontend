@@ -1,5 +1,4 @@
-export type ColumnType =
-  "String" | "Int64" | "Float64" | "Decimal(18,2)" | "Date";
+export type ColumnType = 'String' | 'Int64' | 'Float64' | 'Decimal(18,2)' | 'Date';
 export interface ColumnMapping {
   source: string;
   target: string;
@@ -21,14 +20,14 @@ export interface DataFlow {
   sampleData?: boolean;
   id: string;
   name: string;
-  kind: "postgres" | "csv";
+  kind: 'postgres' | 'csv';
   connectionId?: string;
   schema?: string;
   table?: string;
   columns: ColumnMapping[];
   primaryKey: string;
   grain: string;
-  status: "draft" | "capture_started" | "published" | "failed";
+  status: 'draft' | 'capture_started' | 'published' | 'failed';
   activeLoadId?: string;
   sourceWatermark?: { partition: number | string; offset: string }[];
   rowCount?: number;
@@ -44,16 +43,16 @@ export interface ImportRun {
   checksum: string;
   fileName: string;
   rowCount: number;
-  status: "uploaded" | "verified" | "applied" | "published" | "failed";
+  status: 'uploaded' | 'verified' | 'applied' | 'published' | 'failed';
   createdAt: string;
   error?: string;
 }
-export type ChartKind = "bar" | "line" | "pie" | "table" | "kpi" | "map";
-export type Aggregation = "sum" | "count" | "avg";
+export type ChartKind = 'bar' | 'line' | 'pie' | 'table' | 'kpi' | 'map';
+export type Aggregation = 'sum' | 'count' | 'avg';
 export interface ReportWidget {
   latitudeField?: string;
   longitudeField?: string;
-  basemap?: "none" | "openstreetmap";
+  basemap?: 'none' | 'openstreetmap';
   filterField?: string;
   filterValue?: string;
   dateField?: string;
@@ -79,7 +78,7 @@ export interface SavedReport {
   widgets: ReportWidget[];
   updatedAt: string;
 }
-export interface PublicConnection extends Omit<PostgresConnection, "password"> {
+export interface PublicConnection extends Omit<PostgresConnection, 'password'> {
   hasPassword: boolean;
 }
 export interface WorkspaceState {
@@ -112,15 +111,15 @@ export interface AnalyticsResult {
   limit: number;
 }
 export type MetricId =
-  | "record_count"
-  | "customer_count"
-  | "order_count"
-  | "sales_amount"
-  | "average_order_value"
-  | "completed_revenue"
-  | "gross_margin"
-  | "retention"
-  | "net_profit";
+  | 'record_count'
+  | 'customer_count'
+  | 'order_count'
+  | 'sales_amount'
+  | 'average_order_value'
+  | 'completed_revenue'
+  | 'gross_margin'
+  | 'retention'
+  | 'net_profit';
 export interface MetricBinding {
   requestResolved?: boolean;
   id: string;

@@ -1,0 +1,24 @@
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Generated files
+*.min.js
+*.min.css
+src/generated/
+
+# Package manager lockfiles
+pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Preserve the extracted shared loading skeleton exactly.
+src/ui/components/molecules/Loading/LoadingSkeleton.tsx

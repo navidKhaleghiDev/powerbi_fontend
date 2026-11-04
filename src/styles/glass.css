@@ -1,8 +1,16 @@
 /* Decorative glass surfaces; data-heavy content retains solid backgrounds. */
 .workspace-canvas {
   background-image:
-    radial-gradient(ellipse at 8% 0%, color-mix(in srgb, var(--border-brand) 5%, transparent), transparent 48%),
-    radial-gradient(ellipse at 95% 35%, color-mix(in srgb, var(--border-info) 3%, transparent), transparent 48%);
+    radial-gradient(
+      ellipse at 8% 0%,
+      color-mix(in srgb, var(--border-brand) 5%, transparent),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 95% 35%,
+      color-mix(in srgb, var(--border-info) 3%, transparent),
+      transparent 48%
+    );
   background-repeat: no-repeat;
 }
 
@@ -13,8 +21,16 @@
 
 .glass-hero {
   background-image:
-    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--border-brand) 38%, transparent), transparent 70%),
-    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--border-info) 16%, transparent), transparent 65%);
+    radial-gradient(
+      ellipse at 0% 0%,
+      color-mix(in srgb, var(--border-brand) 38%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse at 100% 100%,
+      color-mix(in srgb, var(--border-info) 16%, transparent),
+      transparent 65%
+    );
 }
 
 @supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
@@ -31,7 +47,10 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .workspace-canvas, .glass-hero { background-image: none; }
+  .workspace-canvas,
+  .glass-hero {
+    background-image: none;
+  }
 }
 
 @media (forced-colors: active) {
@@ -42,7 +61,10 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .workspace-canvas, .glass-hero { background-image: none; }
+  .workspace-canvas,
+  .glass-hero {
+    background-image: none;
+  }
 }
 
 @media print {
@@ -52,5 +74,8 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .workspace-canvas, .glass-hero { background-image: none; }
+  .workspace-canvas,
+  .glass-hero {
+    background-image: none;
+  }
 }

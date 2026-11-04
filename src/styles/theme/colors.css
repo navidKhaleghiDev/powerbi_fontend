@@ -538,13 +538,9 @@
   --color-button-primary-text-pressed: var(--button-primary-text-pressed);
   --color-button-secondary-bg-disabled: var(--button-secondary-bg-disabled);
   --color-button-secondary-bg-hover: var(--button-secondary-bg-hover);
-  --color-button-secondary-border-default: var(
-    --button-secondary-border-default
-  );
+  --color-button-secondary-border-default: var(--button-secondary-border-default);
   --color-button-secondary-border-hover: var(--button-secondary-border-hover);
-  --color-button-secondary-border-pressed: var(
-    --button-secondary-border-pressed
-  );
+  --color-button-secondary-border-pressed: var(--button-secondary-border-pressed);
   --color-button-secondary-icon-default: var(--button-secondary-icon-default);
   --color-button-secondary-icon-disabled: var(--button-secondary-icon-disabled);
   --color-button-secondary-icon-hover: var(--button-secondary-icon-hover);
