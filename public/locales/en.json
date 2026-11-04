@@ -2,9 +2,123 @@
   "workspace": {
     "title": "Power BI Control Center",
     "language": "فارسی",
-    "connectedNotice": "Configure sources and data flows in Configuration. Analytics uses published warehouse datasets."
+    "connectedNotice": "Configure sources and data flows in Configuration. Analytics uses published warehouse datasets.",
+    "frontendOnlyNotice": "Frontend only. No accounts, connected services, saved changes, or live data are available. CSV previews stay in your browser."
   },
   "studio": {
+    "panelLoginOnly": "To change panels, sign out and choose the panel on the login page.",
+    "sidebar": {
+      "powerBiName": "Power BI",
+      "netsepLogo": "Netsep logo",
+      "applicationLogo": "Control Center logo",
+      "powerBiLogo": "Power BI logo",
+      "menu": "Menu",
+      "language": "Language",
+      "persian": "فارسی",
+      "english": "English"
+    },
+    "sampleDataBadge": "Sample · Fictional data",
+    "gis": {
+      "tilesUnavailable": "Some background tiles could not load. Data points remain available; check the network or select the offline background.",
+      "mapName": "GIS map",
+      "latitude": "Latitude field",
+      "longitude": "Longitude field",
+      "label": "Location label (optional)",
+      "value": "Value",
+      "basemap": "Map background",
+      "offline": "Coordinate canvas (offline)",
+      "selectField": "Select a numeric coordinate field",
+      "configureHelp": "Map published rows using explicit WGS84 latitude (−90 to 90) and longitude (−180 to 180) fields. Map visuals are exploratory drafts; they do not bypass governed-report publication checks.",
+      "tilesHelp": "Offline mode makes no tile requests. OpenStreetMap downloads background tiles for the visible area; data markers are rendered in your browser.",
+      "noCoordinates": "No valid mapped coordinates are available. Choose numeric latitude and longitude fields in a published dataset; city names alone are not coordinates.",
+      "locations": "{count} mapped locations",
+      "fit": "Fit all locations",
+      "scope": "Shows up to 50 grouped locations from the active published snapshot, with the selected filters. Missing, non-finite, and out-of-range coordinates are excluded.",
+      "viewLocations": "View mapped locations"
+    },
+    "charts": {
+      "categories": "Chart categories",
+      "viewValues": "View chart data",
+      "category": "Category",
+      "noDistribution": "A distribution chart needs non-negative values and a positive total. View the exact values below or choose a bar or line chart."
+    },
+    "polish": {
+      "welcome": "Your data. A clearer path to insight.",
+      "welcomeHelp": "One workspace to configure your sources, publish validated datasets, and build reports from the data you are allowed to access.",
+      "configurationHelp": "Connect sources, map fields, and manage capture and publication.",
+      "reportHelp": "Explore published datasets, choose KPIs, and build governed reports.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "capsLock": "Caps Lock is on",
+      "csvHelp": "Upload a file to create a complete replacement snapshot.",
+      "cdcHelp": "Capture PostgreSQL changes with Debezium and Kafka, then publish a snapshot.",
+      "chooseSourceFirst": "Choose a source table or upload a CSV file to begin mapping fields.",
+      "chooseKeyFirst": "Select a stable primary key before creating this flow."
+    },
+    "loginPanels": {
+      "signedOut": "You are signed out. Choose Configuration Panel or Report Panel, then sign in with an authorized account.",
+      "choose": "Which panel do you want to sign in to?",
+      "configuration": "Configuration Panel",
+      "report": "Report Panel",
+      "help": "Choose your destination after sign-in. Configuration requires the provider role; reports require a data-access grant."
+    },
+    "experience": {
+      "section": "Workspace section",
+      "getStarted": "Your workspace, step by step",
+      "continueSetup": "Continue setup",
+      "reviewFlows": "Review flows",
+      "recorded": "Saved in this workspace",
+      "needsSetup": "Not saved yet",
+      "setupEvidence": "Based on saved workspace records. Check connector task status in Data flows.",
+      "useCsv": "Use a CSV file instead",
+      "deploymentHelp": "Check deployment details and previous verification evidence.",
+      "manageFlows": "Manage flows",
+      "createFlow": "Create a data flow",
+      "searchFlows": "Find a flow by name",
+      "all": "All statuses",
+      "attention": "Needs attention",
+      "flowResults": "Showing {count} of {total} flows",
+      "noMatches": "No flows match your filters",
+      "searchHelp": "Try another name or clear the status filter.",
+      "clearFilters": "Clear filters",
+      "firstFlowHelp": "Choose your source and map its fields, then start capture or upload a CSV snapshot.",
+      "saveBeforeTesting": "You have unsaved changes. Save these settings before testing the connection.",
+      "sourceEmpty": "No PostgreSQL sources saved yet. Add a connection below, or choose a CSV source when creating your data flow.",
+      "analyticsViews": "Analytics views",
+      "askProvider": "Ask your provider to publish a dataset before building this report.",
+      "canvasTitle": "Build a report from your published data",
+      "selectReport": "Choose a saved report from the list, or switch to edit mode to start a new one.",
+      "groups": {
+        "workspace": "Workspace",
+        "setup": "Data setup",
+        "governance": "Governance"
+      },
+      "journey": {
+        "services": {
+          "label": "Configure services",
+          "title": "Start with your warehouse",
+          "help": "Save your ClickHouse connection. For PostgreSQL CDC, also configure Kafka and Debezium, then run the connection tests."
+        },
+        "source": {
+          "label": "Connect a source",
+          "title": "Choose where your data comes from",
+          "help": "Add and test a PostgreSQL connection, or use a CSV file to publish a replacement snapshot."
+        },
+        "mapping": {
+          "label": "Map your data",
+          "title": "Define your first data flow",
+          "help": "Choose a table or CSV source, declare its primary key, and map fields to warehouse types."
+        },
+        "publication": {
+          "label": "Publish a snapshot",
+          "title": "Make your data available for analysis",
+          "help": "For PostgreSQL, start capture and verify connector status before publishing. For CSV, upload the mapped file. Publication activates a validated snapshot."
+        },
+        "completeTitle": "Your published data is ready to explore",
+        "completeHelp": "Choose KPIs, review their mappings and approval, and reconcile results before publishing governed reports."
+      }
+    },
+    "skipToContent": "Skip to main content",
     "panelNavigation": "Workspace panels",
     "configurationPanel": "Data configuration",
     "analyticsPanel": "Analytics & reports",
@@ -172,7 +286,8 @@
       "metricCurrency": "Money KPIs require a mapped Decimal(18,2) amount and a three-letter currency code.",
       "definitionRequired": "Write an explicit business definition of at least 30 characters.",
       "metricNotReady": "Publication is blocked: every visual must use an approved KPI reconciled against the current published data version.",
-      "reconciliationFailed": "The warehouse result does not match the independent control total within the allowed tolerance. Publication remains blocked."
+      "reconciliationFailed": "The warehouse result does not match the independent control total within the allowed tolerance. Publication remains blocked.",
+      "backendUnavailable": "This action requires a backend, which is not included in this project."
     },
     "status": {
       "draft": "Draft",
@@ -184,6 +299,7 @@
       "applied": "Applied"
     },
     "chart": {
+      "map": "GIS map",
       "bar": "Bar chart",
       "line": "Line chart",
       "pie": "Donut chart",

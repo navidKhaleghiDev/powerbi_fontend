@@ -1,55 +1,25 @@
-# BI Control Center — connected single-organization pilot
+# BI Control Center — React frontend
 
-Provider configuration: `/fa/data-platform`. Customer KPI and report workspace: `/fa/analytics`. Top-level navigation switches panels according to server-checked permissions. The app remains independent of CRM.
+A frontend-only React application built with Vite and strict TypeScript, React Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
 
-## Run
+## Development
 
-Node.js 22.12+. `npm ci`, `npm run build`, `npm start`. Servers use port 3001 and all interfaces in the installed project. Use `npm run dev` for development.
+Use Node.js 22.22+ and run `npm ci`, then `npm run dev` (port 3001). Vite provides React Fast Refresh.
 
-## Optional local Docker Compose stack
+## Build and hosting
 
-The complete local PostgreSQL → Debezium/Kafka → ClickHouse → application stack is described in [the Persian Compose guide](docs/DOCKER_COMPOSE_FA.md). It uses isolated named volumes and `.data/compose-workspace`, with the application on port **3003** by default. The existing host app on 3001 and its accounts remain unchanged.
+Run `npm run build`. Deploy the generated `dist/` directory to a static web host. Configure the host to serve `index.html` for application routes so direct links and browser refresh work. Asset URLs must continue to resolve to their actual files. Use `npm run preview` to check the production bundle locally on port 3001.
 
-```bash
-npm run stack:init
-npm run stack:up
-npm run stack:provision
-npm run stack:verify
-```
+No application backend, database, Docker services, environment secrets, or API routes are required.
 
-Generated local account passwords are in private `.data/compose-access.txt`. `stack:exercise` performs insert/update/delete acceptance checks on reserved synthetic rows and republishes/reconciles the dashboard. `stack:stop` preserves data. Runtime verification is only complete when the evidence file has been written successfully; prepared configuration alone is not a passing live test.
+## Available UI
 
-## Initial sign-in
+Configuration: `/en/data-platform` or `/fa/data-platform`. Analytics: `/en/analytics/reports` or `/fa/analytics/reports`, with KPI and data-browser pages alongside it. The root opens the Persian configuration page. Invalid locales and unknown paths display a 404 view. Navigation preserves locale and query parameters, including legacy `?report=` links.
 
-Open `/fa/login`. The first setup requires the one-time key at `.data/bootstrap.key` (generated when the sign-in page requests setup status). Choose your own provider username and password (12+ characters). There are no default credentials. Provider data inspection requires an explicit grant. Create customer accounts in the provider pilot-account section.
-
-## Implemented stack
-
-PostgreSQL discovery; Debezium provisioning via Kafka Connect; Kafka-engine raw landing and typed published snapshots in ClickHouse; CSV preview/mapping/import; KPI readiness, definition review, reconciliation, generated draft dashboards, persisted report editing and governed publication. Native report visuals query only published ClickHouse snapshots. No real service addresses were supplied; users must configure their own services.
-
-## Storage
-
-Keep `.data` on a private persistent volume. Metadata is encrypted and sessions are signed using server-private key material. Back up workspace.enc and master.key together. CSV raw files are private local archives. This implementation supports one Node process and one organization; it is not a pooled multi-tenant deployment or distributed scheduler. Use HTTPS for a production deployment.
+CSV parsing and preview run entirely in the browser. Workspace lists start empty. There is no login, authentication, authorization, persistent storage, source discovery, ingestion, CDC, warehouse execution, or publication. Actions requiring these services report unavailability; no fake successful operations or live data are supplied. Report edits are temporary UI state.
 
 ## Verification
 
-`npm run check-types`, `npm test`, `npm run build`. Browser integration checks used isolated HTTP contract fixtures, not production PostgreSQL/Kafka/ClickHouse services.
+Run `npm run check-types` and `npm run build`.
 
-## Documentation
-
-- [Persian getting started](docs/GETTING_STARTED_FA.md)
-- [Implementation / PRD acceptance matrix and remaining work](docs/IMPLEMENTATION_STATUS.md)
-- [Product requirements baseline](docs/bi_platform_product_requirements.md)
-- `docs/Data_Platform_Architecture_V4_OLAP_PowerBI_Delivery.pdf`
-
-Microsoft Power BI/SSAS/PBRS integration, canonical multi-source business models, directory SSO, production RLS, scheduling/backfills, alerts and billing remain outside this pilot. Unsupported financial KPIs are blocked. Legacy monitoring demo pages and navigation have been removed; the active application contains Configuration and Analytics only.
-
-## See progress and data in the application
-
-Configuration opens on Pipeline overview, showing saved source/connector/publication counts and read-only local-stack readiness. Browse published data is available in both panels and reads mapped rows from the current ClickHouse snapshot with server-enforced data grants and bounded pagination. Empty/unavailable states do not generate substitute rows.
-
-## Explicit sample dashboard
-
-For a visual walkthrough without infrastructure, run `node --import tsx scripts/seed-sample.ts <existing-username>`, then open `/fa/analytics` or `/en/analytics`. This creates a labeled draft dashboard with six visuals and 180 fictional orders, plus paginated data browsing. The selected account receives data access. Existing workspace records are preserved and an encrypted backup is created beside `workspace.enc` (keep the matching master key). Rerunning does not duplicate the sample flow or report.
-
-Only flows explicitly marked `sampleData` use the synthetic query path. Real flows still require ClickHouse and never fall back to samples. Synthetic rows are not CDC, source connectivity, governed KPI reconciliation, or live Power BI evidence. Sample reports remain exploratory drafts.
+The extracted shared loading skeleton is preserved unchanged.

@@ -1,0 +1,53 @@
+@import "tailwindcss" source("../");
+@import "./theme/compatibility.css";
+@import "./theme/colors.css";
+@import "./shadcn.css";
+@import "./glass.css";
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant rtl (&:where([dir="rtl"] *));
+@custom-variant ltr (&:where([dir="ltr"] *));
+body { margin: 0; background: var(--background-canvas); color: var(--text-primary); }
+a:focus-visible, button:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+
+button:not(:disabled), select:not(:disabled) { cursor: pointer; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--icon-brand); }
+summary:focus-visible, input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+  outline: 2px solid var(--border-brand);
+  outline-offset: 3px;
+}
+
+/* Data browsing keeps a viewport-sized scroll area within the sidebar layout. */
+.analytics-workspace .published-rows-scroll { max-height: 70dvh; }
+
+.workspace-page { font-variant-numeric: tabular-nums; }
+
+@font-face {
+  font-family: Kalameh;
+  src: url("../assets/fonts/KalamehWebFaNum-Regular.woff2") format("woff2");
+  font-weight: 200 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Kalameh;
+  src: url("../assets/fonts/KalamehWebFaNum-Bold.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Kalameh;
+  src: url("../assets/fonts/KalamehWebFaNum-ExtraBold.woff2") format("woff2");
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+.font-kalameh { font-family: Kalameh, sans-serif; }
+
+@font-face {
+  font-family: Kalameh;
+  src: url("../assets/fonts/KalamehWebFaNum-Medium.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}

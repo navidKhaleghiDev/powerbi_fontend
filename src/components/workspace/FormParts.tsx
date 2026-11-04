@@ -1,28 +1,39 @@
-"use client";
 import { cloneElement, useId } from "react";
 import type { ReactElement } from "react";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { requestErrorCode } from "@/hooks/useWorkspace";
+import { buttonVariants } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 export const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:bg-slate-100";
-export const buttonClass =
-  "rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-wait disabled:opacity-50";
-export const secondaryClass =
-  "rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:opacity-50";
+  "h-auto min-h-11 md:min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 md:text-[13px] transition-colors outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:bg-slate-100 file:me-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-3 file:py-1 file:text-xs file:font-medium file:text-teal-800";
+export const buttonClass = cn(buttonVariants(),
+  "inline-flex h-auto min-h-11 md:min-h-10 whitespace-normal rounded-lg bg-teal-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-teal-800 active:bg-teal-900 disabled:cursor-wait");
+export const secondaryClass = cn(buttonVariants({ variant: "outline" }),
+  "inline-flex h-auto min-h-11 md:min-h-10 whitespace-normal rounded-lg border-slate-300 bg-white px-4 py-2 text-[13px] text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed");
 interface FieldProps {
   label: string;
-  children: ReactElement<{ id?: string }>;
+  hint?: string;
+  error?: string;
+  children: ReactElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean }>;
 }
-export const Field = ({ label, children }: FieldProps) => {
+export const Field = ({ label, hint, error, children }: FieldProps) => {
   const id = useId();
   return (
-    <div className="space-y-1.5 text-sm font-medium text-slate-700">
-      <label htmlFor={id} className="block">
+    <div className="space-y-1.5 text-[13px] font-medium text-slate-700">
+      <Label htmlFor={id} className="block text-[13px] leading-5">
         {label}
-      </label>
-      {cloneElement(children, { id })}
+      </Label>
+      {cloneElement(children, {
+        id,
+        "aria-invalid": !!error || children.props["aria-invalid"],
+        "aria-describedby": [children.props["aria-describedby"], hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined,
+      })}
+      {hint && <p id={`${id}-hint`} className="text-xs font-normal leading-6 text-slate-500">{hint}</p>}
+      {error && <p id={`${id}-error`} role="alert" className="text-xs font-normal text-amber-700">{error}</p>}
     </div>
   );
 };
@@ -36,22 +47,22 @@ export const Notice = ({ error, success, text }: NoticeProps) => {
   if (error) {
     const code = requestErrorCode(error);
     return (
-      <p
+      <Alert
         role="alert"
-        className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800"
+        className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-[13px] leading-6 text-amber-800"
       >
-        {t.has(`errors.${code}`)
+        <AlertDescription className="text-inherit">{t.has(`errors.${code}`)
           ? t(`errors.${code}`)
-          : t("errors.requestFailed")}
-      </p>
+          : t("errors.requestFailed")}</AlertDescription>
+      </Alert>
     );
   }
   return success ? (
-    <p
+    <Alert
       role="status"
-      className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800"
+      className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-[13px] leading-6 text-emerald-800"
     >
-      {text || t("saved")}
-    </p>
+      <AlertDescription className="text-inherit">{text || t("saved")}</AlertDescription>
+    </Alert>
   ) : null;
 };

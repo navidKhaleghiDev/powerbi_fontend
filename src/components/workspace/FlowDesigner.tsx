@@ -1,7 +1,9 @@
-"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useForm } from "react-hook-form";
 
 import {
@@ -21,7 +23,6 @@ import {
   Notice,
   buttonClass,
   inputClass,
-  secondaryClass,
 } from "./FormParts";
 interface Props {
   connections: PublicConnection[];
@@ -89,30 +90,31 @@ export const FlowDesigner = ({ connections }: Props) => {
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold">{t("newFlow")}</h2>
-        <p className="mt-1 text-sm text-slate-500">{t("flowHelp")}</p>
+        <h2 className="text-base font-medium">{t("newFlow")}</h2>
+        <p className="mt-1 text-[13px] text-slate-500">{t("flowHelp")}</p>
       </div>
-      <div className="flex flex-wrap gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {(["csv", "postgres"] as const).map((value) => (
-          <button
+          <Button variant="ghost" size="auto"
             type="button"
             key={value}
             aria-pressed={kind === value}
-            className={kind === value ? buttonClass : secondaryClass}
+            className={`rounded-2xl border p-5 text-start transition-colors ${kind === value ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500" : "border-slate-200 bg-white hover:border-teal-300"}`}
             onClick={() => {
               setKind(value);
               setColumns([]);
               setPrimaryKey("");
             }}
           >
-            {t(value === "csv" ? "csvSource" : "postgresSource")}
-          </button>
+            <span className="block text-[13px] font-medium text-slate-900">{t(value === "csv" ? "csvSource" : "postgresSource")}</span>
+            <span className="mt-2 block text-xs leading-6 text-slate-600">{t(value === "csv" ? "polish.csvHelp" : "polish.cdcHelp")}</span>
+          </Button>
         ))}
       </div>
       {kind === "csv" ? (
         <div className="rounded-2xl border border-dashed border-teal-300 bg-teal-50 p-5">
           <Field label={t("chooseCsv")}>
-            <input
+            <Input
               type="file"
               accept=".csv,text/csv"
               className={inputClass}
@@ -131,7 +133,7 @@ export const FlowDesigner = ({ connections }: Props) => {
           <p className="mt-2 text-xs text-slate-600">{t("csvHelp")}</p>
           <Notice error={preview.error} />
           {preview.data && (
-            <p className="mt-2 text-sm">
+            <p className="mt-2 text-[13px]">
               {t("previewCount", { count: preview.data.rowCount })}
             </p>
           )}
@@ -197,23 +199,23 @@ export const FlowDesigner = ({ connections }: Props) => {
         </div>
       )}
       <form onSubmit={handleSubmit(submit)} className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("flowName")}>
-            <input
+        <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-2">
+          <Field label={t("flowName")} error={errors.name ? t("errors.invalid") : undefined}>
+            <Input
               className={inputClass}
               {...register("name", { required: true, maxLength: 100 })}
             />
           </Field>
-          <Field label={t("grain")}>
-            <input
+          <Field label={t("grain")} error={errors.grain ? t("errors.invalid") : undefined}>
+            <Input
               className={inputClass}
               {...register("grain", { required: true, maxLength: 100 })}
             />
           </Field>
         </div>
         {columns.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-            <table className="w-full min-w-[640px] text-sm">
+          <div role="region" tabIndex={0} aria-label={t("mapping")} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white focus-visible:outline-2 focus-visible:outline-teal-600">
+            <table className="w-full min-w-[640px] text-[13px]">
               <thead className="bg-slate-50 text-start">
                 <tr>
                   {[
@@ -223,7 +225,7 @@ export const FlowDesigner = ({ connections }: Props) => {
                     "required",
                     "include",
                   ].map((key) => (
-                    <th key={key} className="p-3 text-start">
+                    <th key={key} scope="col" className="p-3 text-start">
                       {t(key)}
                     </th>
                   ))}
@@ -234,7 +236,7 @@ export const FlowDesigner = ({ connections }: Props) => {
                   <tr key={column.source} className="border-t border-slate-100">
                     <td className="p-3 font-mono">{column.source}</td>
                     <td className="p-3">
-                      <input
+                      <Input
                         aria-label={t("warehouseColumn") + " " + column.source}
                         className={inputClass}
                         value={column.target}
@@ -276,9 +278,9 @@ export const FlowDesigner = ({ connections }: Props) => {
                       />
                     </td>
                     <td className="p-3">
-                      <button
+                      <Button variant="ghost" size="auto"
                         type="button"
-                        className="text-red-700 underline"
+                        className="text-slate-600 underline hover:text-slate-900"
                         onClick={() =>
                           setColumns((items) =>
                             items.filter((_, i) => i !== index),
@@ -286,7 +288,7 @@ export const FlowDesigner = ({ connections }: Props) => {
                         }
                       >
                         {t("exclude")}
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -298,6 +300,7 @@ export const FlowDesigner = ({ connections }: Props) => {
           <select
             className={inputClass}
             value={primaryKey}
+            disabled={!columns.length}
             onChange={(e) => setPrimaryKey(e.target.value)}
           >
             <option value="">{t("selectKey")}</option>
@@ -310,11 +313,12 @@ export const FlowDesigner = ({ connections }: Props) => {
         </Field>
         <p className="text-xs text-slate-500">{t("mappingHelp")}</p>
         {Object.keys(errors).length > 0 && (
-          <p role="alert" className="text-red-700">
+          <p role="alert" className="text-amber-700">
             {t("errors.invalid")}
           </p>
         )}
-        <button
+        {(!columns.length || !primaryKey) && <p role="status" className="rounded-xl bg-slate-100 p-3 text-[13px] leading-6 text-slate-600">{t(!columns.length ? "polish.chooseSourceFirst" : "polish.chooseKeyFirst")}</p>}
+        <Button variant="default" size="auto"
           className={buttonClass}
           disabled={
             !columns.length || !primaryKey || save.isPending || upload.isPending
@@ -323,7 +327,7 @@ export const FlowDesigner = ({ connections }: Props) => {
           {save.isPending || upload.isPending
             ? t("working")
             : t(kind === "csv" ? "createAndImport" : "saveFlow")}
-        </button>
+        </Button>
       </form>
       <Notice
         error={save.error || upload.error}

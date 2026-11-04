@@ -1,1 +1,0 @@
-<clickhouse><profiles><default><max_threads>4</max_threads><max_memory_usage>536870912</max_memory_usage></default></profiles></clickhouse>

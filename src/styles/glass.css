@@ -1,0 +1,56 @@
+/* Decorative glass surfaces; data-heavy content retains solid backgrounds. */
+.workspace-canvas {
+  background-image:
+    radial-gradient(ellipse at 8% 0%, color-mix(in srgb, var(--border-brand) 5%, transparent), transparent 48%),
+    radial-gradient(ellipse at 95% 35%, color-mix(in srgb, var(--border-info) 3%, transparent), transparent 48%);
+  background-repeat: no-repeat;
+}
+
+.glass-surface {
+  background-color: var(--surface-default);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--text-primary) 6%, transparent);
+}
+
+.glass-hero {
+  background-image:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--border-brand) 38%, transparent), transparent 70%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--border-info) 16%, transparent), transparent 65%);
+}
+
+@supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
+  .glass-surface {
+    background-color: color-mix(in srgb, var(--surface-default) 95%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    backdrop-filter: blur(16px) saturate(120%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-surface {
+    background-color: var(--surface-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .workspace-canvas, .glass-hero { background-image: none; }
+}
+
+@media (forced-colors: active) {
+  .glass-surface {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .workspace-canvas, .glass-hero { background-image: none; }
+}
+
+@media print {
+  .glass-surface {
+    background: white;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .workspace-canvas, .glass-hero { background-image: none; }
+}

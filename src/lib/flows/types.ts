@@ -16,15 +16,6 @@ export interface PostgresConnection {
   password: string;
   ssl: boolean;
 }
-export interface Infrastructure {
-  clickhouse: { url: string; database: string; user: string; password: string };
-  kafka: {
-    connectUrl: string;
-    brokers: string;
-    user: string;
-    password: string;
-  };
-}
 export interface DataFlow {
   /** Explicit synthetic sample; never a live warehouse source. */
   sampleData?: boolean;
@@ -57,9 +48,12 @@ export interface ImportRun {
   createdAt: string;
   error?: string;
 }
-export type ChartKind = "bar" | "line" | "pie" | "table" | "kpi";
+export type ChartKind = "bar" | "line" | "pie" | "table" | "kpi" | "map";
 export type Aggregation = "sum" | "count" | "avg";
 export interface ReportWidget {
+  latitudeField?: string;
+  longitudeField?: string;
+  basemap?: "none" | "openstreetmap";
   filterField?: string;
   filterValue?: string;
   dateField?: string;
@@ -85,32 +79,11 @@ export interface SavedReport {
   widgets: ReportWidget[];
   updatedAt: string;
 }
-export interface FlowStore {
-  version: 1;
-  users: WorkspaceUser[];
-  audit: AuditEntry[];
-  bindings: MetricBinding[];
-  infrastructure: Infrastructure;
-  connections: PostgresConnection[];
-  flows: DataFlow[];
-  runs: ImportRun[];
-  reports: SavedReport[];
-}
 export interface PublicConnection extends Omit<PostgresConnection, "password"> {
   hasPassword: boolean;
 }
-export interface PublicInfrastructure {
-  clickhouse: Omit<Infrastructure["clickhouse"], "password"> & {
-    hasPassword: boolean;
-  };
-  kafka: Omit<Infrastructure["kafka"], "password"> & { hasPassword: boolean };
-}
 export interface WorkspaceState {
-  currentUser: SessionUser;
-  users?: SessionUser[];
-  audit?: AuditEntry[];
   bindings: MetricBinding[];
-  infrastructure: PublicInfrastructure;
   connections: PublicConnection[];
   flows: DataFlow[];
   runs: ImportRun[];
@@ -137,25 +110,6 @@ export interface AnalyticsResult {
   queriedAt: string;
   publishedAt?: string;
   limit: number;
-}
-export interface WorkspaceUser {
-  id: string;
-  username: string;
-  role: "provider" | "customer";
-  dataAccess: boolean;
-  passwordHash: string;
-  credentialVersion: number;
-}
-export type SessionUser = Pick<
-  WorkspaceUser,
-  "id" | "username" | "role" | "dataAccess"
->;
-export interface AuditEntry {
-  id: string;
-  at: string;
-  actorId: string;
-  action: string;
-  targetId: string;
 }
 export type MetricId =
   | "record_count"
@@ -185,13 +139,6 @@ export interface MetricBinding {
   validatedAt?: string;
 }
 
-export interface DeploymentStatus {
-  localAppPort: number;
-  docker: "missing" | "permission_required" | "accessible" | "external";
-  composePrepared: boolean;
-  verifiedAt: string | null;
-  checkedAt: string;
-}
 export interface PublishedDataPreview {
   columns: string[];
   rows: Record<string, string | number | null>[];

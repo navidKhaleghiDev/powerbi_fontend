@@ -1,8 +1,9 @@
-"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import {
   useConnectorStatus,
@@ -12,7 +13,8 @@ import {
 } from "@/hooks/useWorkspace";
 import type { DataFlow, ImportRun } from "@/lib/flows/types";
 
-import { Notice, buttonClass, secondaryClass } from "./FormParts";
+import { StatusBadge } from "./StatusBadge";
+import { Field, inputClass, Notice, buttonClass, secondaryClass } from "./FormParts";
 interface CardProps {
   flow: DataFlow;
 }
@@ -25,20 +27,20 @@ const FlowCard = ({ flow }: CardProps) => {
   const action = useWorkspaceAction();
   const upload = useCsvImport();
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5">
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-bold">{flow.name}</h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="font-medium">{flow.name}</h3>
+          <p className="mt-1 text-[13px] text-slate-500">
             {t(flow.kind === "csv" ? "csvSource" : "postgresSource")} ·{" "}
             {flow.grain}
           </p>
         </div>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+        <StatusBadge tone={flow.error || flow.status === "failed" ? "danger" : flow.activeLoadId ? "success" : flow.connectorName ? "warning" : "neutral"}>
           {t(`status.${flow.status}`)}
-        </span>
+        </StatusBadge>
       </div>
-      <div className="mt-4 flex flex-wrap gap-4 text-sm">
+      <div className="mt-4 flex flex-wrap gap-4 text-[13px]">
         <span>{t("mappedColumns", { count: flow.columns.length })}</span>
         {flow.rowCount !== undefined && (
           <span>{t("publishedRows", { count: flow.rowCount })}</span>
@@ -58,35 +60,36 @@ const FlowCard = ({ flow }: CardProps) => {
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {flow.kind === "postgres" ? (
           <>
-            <button
+            <Button variant="outline" size="auto"
               className={secondaryClass}
+              aria-expanded={showPlan}
               onClick={() => setShowPlan((v) => !v)}
             >
               {t("reviewPlan")}
-            </button>
-            <button
+            </Button>
+            <Button variant="default" size="auto"
               className={buttonClass}
               disabled={action.isPending}
               onClick={() =>
                 action.mutate({ path: `flows/${flow.id}/capture`, body: {} })
               }
             >
-              {t("startCapture")}
-            </button>
-            <button
+              {action.isPending && action.variables?.path.endsWith("/capture") ? t("working") : t("startCapture")}
+            </Button>
+            <Button variant="outline" size="auto"
               className={secondaryClass}
               disabled={action.isPending || !flow.connectorName}
               onClick={() =>
                 action.mutate({ path: `flows/${flow.id}/publish`, body: {} })
               }
             >
-              {t("publishSnapshot")}
-            </button>
+              {action.isPending && action.variables?.path.endsWith("/publish") ? t("working") : t("publishSnapshot")}
+            </Button>
           </>
         ) : (
-          <label className={secondaryClass + " cursor-pointer"}>
+          <label className={secondaryClass + " cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal-600"}>
             {upload.isPending ? t("working") : t("replaceCsv")}
-            <input
+            <Input
               type="file"
               accept=".csv,text/csv"
               className="sr-only"
@@ -98,20 +101,13 @@ const FlowCard = ({ flow }: CardProps) => {
             />
           </label>
         )}
-        {flow.activeLoadId && (
-          <Link
-            className="text-sm font-semibold text-teal-700 underline"
-            href={`/${locale}/analytics`}
-          >
-            {t("openAnalytics")}
-          </Link>
-        )}
+
       </div>
       {flow.kind === "postgres" && (
         <p className="mt-3 text-xs text-slate-500">{t("captureHelp")}</p>
       )}
       {status.data?.connector && (
-        <p className="mt-3 text-sm">
+        <p className="mt-3 text-[13px]">
           {t("connectorStatus")} <b dir="ltr">{status.data.connector}</b>
           {status.data.tasks.map((task) => (
             <span key={task.id} className="ms-3" dir="ltr">
@@ -150,26 +146,49 @@ const FlowCard = ({ flow }: CardProps) => {
 interface Props {
   flows: DataFlow[];
   runs: ImportRun[];
+  onCreate: () => void;
 }
-export const FlowList = ({ flows, runs }: Props) => {
+export const FlowList = ({ flows, runs, onCreate }: Props) => {
   const t = useTranslations("studio");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const visibleFlows = flows.filter((flow) =>
+    flow.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
+    (filter === "all" || (filter === "attention" ? !!flow.error || flow.status === "failed" : flow.status === filter)),
+  );
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold">{t("flows")}</h2>
-        <p className="mt-1 text-sm text-slate-500">{t("publicationHelp")}</p>
+        <h2 className="text-base font-medium tracking-tight text-slate-900">{t("flows")}</h2>
+        <p className="mt-1 text-[13px] text-slate-500">{t("publicationHelp")}</p>
       </div>
-      {flows.length ? (
-        flows.map((flow) => <FlowCard key={flow.id} flow={flow} />)
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="min-w-0 flex-1">
+          <Field label={t("experience.searchFlows")}>
+            <Input type="search" className={inputClass} value={query} onChange={(event) => setQuery(event.target.value)} />
+          </Field>
+        </div>
+        <Field label={t("state")}>
+          <select className={inputClass} value={filter} onChange={(event) => setFilter(event.target.value)}>
+            {["all", "draft", "capture_started", "published", "attention"].map((key) => <option key={key} value={key}>{t(key === "all" || key === "attention" ? `experience.${key}` : `status.${key}`)}</option>)}
+          </select>
+        </Field>
+        <Button variant="ghost" size="auto" type="button" className={buttonClass} onClick={onCreate}>{t("experience.createFlow")}</Button>
+      </div>
+      <p role="status" className="text-xs text-slate-500">{t("experience.flowResults", { count: visibleFlows.length, total: flows.length })}</p>
+      {visibleFlows.length ? (
+        visibleFlows.map((flow) => <FlowCard key={flow.id} flow={flow} />)
       ) : (
-        <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-          {t("noFlows")}
-        </p>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+          <h3 className="font-medium text-slate-900">{t(flows.length ? "experience.noMatches" : "noFlows")}</h3>
+          <p className="mx-auto mt-2 max-w-lg text-[13px] leading-7 text-slate-500">{t(flows.length ? "experience.searchHelp" : "experience.firstFlowHelp")}</p>
+          {flows.length > 0 && <Button variant="ghost" size="auto" type="button" className={secondaryClass + " mt-4"} onClick={() => { setQuery(""); setFilter("all"); }}>{t("experience.clearFilters")}</Button>}
+        </div>
       )}
       {runs.length > 0 && (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full text-sm">
-            <caption className="p-4 text-start font-bold">
+          <table className="w-full text-[13px]">
+            <caption className="p-4 text-start font-medium">
               {t("imports")}
             </caption>
             <thead className="bg-slate-50">
@@ -189,7 +208,7 @@ export const FlowList = ({ flows, runs }: Props) => {
                   <td className="p-3">
                     {t(`status.${run.status}`)}
                     {run.error && (
-                      <p className="mt-1 text-red-700">
+                      <p className="mt-1 text-amber-700">
                         {t.has(`errors.${run.error}`)
                           ? t(`errors.${run.error}`)
                           : t("errors.requestFailed")}

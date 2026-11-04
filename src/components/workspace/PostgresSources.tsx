@@ -1,7 +1,9 @@
-"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useForm } from "react-hook-form";
 
 import { requestErrorCode, useWorkspaceAction } from "@/hooks/useWorkspace";
@@ -44,26 +46,27 @@ export const PostgresSources = ({ connections }: Props) => {
   return (
     <section className="space-y-5">
       {toast && (
-        <div className={`fixed bottom-6 end-6 z-50 flex max-w-[calc(100vw-3rem)] items-start gap-4 rounded-xl border p-4 shadow-lg ${toast.kind === "error" ? "border-red-300 bg-red-50 text-red-900" : toast.kind === "success" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-slate-300 bg-white text-slate-900"}`}>
-          <p role={toast.kind === "error" ? "alert" : "status"} className="text-sm">{toast.message}</p>
-          <button type="button" aria-label={t("dismissNotification")} onClick={() => setToast(null)} className="rounded px-1 focus-visible:outline-2">×</button>
+        <div className={`fixed bottom-6 end-6 z-50 flex max-w-[calc(100vw-3rem)] items-start gap-4 rounded-xl border p-4 shadow-lg ${toast.kind === "error" ? "border-amber-300 bg-amber-50 text-amber-900" : toast.kind === "success" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-slate-300 bg-white text-slate-900"}`}>
+          <p role={toast.kind === "error" ? "alert" : "status"} className="text-[13px]">{toast.message}</p>
+          <Button variant="ghost" size="auto" type="button" aria-label={t("dismissNotification")} onClick={() => setToast(null)} className="rounded px-1 focus-visible:outline-2">×</Button>
         </div>
       )}
       <div>
-        <h2 className="text-lg font-bold">{t("postgresSources")}</h2>
-        <p className="mt-1 text-sm text-slate-500">{t("postgresHelp")}</p>
+        <h2 className="text-base font-medium tracking-tight text-slate-900">{t("postgresSources")}</h2>
+        <p className="mt-1 text-[13px] text-slate-500">{t("postgresHelp")}</p>
       </div>
+      {!connections.length && <p className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-[13px] leading-7 text-slate-600">{t("experience.sourceEmpty")}</p>}
       <div className="grid gap-4 sm:grid-cols-2">
         {connections.map((connection) => (
           <article
             key={connection.id}
-            className="rounded-2xl border border-slate-200 bg-white p-5"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <h3 className="font-semibold">{connection.name}</h3>
-            <p dir="ltr" className="mt-2 break-all text-sm text-slate-500">
+            <h3 className="font-medium">{connection.name}</h3>
+            <p dir="ltr" className="mt-2 break-all text-[13px] text-slate-500">
               {connection.host}:{connection.port} / {connection.database}
             </p>
-            <button
+            <Button variant="ghost" size="auto"
               className={secondaryClass + " mt-4"}
               type="button"
               disabled={test.isPending || save.isPending}
@@ -79,12 +82,12 @@ export const PostgresSources = ({ connections }: Props) => {
               }}
             >
               {test.isPending && testedConnectionId === connection.id ? t("working") : t("testSource")}
-            </button>
+            </Button>
             {testedConnectionId === connection.id && (
               <div aria-live="polite" aria-busy={test.isPending}>
                 <Notice error={test.error} success={test.isSuccess} text={t("testSucceeded")} />
                 {test.isSuccess && test.data.walLevel && (
-                  <p className={`mt-3 rounded-xl p-3 text-sm ${test.data.walLevel === "logical" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"}`}>
+                  <p className={`mt-3 rounded-xl p-3 text-[13px] ${test.data.walLevel === "logical" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"}`}>
                     {test.data.walLevel === "logical" ? t("walReady") : t("walRequired")}
                   </p>
                 )}
@@ -94,7 +97,7 @@ export const PostgresSources = ({ connections }: Props) => {
         ))}
       </div>
       <form
-        className="rounded-2xl border border-slate-200 bg-white p-5"
+        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
         onSubmit={handleSubmit((values) => {
           setToast({ kind: "pending", message: t("working") });
           save.mutate(
@@ -117,15 +120,16 @@ export const PostgresSources = ({ connections }: Props) => {
           );
         }, () => setToast({ kind: "error", message: t("errors.invalid") }))}
       >
-        <h3 className="mb-4 font-semibold">{t("addPostgres")}</h3>
+        <h3 className="mb-4 font-medium">{t("addPostgres")}</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(["name", "host", "database", "user", "password"] as const).map(
             (field) => (
               <Field
                 key={field}
                 label={t(field === "user" ? "username" : field)}
+                error={errors[field] ? t("errors.invalid") : undefined}
               >
-                <input
+                <Input
                   className={inputClass}
                   type={field === "password" ? "password" : "text"}
                   autoComplete={field === "password" ? "new-password" : "off"}
@@ -134,8 +138,8 @@ export const PostgresSources = ({ connections }: Props) => {
               </Field>
             ),
           )}
-          <Field label={t("port")}>
-            <input
+          <Field label={t("port")} error={errors.port ? t("errors.invalid") : undefined}>
+            <Input
               type="number"
               className={inputClass}
               {...register("port", {
@@ -147,18 +151,18 @@ export const PostgresSources = ({ connections }: Props) => {
             />
           </Field>
         </div>
-        <label className="my-4 flex items-center gap-2 text-sm">
+        <label className="my-4 flex items-center gap-2 text-[13px]">
           <input type="checkbox" {...register("ssl")} />
           {t("requireTls")}
         </label>
         {Object.keys(errors).length > 0 && (
-          <p role="alert" className="mb-3 text-sm text-red-700">
+          <p role="alert" className="mb-3 text-[13px] text-amber-700">
             {t("errors.invalid")}
           </p>
         )}
-        <button className={buttonClass} disabled={save.isPending || test.isPending}>
+        <Button variant="default" size="auto" className={buttonClass} disabled={save.isPending || test.isPending}>
           {save.isPending ? t("working") : t("saveConnection")}
-        </button>
+        </Button>
       </form>
       <Notice error={save.error} success={save.isSuccess} />
     </section>

@@ -1,8 +1,11 @@
-"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocation, useNavigate } from "react-router";
+import { useLocale, useTranslations } from "use-intl";
 import { useForm } from "react-hook-form";
 
 import { useWorkspaceAction } from "@/hooks/useWorkspace";
@@ -39,13 +42,13 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
   });
   const flow = state.flows.find((item) => item.id === binding.flowId);
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5">
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
-          <h3 className="font-semibold">
+          <h3 className="font-medium">
             {t("metric.catalog." + binding.metricId + ".name")}
           </h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-[13px] text-slate-500">
             {flow?.name} · {binding.currency || t("metric.records")}
           </p>
         </div>
@@ -55,7 +58,7 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
           )}
         </span>
       </div>
-      <p className="my-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">
+      <p className="my-4 whitespace-pre-wrap text-[13px] leading-7 text-slate-600">
         {binding.definition}
       </p>
       <dl className="mb-4 flex flex-wrap gap-3 text-xs text-slate-500">
@@ -66,8 +69,8 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
           </div>
         ))}
       </dl>
-      {state.currentUser.role === "provider" && !binding.approvedAt && (
-        <button
+      {!binding.approvedAt && (
+        <Button variant="outline" size="auto"
           className={secondaryClass}
           disabled={action.isPending}
           onClick={() =>
@@ -75,9 +78,9 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
           }
         >
           {t("metric.approve")}
-        </button>
+        </Button>
       )}
-      {binding.approvedAt && state.currentUser.dataAccess && (
+      {binding.approvedAt && (
         <form
           className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"
           onSubmit={handleSubmit((values) =>
@@ -88,29 +91,29 @@ const BindingReview = ({ binding, state }: ReviewProps) => {
           )}
         >
           <Field label={t("metric.controlTotal")}>
-            <input
+            <Input
               className={inputClass}
               dir="ltr"
               {...register("expected", { required: true })}
             />
           </Field>
           <Field label={t("metric.tolerance")}>
-            <input
+            <Input
               className={inputClass}
               dir="ltr"
               {...register("tolerance", { required: true })}
             />
           </Field>
-          <button
+          <Button variant="ghost" size="auto"
             className={buttonClass + " self-end"}
             disabled={action.isPending}
           >
             {t("metric.reconcile")}
-          </button>
+          </Button>
         </form>
       )}
       {binding.validatedAt && (
-        <p className="mt-3 text-sm text-teal-700">
+        <p className="mt-3 text-[13px] text-teal-700">
           {t("metric.validationEvidence", {
             actual: binding.actual || "",
             at: binding.validatedAt,
@@ -133,7 +136,8 @@ interface BindingDraft {
 export const MetricCatalogPanel = ({ state }: Props) => {
   const t = useTranslations("studio");
   const locale = useLocale();
-  const router = useRouter();
+  const navigate = useNavigate();
+  const reporting = useLocation().pathname.split("/").includes("analytics");
   const [selected, setSelected] = useState<MetricId>("record_count");
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<string[]>([]);
@@ -162,18 +166,18 @@ export const MetricCatalogPanel = ({ state }: Props) => {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-xl font-bold">{t("metric.title")}</h2>
-        <p className="mt-2 text-sm leading-7 text-slate-500">
+        <h2 className="text-base font-medium">{t("metric.title")}</h2>
+        <p className="mt-2 text-[13px] leading-7 text-slate-500">
           {t("metric.help")}
         </p>
       </header>
       {published.length === 0 && (
-        <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
+        <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[13px] leading-7 text-amber-900">
           {t("metric.noPublishedDataset")}
         </p>
       )}
       <Field label={t("metric.search")}>
-        <input
+        <Input
           className={inputClass}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -192,7 +196,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             );
             const readiness = metricReadiness(item, binding, state.flows);
             return (
-              <button
+              <Button variant="ghost" size="auto"
                 key={item.id}
                 aria-pressed={selected === item.id}
                 onClick={() => {
@@ -209,7 +213,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium">
                   {t("metric.readiness." + readiness)}
                 </span>
-                <h3 className="mt-3 font-semibold">
+                <h3 className="mt-3 font-medium">
                   {t("metric.catalog." + item.id + ".name")}
                 </h3>
                 <p className="mt-2 text-xs leading-6 text-slate-500">
@@ -227,15 +231,15 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                         .join(" · ")
                     : t("metric.recordGrain")}
                 </p>
-              </button>
+              </Button>
             );
           })}
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <p className="mb-3 text-sm leading-7 text-slate-600">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="mb-3 text-[13px] leading-7 text-slate-600">
           {t("metric.requestHelp")}
         </p>
-        <button
+        <Button variant="outline" size="auto"
           className={secondaryClass}
           disabled={requestSetup.isPending}
           onClick={() =>
@@ -246,12 +250,12 @@ export const MetricCatalogPanel = ({ state }: Props) => {
           }
         >
           {t("metric.requestSetup")}
-        </button>
+        </Button>
         <Notice error={requestSetup.error} success={requestSetup.isSuccess} />
       </div>
       {spec.supported ? (
         <form
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
           onSubmit={handleSubmit((values) =>
             save.mutate({
               path: "metrics",
@@ -259,7 +263,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             }),
           )}
         >
-          <h3 className="font-bold">
+          <h3 className="font-medium">
             {t("metric.configure")} ·{" "}
             {t("metric.catalog." + selected + ".name")}
           </h3>
@@ -292,7 +296,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             ))}
             {spec.money && (
               <Field label={t("metric.currency")}>
-                <input
+                <Input
                   className={inputClass}
                   dir="ltr"
                   {...register("currency", {
@@ -304,7 +308,7 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             )}
           </div>
           <Field label={t("metric.businessDefinition")}>
-            <textarea
+            <Textarea
               rows={4}
               className={inputClass}
               {...register("definition", {
@@ -317,11 +321,11 @@ export const MetricCatalogPanel = ({ state }: Props) => {
           <p className="text-xs leading-6 text-slate-500">
             {t("metric.definitionHelp")}
           </p>
-          <button className={buttonClass} disabled={save.isPending || !source}>
+          <Button variant="default" size="auto" className={buttonClass} disabled={save.isPending || !source}>
             {t("metric.propose")}
-          </button>
+          </Button>
           {Object.keys(errors).length > 0 && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-[13px] text-amber-700">
               {t(
                 errors.definition
                   ? "errors.definitionRequired"
@@ -332,12 +336,12 @@ export const MetricCatalogPanel = ({ state }: Props) => {
           <Notice error={save.error} success={save.isSuccess} />
         </form>
       ) : (
-        <p className="rounded-2xl bg-amber-50 p-5 text-sm leading-7 text-amber-900">
+        <p className="rounded-2xl bg-amber-50 p-5 text-[13px] leading-7 text-amber-900">
           {t("metric.unsupportedHelp")}
         </p>
       )}
       <div className="space-y-4">
-        <h3 className="text-lg font-bold">{t("metric.reviewQueue")}</h3>
+        <h3 className="text-base font-medium tracking-tight text-slate-900">{t("metric.reviewQueue")}</h3>
         {state.bindings
           .filter((binding) => !binding.requestResolved)
           .map((binding) =>
@@ -348,10 +352,10 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                 key={binding.id}
                 className="rounded-xl border border-amber-200 bg-amber-50 p-4"
               >
-                <h4 className="font-semibold">
+                <h4 className="font-medium">
                   {t("metric.catalog." + binding.metricId + ".name")}
                 </h4>
-                <p className="mt-2 text-sm text-amber-900">
+                <p className="mt-2 text-[13px] text-amber-900">
                   {t("metric.requestPending")}
                 </p>
               </article>
@@ -360,12 +364,12 @@ export const MetricCatalogPanel = ({ state }: Props) => {
       </div>
       {ready.length > 0 && (
         <div className="space-y-4 rounded-2xl border border-teal-200 bg-teal-50 p-5">
-          <h3 className="font-bold">{t("metric.generate")}</h3>
-          <p className="text-sm leading-7 text-slate-600">
+          <h3 className="font-medium">{t("metric.generate")}</h3>
+          <p className="text-[13px] leading-7 text-slate-600">
             {t("metric.generateHelp")}
           </p>
           {ready.map((binding) => (
-            <label className="flex items-center gap-2 text-sm" key={binding.id}>
+            <label className="flex items-center gap-2 text-[13px]" key={binding.id}>
               <input
                 type="checkbox"
                 checked={checked.includes(binding.id)}
@@ -382,20 +386,16 @@ export const MetricCatalogPanel = ({ state }: Props) => {
             </label>
           ))}
           <Field label={t("reportName")}>
-            <input
+            <Input
               className={inputClass}
               value={reportName}
               onChange={(event) => setReportName(event.target.value)}
             />
           </Field>
-          <button
+          <Button variant="default" size="auto"
             className={buttonClass}
-            disabled={
-              !checked.length ||
-              !reportName.trim() ||
-              generate.isPending ||
-              !state.currentUser.dataAccess
-            }
+            disabled
+            title={t("errors.backendUnavailable")}
             onClick={() =>
               generate.mutate(
                 {
@@ -403,15 +403,16 @@ export const MetricCatalogPanel = ({ state }: Props) => {
                   body: { bindingIds: checked, name: reportName },
                 },
                 {
-                  onSuccess: (report) =>
-                    router.push(`/${locale}/analytics?report=${report.id}`),
+                  onSuccess: (report) => {
+                    if (reporting) navigate(`/${locale}/analytics/reports?report=${encodeURIComponent(report.id)}`);
+                  },
                 },
               )
             }
           >
             {t("metric.generateDraft")}
-          </button>
-          <Notice error={generate.error} />
+          </Button>
+          <Notice error={generate.error} success={generate.isSuccess && !reporting} text={t("panelLoginOnly")} />
         </div>
       )}
     </section>
