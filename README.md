@@ -10,7 +10,7 @@ Use Node.js 22.22+ and pnpm 12.16.1 (pinned in `package.json`). Enable pnpm with
 
 Run `pnpm run build`. Deploy the generated `dist/` directory to a static web host. Configure the host to serve `index.html` for application routes so direct links and browser refresh work. Asset URLs must continue to resolve to their actual files. Use `pnpm run preview` to check the production bundle locally on port 3001.
 
-No application backend, database, Docker services, environment secrets, or API routes are required.
+No application backend, database, environment secrets, or API routes are required. Docker is an optional way to run the frontend.
 
 ## Available UI
 
@@ -37,7 +37,7 @@ The rules cover strict equality (with intentional nullish checks allowed), safe 
 - `pnpm run format` formats supported project files; `pnpm run format:check` checks formatting.
 - `pnpm run check-types` checks strict TypeScript types.
 
-`pnpm install` and `pnpm install --frozen-lockfile` install Husky hooks through the `prepare` script. The pre-commit hook runs lint-staged to fix ESLint issues and format staged code and text files. The commit-msg hook enforces Conventional Commits, for example `feat: add report navigation` or `fix: correct Persian layout`.
+`pnpm install` and `pnpm install --frozen-lockfile` install Husky hooks through the `prepare` script. The pre-commit hook runs lint-staged to fix ESLint issues and format staged code and text files. The commit-msg hook enforces Conventional Commits, for example `feat: add report navigation` or `fix: correct Persian layout`. The pre-push hook runs full-project lint and formatting checks, then the production build, which includes TypeScript checking. Pre-commit and pre-push print short playful status messages; failed checks preserve their exit code and block the Git operation.
 
 Generated output, dependencies, and local private files are excluded from formatting. The extracted shared loading skeleton is excluded from formatting to preserve it exactly. Fast Refresh allows the existing named UI variant helpers through the shared configuration.
 
@@ -50,3 +50,50 @@ Commit `pnpm-lock.yaml` with dependency changes. Use `pnpm add <package>` and `p
 Install the workspace-recommended ESLint, Prettier, and Tailwind CSS IntelliSense extensions. Workspace settings enable all configured ESLint rules while typing, automatic ESLint fixes on explicit save, and Prettier formatting with Tailwind class sorting on save. Built-in JavaScript/TypeScript, CSS, and JSON validation is enabled. The workspace TypeScript SDK is configured; select **Use Workspace Version** when prompted. Tailwind validation uses `src/styles/globals.css` and recognizes the `cn` and `cva` helpers. Stylesheets use the Tailwind language mode so its directives are understood. Issues without automatic fixes remain highlighted in the editor and Problems panel. Extension recommendations do not install extensions automatically.
 
 Use **Tasks: Run Task → Check: all** for full-project lint, formatting, and TypeScript checks. **Build: production** runs the production build and is the default build task. These full-project tasks run on demand; they do not run on each keystroke or save. The pre-commit hook checks staged files, and commitlint checks commit messages through the existing commit-msg hook.
+
+## Nexus package registry
+
+The project `.npmrc` configures `https://nexus.npd-co.com/repository/npm/` as the package source for local development and Docker builds. Keep TLS verification enabled. The registry was checked without credentials and returned metadata for the pinned React 19.3.0 and pnpm 12.16.1 versions. No public-registry fallback is configured. This is a dependency registry; the browser application does not call Nexus.
+
+```bash
+pnpm config get registry
+pnpm install --frozen-lockfile
+pnpm run dev
+```
+
+If authentication is required in your environment, keep registry-scoped credentials in your user-level `~/.npmrc`, not the committed project `.npmrc`. Docker builds can receive that file through the optional BuildKit `npmrc` secret:
+
+```bash
+docker build --secret id=npmrc,src="$HOME/.npmrc" -t powerbi-control-center:local .
+```
+
+## Docker frontend
+
+Use Docker Engine with the Buildx/BuildKit plugin.
+
+The Dockerfile installs the pinned pnpm version and frozen dependencies through Nexus, builds the Vite application, and copies `dist/` into an unprivileged Nginx runtime. The runtime uses the image's default Nginx configuration and listens on port 8080. Its health check requests `/`. Git hooks are skipped inside image builds. Base images come from their Docker image registries; Nexus supplies npm packages.
+
+```bash
+# Production frontend at http://localhost:8080
+docker build -t powerbi-control-center:local .
+docker run --rm -p 8080:8080 powerbi-control-center:local
+
+# Development frontend with source updates at http://localhost:3001
+docker build --target development -t powerbi-control-center:dev .
+docker run --rm -it -p 3001:3001 \
+  --mount type=bind,src="$(pwd)/src",dst=/app/src,readonly \
+  --mount type=bind,src="$(pwd)/public",dst=/app/public,readonly \
+  --mount type=bind,src="$(pwd)/index.html",dst=/app/index.html,readonly \
+  --mount type=bind,src="$(pwd)/vite.config.ts",dst=/app/vite.config.ts,readonly \
+  --mount type=bind,src="$(pwd)/postcss.config.mjs",dst=/app/postcss.config.mjs,readonly \
+  --mount type=bind,src="$(pwd)/tsconfig.json",dst=/app/tsconfig.json,readonly \
+  powerbi-control-center:dev
+```
+
+Stop either foreground container with Ctrl+C. Change the host side of `-p` if a port is already in use. Development mounts preserve the container's dependencies; rebuild the development image after dependency or package-manager configuration changes.
+
+If Nexus requires credentials, add `--secret id=npmrc,src="$HOME/.npmrc"` to the appropriate `docker build` command. Keep credentials out of the committed project `.npmrc`.
+
+The default production Nginx configuration serves static files without a React Router fallback. Open `/` and navigate within the app. Direct requests or refreshes on paths such as `/en/analytics/reports` return 404 unless your hosting layer rewrites frontend routes to `/index.html`. Custom asset caching and the former `/healthz` endpoint are not configured.
+
+Local environment files, credentials, Git metadata, dependencies, and generated builds are excluded from the Docker context. Runtime package installation and backend services are not included in the production image.

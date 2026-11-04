@@ -1,1 +1,9 @@
-pnpm run lint:staged
+printf '\n%s\n' '🐶 Pre-commit: sniffing staged files for muddy code...'
+
+if pnpm run lint:staged; then
+  printf '%s\n\n' '🦴 Clean paws, clean code. Ready to commit!'
+else
+  hook_status=$?
+  printf '%s\n\n' '🐾 Found some muddy pawprints. Fix the errors above and try again.'
+  exit "$hook_status"
+fi

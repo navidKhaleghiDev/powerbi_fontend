@@ -4,3 +4,7 @@ node_modules/
 
 .data/
 dist/
+
+# Local registry credentials (the shared .npmrc contains only the registry URL).
+.npmrc.local
+.npmrc.auth

@@ -1,0 +1,10 @@
+printf '\n%s\n' '🚀 Pre-push: launch control is checking your cargo...'
+
+# The build script includes TypeScript checking before the Vite build.
+if pnpm run lint && pnpm run format:check && pnpm run build; then
+  printf '%s\n\n' '🌍 All systems green. Your code is cleared for takeoff!'
+else
+  hook_status=$?
+  printf '%s\n\n' '🛠️ Launch paused. Fix the errors above before sending this rocket.'
+  exit "$hook_status"
+fi
