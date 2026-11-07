@@ -3,7 +3,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { router } from './router';
-import 'leaflet/dist/leaflet.css';
 import './styles/globals.css';
 
 const root = document.getElementById('root');

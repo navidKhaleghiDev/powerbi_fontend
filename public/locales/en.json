@@ -7,7 +7,7 @@
     "reportsMockNotice": "Development mock data · All orders, reports, approvals, and timestamps are fictional. No live services are connected. Save and publish actions require a backend."
   },
   "studio": {
-    "panelLoginOnly": "To change panels, sign out and choose the panel on the login page.",
+    "panelLoginOnly": "Open Reports from the sidebar to view your draft reports.",
     "sidebar": {
       "powerBiName": "Power BI",
       "netsepLogo": "Netsep logo",
@@ -121,6 +121,7 @@
     },
     "skipToContent": "Skip to main content",
     "panelNavigation": "Workspace panels",
+    "workspaceNavigation": "Workspace navigation",
     "configurationPanel": "Data configuration",
     "analyticsPanel": "Analytics & reports",
     "organizationWorkspace": "One organization · Data workspace",
@@ -563,12 +564,13 @@
       "noPublishedDataHelp": "Charts and reports will appear when datasets are available. This frontend does not run live queries.",
       "login": "Sign in",
       "switchPanel": "Choose another panel"
-    }
+    },
+    "logout": "Log out"
   },
   "login": {
     "brand": "Netpardaz",
     "welcome": "Welcome to Power BI Control Center",
-    "introduction": "Your data workspace starts here. Choose a panel to get started.",
+    "introduction": "Your data workspace starts here. Sign in to get started.",
     "product": "Power BI Control Center",
     "language": "فارسی",
     "title": "Sign in",
@@ -578,7 +580,7 @@
     "passwordPlaceholder": "Demo password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "submit": "Enter selected panel",
+    "submit": "Enter workspace",
     "choosePanel": "Choose your panel",
     "configuration": "Configuration",
     "reports": "Reports",
@@ -594,7 +596,7 @@
     "slides": {
       "overview": {
         "title": "From connected data to a clearer picture.",
-        "description": "One place to configure your data workspace and explore your reports."
+        "description": "Explore your workspace overview and Cube models in one place."
       },
       "configuration": {
         "title": "Give your data a clear direction.",
@@ -604,6 +606,184 @@
         "title": "See the story behind your data.",
         "description": "Explore reports, charts, and visual perspectives in a focused analytics workspace."
       }
-    }
+    },
+    "frontendOnlyNotice": "Frontend preview only. Credentials are not verified; continue to the workspace overview."
+  },
+  "cube": {
+    "title": "Cube workspace",
+    "refresh": "Refresh",
+    "configure": "Set VITE_CUBE_API_URL and, if required, VITE_CUBE_TOKEN in .env.local, then restart the app.",
+    "error": "Unable to load Cube data: {message}",
+    "loading": "Loading Cube data…",
+    "count": "Line items",
+    "description": "Read the total number of line items from your Cube model. The value below comes from Cube when the request succeeds.",
+    "flowLabel": "How Cube data reaches this page",
+    "flow": {
+      "request": {
+        "title": "Application",
+        "description": "The app requests the selected measure."
+      },
+      "model": {
+        "title": "Cube model",
+        "description": "Cube evaluates the measure against its configured data source."
+      },
+      "result": {
+        "title": "Result",
+        "description": "Returned rows appear in the results table. Request errors are shown explicitly."
+      }
+    },
+    "usageTitle": "How to use this card",
+    "steps": {
+      "configure": "Set the Cube API URL and optional API token in .env.local, then restart pnpm dev.",
+      "open": "Open Configuration → Overview. The card loads LineItems.count automatically.",
+      "refresh": "Select Refresh to request the count again. Cached results stay fresh for one minute; this is not continuous polling."
+    },
+    "chartNote": "This query returns one total, so it is shown as a number. A trend chart needs a time dimension and granularity from your actual Cube model.",
+    "connectionDescription": "Connect to your existing Cube server and select a measure from its model.",
+    "apiUrl": "Cube API URL",
+    "token": "API token (optional in local development)",
+    "sessionNote": "Connection settings stay in memory while this card is open. The token is not saved in browser storage.",
+    "connect": "Test connection and load measures",
+    "testing": "Checking Cube models…",
+    "connected": "Cube metadata loaded. Select a measure to test a data query.",
+    "noMeasures": "No accessible measures were returned by Cube. Check the server model and permissions.",
+    "measure": "Measure",
+    "chooseMeasure": "Select a measure",
+    "noValue": "No value",
+    "scopeNote": "This form connects to an existing Cube API. Database connections and model definitions are configured on the Cube server. Other workspace panels remain separate.",
+    "uiSteps": {
+      "connect": "Enter the API URL, leave the token empty for local development mode, and test the connection.",
+      "select": "Select a deployed measure, optionally choose a grouping dimension and equality filter, then run the query."
+    },
+    "workspaceTabs": "Cube workspace sections",
+    "managementKey": "Model management key",
+    "connectFirst": "Configure the Cube API in Connection and test the connection to load query members.",
+    "tabs": {
+      "playground": "Playground",
+      "model": "Data Model",
+      "files": "Model files",
+      "connection": "Connection"
+    },
+    "managementHelp": "Enter the CUBE_MANAGEMENT_KEY value from this project’s .env.server file, then load tables again. This is different from the Cube API token and is cleared when the page reloads.",
+    "connectionUnavailable": "Cube connection is not configured. Contact your workspace administrator."
+  },
+  "cubeBuilder": {
+    "title": "Build a Cube model draft",
+    "description": "Define measures and dimensions, then download YAML or create a new model through the Express service.",
+    "cubeName": "Cube name",
+    "table": "SQL table (schema.table)",
+    "measures": "Measures",
+    "dimensions": "Dimensions",
+    "memberName": "Member name",
+    "type": "Type",
+    "sql": "SQL column or expression",
+    "remove": "Remove",
+    "add": "Add",
+    "validation": "Use unique names starting with a letter or underscore, followed by letters, digits or underscores. Non-count members need a SQL column or expression. At least one measure is required.",
+    "preview": "Preview YAML draft",
+    "download": "Download model YAML",
+    "handoff": "For Docker, Express and Cube must share the same model folder. Existing definitions are not edited. After Cube loads the file, test the connection again to refresh the measure list.",
+    "types": {
+      "count": "Count",
+      "sum": "Sum",
+      "avg": "Average",
+      "min": "Minimum",
+      "max": "Maximum",
+      "count_distinct": "Distinct count",
+      "string": "Text",
+      "number": "Number",
+      "time": "Time",
+      "boolean": "Boolean"
+    },
+    "managementKey": "Model management key",
+    "managementNote": "Start the Express management service and enter its management key. The key stays in memory. Saving creates a new model file in the shared Cube folder; it never overwrites existing models.",
+    "validateServer": "Validate on server",
+    "saveServer": "Create model on server",
+    "checkActivation": "Check Cube model visibility",
+    "working": "Working…",
+    "validServer": "Structural validation passed. Database columns and SQL execution have not been verified.",
+    "savedServer": "Saved model {name} as {filename}. Cube activation has not been confirmed yet.",
+    "activeServer": "Cube exposes this model in metadata. Test a measure query to verify its data source.",
+    "pendingServer": "Cube has not exposed this model yet. Check the shared volume, reload behavior and Cube logs.",
+    "modelTabs": {
+      "tables": "Tables",
+      "generate": "Generate data model",
+      "files": "Files"
+    },
+    "tableSearch": "Search SQL tables",
+    "chooseTable": "Select a database table",
+    "loadTables": "Load / refresh SQL tables",
+    "tablesKeyRequired": "Enter the management key in Connection to load database tables.",
+    "noTables": "No matching database tables.",
+    "builderHelp": "Modeling help",
+    "column": "Column",
+    "chooseColumn": "Select a column",
+    "creationHelp": "Create a new Cube model for this table. Add measures and optional text dimensions. Existing models are never overwritten. Saving requires the configured management service; then check model visibility."
+  },
+  "cubeQuery": {
+    "title": "Query Cube data",
+    "measure": "Measure",
+    "dimension": "Group by dimension",
+    "filter": "Dimension equals (optional)",
+    "limit": "Maximum rows (1–1000)",
+    "run": "Run query / refresh",
+    "select": "Select a measure",
+    "none": "No grouping",
+    "note": "Run queries against deployed model members. Cross-cube combinations require valid joins in your Cube model. Results below belong to the last submitted query.",
+    "json": "View query JSON",
+    "loading": "Loading data…",
+    "error": "Query failed: {message}",
+    "results": "Last submitted query results",
+    "empty": "No rows returned",
+    "reset": "Reset query",
+    "visual": {
+      "table": "Table",
+      "line": "Line chart",
+      "bar": "Bar chart"
+    },
+    "timeDimension": "Time dimension",
+    "granularity": "Time granularity",
+    "from": "From date",
+    "to": "To date",
+    "units": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    },
+    "start": "Select a measure and run a query to see results.",
+    "chartUnavailable": "No safely representable numeric chart values; inspect the results table.",
+    "memberSearch": "Search models and members",
+    "usedOnly": "Used members only",
+    "filtersTitle": "Filters and time range"
+  },
+  "cubeTables": {
+    "title": "Database tables and columns",
+    "description": "Read-only metadata from the database connected to your local Cube development instance. This lists physical tables exposed by that connection, not just deployed Cube models. Table rows are not fetched here.",
+    "load": "Load / refresh database tables",
+    "keyRequired": "Enter the model management key above to browse database metadata.",
+    "loading": "Loading database schema…",
+    "error": "Unable to load tables: {message}",
+    "count": "{count} tables returned by Cube",
+    "search": "Search schema or table name",
+    "table": "Database table (column count)",
+    "choose": "Select a table",
+    "empty": "No matching tables",
+    "use": "Use this table in the model builder",
+    "column": "Column",
+    "type": "Database type",
+    "primaryKey": "Primary key",
+    "yes": "Yes",
+    "retry": "Try again"
+  },
+  "cubeFiles": {
+    "title": "Cube model files",
+    "note": "Actual model files retrieved from Cube. This viewer is read-only; edit existing files in your Cube project.",
+    "load": "Load / refresh files",
+    "keyRequired": "Enter the management key in Connection.",
+    "loading": "Loading files…",
+    "empty": "No model files returned.",
+    "select": "Select a model file to view its source."
   }
 }

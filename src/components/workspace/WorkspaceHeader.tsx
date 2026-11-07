@@ -1,57 +1,29 @@
-import { useLocation, useSearch } from '@tanstack/react-router';
-import { useTranslations } from 'use-intl';
+import { Link } from '@tanstack/react-router';
+import { LogOut } from 'lucide-react';
+import { useLocale, useTranslations } from 'use-intl';
 
 import { Typography } from '@/components/ui/typography';
-import { configurationSection } from '@/lib/flows/navigation';
 
 export const WorkspaceHeader = () => {
+  const locale = useLocale();
   const t = useTranslations('studio');
-  const { pathname } = useLocation();
-  const search = useSearch({ from: '/$locale' });
-  const reporting = pathname.split('/').includes('analytics');
-  const section = configurationSection(search.section ?? null);
-  const view = pathname.split('/').filter(Boolean).at(-1);
-  const title = reporting
-    ? t(
-        view === 'kpis'
-          ? 'metric.title'
-          : view === 'data'
-            ? 'dataBrowser.title'
-            : 'design.analyticsTitle',
-      )
-    : t(
-        section === 'overview'
-          ? 'design.overviewTitle'
-          : section === 'metrics'
-            ? 'metric.title'
-            : section === 'data'
-              ? 'dataBrowser.title'
-              : section,
-      );
-  const description = reporting
-    ? t(
-        view === 'kpis'
-          ? 'metric.help'
-          : view === 'data'
-            ? 'dataBrowser.description'
-            : 'design.analyticsHelp',
-      )
-    : t(
-        section === 'metrics'
-          ? 'metric.help'
-          : section === 'data'
-            ? 'dataBrowser.description'
-            : `design.sectionHelp.${section}`,
-      );
-
   return (
     <header className="workspace-header">
       <div className="workspace-header-copy">
         <Typography as="h1" variant="h4">
-          {title}
+          {t('design.overviewTitle')}
         </Typography>
-        <Typography variant="body3Medium">{description}</Typography>
+        <Typography variant="body3Medium">{t('design.sectionHelp.overview')}</Typography>
       </div>
+      <Link
+        to="/$locale/login"
+        params={{ locale }}
+        replace
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border-default px-4 py-2 text-sm hover:bg-surface-raised"
+      >
+        <LogOut size={16} aria-hidden="true" />
+        {t('logout')}
+      </Link>
     </header>
   );
 };

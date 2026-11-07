@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from 'use-intl';
 
 import { LoginIllustration } from './LoginIllustration';
 
-const slides = ['overview', 'configuration', 'reports'] as const;
+const slides = ['overview'] as const;
 
 export const LoginShowcase = () => {
   const t = useTranslations('login');

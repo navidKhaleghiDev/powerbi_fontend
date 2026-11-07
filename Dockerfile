@@ -23,7 +23,14 @@ EXPOSE 3001
 CMD ["pnpm", "run", "dev"]
 
 FROM development AS build
-RUN pnpm run build
+RUN pnpm run build && pnpm run build:server
+
+# Optional management API image: docker build --target management -t cube-management .
+FROM dependencies AS management
+COPY --from=build /app/.data/server /app/.data/server
+ENV CUBE_MANAGEMENT_HOST=0.0.0.0
+EXPOSE 3002
+CMD ["node", ".data/server/index.js"]
 
 FROM nginxinc/nginx-unprivileged:stable-alpine AS production
 COPY --from=build /app/dist /usr/share/nginx/html

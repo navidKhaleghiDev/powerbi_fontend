@@ -4,7 +4,6 @@ import { IntlProvider } from 'use-intl';
 
 import { WorkspaceShell } from '@/components/workspace/WorkspaceShell';
 import { WorkspaceProviders } from '@/components/WorkspaceProviders';
-import { useReportsMockMode } from '@/hooks/useWorkspace';
 
 import en from '../public/locales/en.json';
 import fa from '../public/locales/fa.json';
@@ -12,7 +11,6 @@ import fa from '../public/locales/fa.json';
 export const LocaleWorkspace = () => {
   const { locale } = useParams({ from: '/$locale' });
   const { pathname } = useLocation();
-  const reportsMockMode = useReportsMockMode();
   const login = pathname.replace(/\/$/, '').endsWith('/login');
   const valid = locale === 'en' || locale === 'fa';
   const messages = locale === 'en' ? en : fa;
@@ -36,15 +34,7 @@ export const LocaleWorkspace = () => {
         {login ? (
           <Outlet />
         ) : (
-          <WorkspaceShell
-            notice={
-              <p role="status" className="workspace-mode-text">
-                {reportsMockMode
-                  ? messages.workspace.reportsMockNotice
-                  : messages.workspace.frontendOnlyNotice}
-              </p>
-            }
-          >
+          <WorkspaceShell>
             <Outlet />
           </WorkspaceShell>
         )}

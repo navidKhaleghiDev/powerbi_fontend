@@ -13,7 +13,6 @@ export const LoginPage = () => {
   const locale = useLocale();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
-  const [panel, setPanel] = useState<'configuration' | 'reports'>('configuration');
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
 
   return (
@@ -43,38 +42,20 @@ export const LoginPage = () => {
               </Typography>
               <p>{t('introduction')}</p>
             </header>
+            <p role="status" className="mb-4 text-sm">
+              {t('frontendOnlyNotice')}
+            </p>
             <form
               className="login-form"
               onSubmit={(event) => {
                 event.preventDefault();
                 event.currentTarget.reset();
                 void navigate({
-                  to:
-                    panel === 'configuration'
-                      ? '/$locale/data-platform'
-                      : '/$locale/analytics/reports',
+                  to: '/$locale/data-platform',
                   params: { locale },
-                  search: panel === 'configuration' ? { section: 'overview' } : {},
                 });
               }}
             >
-              <fieldset className="login-panel-choice">
-                <legend>{t('choosePanel')}</legend>
-                <div className="login-panel-options">
-                  {(['configuration', 'reports'] as const).map((option) => (
-                    <label key={option} className="login-panel-option">
-                      <input
-                        type="radio"
-                        name="panel"
-                        value={option}
-                        checked={panel === option}
-                        onChange={() => setPanel(option)}
-                      />
-                      <span>{t(option)}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
               <div className="login-field">
                 <label htmlFor="login-username">{t('username')}</label>
                 <input

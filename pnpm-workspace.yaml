@@ -1,4 +1,5 @@
 # Native bundler binaries and the optional macOS file watcher.
 allowBuilds:
+  core-js: false
   esbuild: true
   fsevents: true
