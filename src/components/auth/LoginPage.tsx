@@ -22,8 +22,7 @@ export const LoginPage = () => {
         <div className="login-form-side" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
           <div className="login-topline">
             <div className="login-brand">
-              <img src="/brand/netsep-logo.png" width={30} height={38} alt="" />
-              <span>{t('brand')}</span>
+              <img src="/brand/netsep-logo.png" width={30} height={38} alt={t('brand')} />
             </div>
             <IconTooltip label={t('language')}>
               <Link

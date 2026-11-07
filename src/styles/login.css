@@ -907,56 +907,6 @@ body:has(.login-stage) {
 .login-carousel-slide .login-showcase-copy {
   min-height: 180px;
 }
-.login-carousel-controls {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
-  flex-shrink: 0;
-}
-.login-carousel-controls button {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #ffffff40;
-  border-radius: 50%;
-  background: #ffffff0d;
-  color: #fff;
-  cursor: pointer;
-}
-.login-carousel-controls button:hover {
-  background: #ffffff26;
-}
-.login-carousel-controls button:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-}
-.login-carousel-dots {
-  display: flex;
-  gap: 2px;
-}
-.login-carousel-dots button {
-  width: 28px;
-  border: 0;
-  background: transparent;
-}
-.login-carousel-dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 8px;
-  background: #ffffff66;
-}
-.login-carousel-dots [aria-current] span {
-  width: 20px;
-  background: #fff;
-}
-[dir='rtl'] .login-carousel-arrow {
-  transform: rotate(180deg);
-}
 .login-illustration-reports {
   filter: hue-rotate(24deg);
 }
@@ -979,11 +929,6 @@ body:has(.login-stage) {
     transform-box: fill-box;
     transform-origin: bottom;
     animation: login-bar-grow 3s ease-in-out infinite alternate;
-  }
-  .login-carousel-dots span {
-    transition:
-      width 200ms ease,
-      background 200ms ease;
   }
 }
 @keyframes login-slide-enter {
@@ -1021,20 +966,5 @@ body:has(.login-stage) {
 @media (max-height: 700px) {
   .login-carousel-slide .login-showcase-copy {
     min-height: 130px;
-  }
-  .login-carousel-controls {
-    margin-top: 8px;
-  }
-}
-@media (forced-colors: active) {
-  .login-carousel-controls button {
-    color: ButtonText;
-    border-color: ButtonText;
-  }
-  .login-carousel-dots span {
-    background: ButtonText;
-  }
-  .login-carousel-dots [aria-current] span {
-    background: Highlight;
   }
 }
