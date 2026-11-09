@@ -1,5 +1,4 @@
 import { ApplicationSidebar } from './ApplicationSidebar';
-import { WorkspaceHeader } from './WorkspaceHeader';
 
 import type { ReactNode } from 'react';
 
@@ -11,7 +10,6 @@ export const WorkspaceShell = ({ children }: Props) => {
     <div className="workspace-stage">
       <ApplicationSidebar />
       <div className="workspace-window">
-        <WorkspaceHeader />
         <main id="workspace-content" tabIndex={-1} className="workspace-page">
           {children}
         </main>

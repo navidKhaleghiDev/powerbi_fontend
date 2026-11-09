@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cubeManagementRequest } from '@/lib/cube-management';
 
+import { CubeRelationships, type ModelRelationship, type ModelTable } from './CubeRelationships';
+
 interface Props {
+  tables: ModelTable[];
   table: string;
   columns: { name: string; type: string; primaryKey: boolean }[];
 }
@@ -21,9 +24,16 @@ const types = ['count', 'sum', 'avg', 'min', 'max', 'count_distinct'] as const;
 const identifier = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 const quoteColumn = (name: string) => `"${name.replaceAll('"', '""')}"`;
 
-export const CubeModelBuilder = ({ table, columns }: Props) => {
+export const CubeModelBuilder = ({ table, columns, tables }: Props) => {
   const t = useTranslations('cubeBuilder');
   const client = useQueryClient();
+  const relationsT = useTranslations('cubeRelationships');
+  const [relationships, setRelationships] = useState<ModelRelationship[]>([]);
+  const [primaryKey, setPrimaryKey] = useState(
+    columns.filter((column) => column.primaryKey).length === 1
+      ? (columns.find((column) => column.primaryKey)?.name ?? '')
+      : '',
+  );
   const [name, setName] = useState(table.split('.').at(-1) ?? '');
   const [measures, setMeasures] = useState<Measure[]>([
     { id: 0, name: 'count', type: 'count', sql: '' },
@@ -56,6 +66,87 @@ export const CubeModelBuilder = ({ table, columns }: Props) => {
       (measure) =>
         measure.type === 'count' || columns.some((column) => column.name === measure.sql),
     );
+  const dimensionType = (type: string) =>
+    /bool/i.test(type)
+      ? 'boolean'
+      : /date|time/i.test(type)
+        ? 'time'
+        : /int|numeric|decimal|float|double|real/i.test(type)
+          ? 'number'
+          : 'string';
+  const relatedTables = relationships.map((join) =>
+    tables.find((entry) => `${entry.schema}.${entry.name}` === join.table),
+  );
+  const joinsValid =
+    relationships.length === 0 ||
+    (columns.some((column) => column.name === primaryKey && identifier.test(column.name)) &&
+      !measures.some((measure) => measure.name.toLowerCase() === primaryKey.toLowerCase()) &&
+      new Set([name.toLowerCase(), ...relationships.map((join) => join.cube.toLowerCase())])
+        .size ===
+        relationships.length + 1 &&
+      relationships.every(
+        (join, index) =>
+          identifier.test(join.cube) &&
+          columns.some((column) => column.name === join.source) &&
+          relatedTables[index]?.columns.some((column) => column.name === join.target) &&
+          relatedTables[index]?.columns.filter((column) => column.primaryKey).length === 1 &&
+          relatedTables[index]?.columns.every((column) => identifier.test(column.name)),
+      ));
+  const yaml = stringify({
+    cubes: [
+      {
+        name: model.name,
+        sql_table: model.table,
+        measures: model.measures.map((measure) => ({
+          ...measure,
+          ...(measure.sql && relationships.length ? { sql: `{CUBE}.${measure.sql}` } : {}),
+        })),
+        dimensions: relationships.length
+          ? [
+              {
+                name: primaryKey,
+                type: dimensionType(
+                  columns.find((column) => column.name === primaryKey)?.type ?? '',
+                ),
+                sql: `{CUBE}.${quoteColumn(primaryKey)}`,
+                primary_key: true,
+              },
+              ...model.dimensions
+                .filter((dimension) => dimension.name !== primaryKey)
+                .map((dimension) => ({ ...dimension, sql: `{CUBE}.${dimension.sql}` })),
+            ]
+          : model.dimensions,
+        ...(relationships.length
+          ? {
+              joins: relationships.map((join) => ({
+                name: join.cube,
+                relationship: join.relationship,
+                sql: `{CUBE}.${quoteColumn(join.source)} = {${join.cube}}.${quoteColumn(join.target)}`,
+              })),
+            }
+          : {}),
+      },
+      ...relationships.map((join, index) => ({
+        name: join.cube,
+        sql_table: join.table,
+        dimensions:
+          relatedTables[index]?.columns.map((column) => ({
+            name: column.name,
+            type: dimensionType(column.type),
+            sql: `{CUBE}.${quoteColumn(column.name)}`,
+            ...(column.primaryKey ? { primary_key: true } : {}),
+          })) ?? [],
+      })),
+    ],
+  });
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([yaml], { type: 'application/yaml' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${name}.yml`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const save = useMutation({
     mutationFn: () => cubeManagementRequest<{ name: string; filename: string }>('models', model),
   });
@@ -173,6 +264,31 @@ export const CubeModelBuilder = ({ table, columns }: Props) => {
               </label>
             ))}
         </fieldset>
+        <CubeRelationships
+          tables={tables.filter((entry) => `${entry.schema}.${entry.name}` !== table)}
+          columns={columns}
+          value={relationships}
+          onChange={setRelationships}
+        />
+        {relationships.length > 0 && (
+          <label className="block">
+            {relationsT('primaryKey')}
+            <select
+              className="block w-full rounded-md border bg-background p-2"
+              value={primaryKey}
+              onChange={(event) => setPrimaryKey(event.target.value)}
+            >
+              <option value="">{relationsT('choose')}</option>
+              {columns
+                .filter((column) => identifier.test(column.name))
+                .map((column) => (
+                  <option key={column.name} value={column.name}>
+                    {column.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        )}
       </fieldset>
       {!save.isSuccess && (
         <>
@@ -180,19 +296,23 @@ export const CubeModelBuilder = ({ table, columns }: Props) => {
           <details>
             <summary className="cursor-pointer">{t('preview')}</summary>
             <pre dir="ltr" className="mt-2 overflow-auto rounded-lg bg-muted p-3 text-sm">
-              {stringify({
-                cubes: [
-                  {
-                    name: model.name,
-                    sql_table: model.table,
-                    measures: model.measures,
-                    dimensions: model.dimensions,
-                  },
-                ],
-              })}
+              {yaml}
             </pre>
           </details>
-          <Button type="button" disabled={!valid || busy} onClick={() => save.mutate()}>
+          {relationships.length > 0 && <p role="status">{relationsT('exportHelp')}</p>}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!valid || !joinsValid || busy}
+            onClick={download}
+          >
+            {t('download')}
+          </Button>
+          <Button
+            type="button"
+            disabled={!valid || busy || relationships.length > 0}
+            onClick={() => save.mutate()}
+          >
             {busy ? t('working') : t('saveServer')}
           </Button>
         </>

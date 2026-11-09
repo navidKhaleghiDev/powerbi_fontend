@@ -35,6 +35,17 @@ VITE_CUBE_TOKEN=
 
 یک معیار بدون بُعد فقط یک مقدار برمی‌گرداند. نمودار روند نیاز به بُعد زمانی واقعی مدل، بازه زمانی و دانه‌بندی دارد.
 
+## Local Docker Compose stack
+
+The root `docker-compose.yml` starts the frontend, Cube.js, and the model-management API against an existing PostgreSQL database. It does not create or alter the database.
+
+1. Copy `.env.compose.example` to `.env.compose`. Set the database credentials and a random management key with at least 24 characters. Keep the ignored `.env.compose` file private; use a read-only database account where possible.
+2. Start the stack with `docker compose --env-file .env.compose up --build -d`.
+3. Open the app at `http://localhost:8080`. Cube's API is available at `http://localhost:4000`; model files are stored in `cube/model`.
+4. Stop the services with `docker compose --env-file .env.compose down`. This does not remove model files.
+
+This is a local development setup: Cube development mode is enabled for schema discovery, and the published ports are limited to loopback. Do not expose it publicly or use it as a production authentication boundary. Cube loads model files from `cube/model`, mounted at its default `/cube/conf/schema` directory. The physical table browser works without models, but measures and queries require models created in the model builder. See the Docker Compose section in the root README for details.
+
 ## بررسی خطاها
 
 - خطای شبکه: بررسی کنید Cube اجرا شده و نشانی آن از مرورگر قابل دسترسی است. localhost به رایانه‌ای اشاره می‌کند که مرورگر روی آن اجرا می‌شود.

@@ -10,7 +10,7 @@ Express creates Cube YAML models from the existing frontend builder. It is a sep
    docker inspect YOUR_CUBE_CONTAINER --format '{{json .Mounts}}'
    ```
 
-   Cube must read the files Express writes. For a mount `./cube/model:/cube/conf/model`, point Express at the existing host `./cube/model/cubes` directory. Create that directory in your Cube project if needed. If your version uses a different model path, use that actual path. Do not mount the Docker socket.
+   Cube must read the files Express writes. Cube's default schema directory is `/cube/conf/schema`; for example, mount `./cube/model:/cube/conf/schema` and point Express at the same host `./cube/model` directory. If your Cube deployment uses a different schema path, use that actual path. Do not mount the Docker socket.
 
 2. In this repository:
 

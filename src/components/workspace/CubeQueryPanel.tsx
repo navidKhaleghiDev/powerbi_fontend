@@ -18,37 +18,66 @@ interface Member {
   title: string;
 }
 interface Props {
-  client: ReturnType<typeof createCubeClient>;
+  client: ReturnType<typeof createCubeClient> | null;
   measures: Member[];
   dimensions: Member[];
+  initialQuery?: Query | null;
+  initialShowValues?: boolean;
+  onShowValuesChange?: (show: boolean) => void;
+  onApply?: (query: Query) => void;
+  onVisualChange?: (visual: 'bar' | 'line' | 'table') => void;
 }
 
-export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
+export const CubeQueryPanel = ({
+  client,
+  measures,
+  dimensions,
+  initialQuery,
+  initialShowValues = true,
+  onShowValuesChange,
+  onApply,
+  onVisualChange,
+}: Props) => {
   const t = useTranslations('cubeQuery');
+  const d = useTranslations('dashboard');
+  const [cube, setCube] = useState('');
+  const [showValues, setShowValues] = useState(initialShowValues);
+  const cubes = [...new Set([...measures, ...dimensions].map((item) => item.name.split('.')[0]))];
   const id = useId();
   const [memberSearch, setMemberSearch] = useState('');
   const [usedOnly, setUsedOnly] = useState(false);
-  const [measure, setMeasure] = useState('');
-  const [dimension, setDimension] = useState('');
-  const [filter, setFilter] = useState('');
-  const [time, setTime] = useState('');
-  const [granularity, setGranularity] = useState('month');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [measure, setMeasure] = useState(initialQuery?.measures?.[0] ?? '');
+  const [dimension, setDimension] = useState(initialQuery?.dimensions?.[0] ?? '');
+  const [filter, setFilter] = useState(
+    initialQuery?.filters?.[0] && 'values' in initialQuery.filters[0]
+      ? (initialQuery.filters[0].values?.[0] ?? '')
+      : '',
+  );
+  const initialTime = initialQuery?.timeDimensions?.[0];
+  const initialRange =
+    initialTime && 'dateRange' in initialTime && Array.isArray(initialTime.dateRange)
+      ? initialTime.dateRange
+      : [];
+  const [time, setTime] = useState(initialTime?.dimension ?? '');
+  const [granularity, setGranularity] = useState(
+    initialTime && 'granularity' in initialTime ? (initialTime.granularity ?? 'month') : 'month',
+  );
+  const [from, setFrom] = useState(initialRange[0] ?? '');
+  const [to, setTo] = useState(initialRange[1] ?? '');
   const [visual, setVisual] = useState<'table' | 'line' | 'bar'>('table');
-  const [limit, setLimit] = useState(100);
+  const [limit, setLimit] = useState(initialQuery?.limit ?? 100);
   const [submitted, setSubmitted] = useState<Query | null>(null);
   const query = useQuery({
     queryKey: ['cube-query', id, submitted],
     queryFn: async () => {
-      if (!submitted) throw new Error('No query');
+      if (!submitted || !client) throw new Error('No connection or query');
       const result = await client.load(submitted);
       return (result.rawData() as Record<string, unknown>[]).map((row) => ({
         id: crypto.randomUUID(),
         values: row,
       }));
     },
-    enabled: submitted !== null,
+    enabled: submitted !== null && client !== null,
     retry: false,
     gcTime: 0,
     staleTime: 60_000,
@@ -85,10 +114,34 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
   return (
     <section className="space-y-3 rounded-lg border p-4" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`} className="font-bold">
-        {t('title')}
+        {d('title')}
       </h3>
+      <p className="text-sm text-muted-foreground">{d('description')}</p>
       <div className="grid min-h-[65vh] gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="space-y-3 rounded-lg border bg-muted/20 p-3">
+          <h4 className="font-semibold">{d('cubes')}</h4>
+          <label className="block text-sm">
+            {d('source')}
+            <select
+              className="mt-1 w-full rounded-md border bg-background p-2"
+              value={cube}
+              onChange={(event) => {
+                setCube(event.target.value);
+                setMeasure('');
+                setDimension('');
+                setTime('');
+                setFilter('');
+                setSubmitted(null);
+              }}
+            >
+              <option value="">{d('all')}</option>
+              {cubes.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="block" htmlFor={`${id}-search`}>
             {t('memberSearch')}
           </label>
@@ -109,6 +162,7 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
             {[...new Set([...measures, ...dimensions].map((item) => item.name.split('.')[0]))].map(
               (cubeName) => {
                 const visible = (item: Member) =>
+                  (!cube || cubeName === cube) &&
                   item.name.startsWith(`${cubeName}.`) &&
                   `${item.name} ${item.title}`.toLowerCase().includes(memberSearch.toLowerCase()) &&
                   (!usedOnly || [measure, dimension, time].includes(item.name));
@@ -180,8 +234,12 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
         </aside>
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap gap-2 border-b pb-3">
-            <Button type="submit" form={`${id}-query-form`} disabled={!measure || query.isFetching}>
-              {t('run')}
+            <Button
+              type="submit"
+              form={`${id}-query-form`}
+              disabled={!client || !measure || query.isFetching}
+            >
+              {onApply ? d('applyWidget') : t('run')}
             </Button>
             <Button
               type="button"
@@ -204,19 +262,95 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
                 type="button"
                 variant={visual === kind ? 'default' : 'outline'}
                 aria-pressed={visual === kind}
-                onClick={() => setVisual(kind)}
+                onClick={() => {
+                  setVisual(kind);
+                  onVisualChange?.(kind);
+                }}
               >
                 {t(`visual.${kind}`)}
               </Button>
             ))}
           </div>
-          <details className="rounded-lg border p-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="rounded-lg border p-3 text-sm">
+              <span className="mb-2 block font-semibold">{d('columns')}</span>
+              <select
+                className="w-full rounded-md border bg-background p-2"
+                value={dimension}
+                onChange={(event) => {
+                  setDimension(event.target.value);
+                  setFilter('');
+                }}
+              >
+                <option value="">{t('none')}</option>
+                {dimensions
+                  .filter(
+                    (item) => item.type !== 'time' && (!cube || item.name.startsWith(`${cube}.`)),
+                  )
+                  .map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.title}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label className="rounded-lg border p-3 text-sm">
+              <span className="mb-2 block font-semibold">{d('rows')}</span>
+              <select
+                className="w-full rounded-md border bg-background p-2"
+                value={measure}
+                onChange={(event) => setMeasure(event.target.value)}
+              >
+                <option value="">{t('none')}</option>
+                {measures
+                  .filter((item) => !cube || item.name.startsWith(`${cube}.`))
+                  .map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.title}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <section className="space-y-2 rounded-lg border p-3 text-sm">
+              <h4 className="font-semibold">{d('marks')}</h4>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showValues}
+                  onChange={(event) => {
+                    setShowValues(event.target.checked);
+                    onShowValuesChange?.(event.target.checked);
+                  }}
+                />
+                {d('values')}
+              </label>
+            </section>
+            <section className="space-y-2 rounded-lg border p-3 text-sm">
+              <h4 className="font-semibold">{d('suggestions')}</h4>
+              <p className="text-muted-foreground">
+                {d(time ? 'timeHint' : dimension ? 'categoryHint' : 'tableHint')}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const next = time ? 'line' : dimension ? 'bar' : 'table';
+                  setVisual(next);
+                  onVisualChange?.(next);
+                }}
+              >
+                {t(`visual.${time ? 'line' : dimension ? 'bar' : 'table'}`)}
+              </Button>
+            </section>
+          </div>
+          <details className="rounded-lg border p-3" open>
             <summary className="cursor-pointer font-medium">{t('filtersTitle')}</summary>
             <form
               id={`${id}-query-form`}
               className="grid gap-3 rounded-lg border bg-muted/10 p-3 sm:grid-cols-2"
               onSubmit={(event) => {
                 event.preventDefault();
+                if (!client || !measure) return;
                 const next: Query = {
                   measures: [measure],
                   dimensions: dimension ? [dimension] : [],
@@ -236,6 +370,10 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
                     ? { filters: [{ member: dimension, operator: 'equals', values: [filter] }] }
                     : {}),
                 };
+                if (onApply) {
+                  onApply(next);
+                  return;
+                }
                 if (JSON.stringify(next) === JSON.stringify(submitted)) void query.refetch();
                 else setSubmitted(next);
               }}
@@ -268,7 +406,9 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
                 >
                   <option value="">{t('none')}</option>
                   {dimensions
-                    .filter((item) => item.type === 'time')
+                    .filter(
+                      (item) => item.type === 'time' && (!cube || item.name.startsWith(`${cube}.`)),
+                    )
                     .map((item) => (
                       <option key={item.name} value={item.name}>
                         {item.title}
@@ -326,7 +466,7 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
           )}
           {query.isFetching && <p role="status">{t('loading')}</p>}
           {query.isError && <p role="alert">{t('error', { message: query.error.message })}</p>}
-          {!submitted && (
+          {!submitted && !onApply && (
             <p className="flex min-h-80 items-center justify-center rounded-lg border bg-muted/20 p-16 text-center text-muted-foreground">
               {t('start')}
             </p>
@@ -340,7 +480,7 @@ export const CubeQueryPanel = ({ client, measures, dimensions }: Props) => {
             ) : (
               <p>{t('chartUnavailable')}</p>
             ))}
-          {query.isSuccess && (
+          {query.isSuccess && (visual === 'table' || showValues) && (
             <div className="overflow-auto">
               <table className="w-full text-start text-sm">
                 <caption>{t('results')}</caption>

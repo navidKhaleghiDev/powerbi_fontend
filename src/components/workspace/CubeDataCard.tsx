@@ -1,17 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/components/ui/button';
 import { createCubeClient, cubeDefaults } from '@/lib/cube';
 
 import { CubeQueryPanel } from './CubeQueryPanel';
-import { CubeTableBrowser } from './CubeTableBrowser';
 
-export const CubeDataCard = () => {
+import type { Query } from '@cubejs-client/core';
+
+export const CubeDataCard = ({
+  initialQuery,
+  initialShowValues,
+  onShowValuesChange,
+  onApply,
+  onVisualChange,
+}: {
+  initialQuery?: Query | null;
+  initialShowValues?: boolean;
+  onShowValuesChange?: (show: boolean) => void;
+  onApply?: (query: Query) => void;
+  onVisualChange?: (visual: 'bar' | 'line' | 'table') => void;
+}) => {
   const t = useTranslations('cube');
   const id = useId();
-  const [tab, setTab] = useState<'playground' | 'model'>('playground');
   const client = useMemo(
     () => (cubeDefaults.url ? createCubeClient(cubeDefaults.url, cubeDefaults.token) : null),
     [],
@@ -42,42 +53,22 @@ export const CubeDataCard = () => {
       aria-label={t('workspaceTabs')}
     >
       <div className="space-y-4 p-4 lg:p-5">
-        <nav className="flex flex-wrap gap-2 border-b pb-3" aria-label={t('workspaceTabs')}>
-          {(['playground', 'model'] as const).map((item) => (
-            <Button
-              key={item}
-              variant={tab === item ? 'default' : 'ghost'}
-              type="button"
-              aria-current={tab === item ? 'page' : undefined}
-              onClick={() => setTab(item)}
-            >
-              {t(`tabs.${item}`)}
-            </Button>
-          ))}
-        </nav>
         {metadata.isFetching && <p role="status">{t('testing')}</p>}
         {metadata.isError && <p role="alert">{t('error', { message: metadata.error.message })}</p>}
-        <div hidden={tab !== 'playground'}>
+        <div>
           {!client && (
             <p className="rounded-lg border p-8 text-center">{t('connectionUnavailable')}</p>
           )}
-          {metadata.isSuccess && client && (
-            <>
-              <p role="status">{t('connected')}</p>
-              {metadata.data.measures.length === 0 ? (
-                <p>{t('noMeasures')}</p>
-              ) : (
-                <CubeQueryPanel
-                  client={client}
-                  measures={metadata.data.measures}
-                  dimensions={metadata.data.dimensions}
-                />
-              )}
-            </>
-          )}
-        </div>
-        <div hidden={tab !== 'model'}>
-          <CubeTableBrowser />
+          <CubeQueryPanel
+            initialQuery={initialQuery}
+            initialShowValues={initialShowValues}
+            onShowValuesChange={onShowValuesChange}
+            onApply={onApply}
+            onVisualChange={onVisualChange}
+            client={client}
+            measures={metadata.data?.measures ?? []}
+            dimensions={metadata.data?.dimensions ?? []}
+          />
         </div>
       </div>
     </section>

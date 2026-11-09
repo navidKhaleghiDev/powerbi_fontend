@@ -71,7 +71,19 @@ docker build --secret id=npmrc,src="$HOME/.npmrc" -t powerbi-control-center:loca
 
 Use Docker Engine with the Buildx/BuildKit plugin.
 
-The Dockerfile installs the pinned pnpm version and frozen dependencies through Nexus, builds the Vite application, and copies `dist/` into an unprivileged Nginx runtime. The runtime uses the image's default Nginx configuration and listens on port 8080. Its health check requests `/`. Git hooks are skipped inside image builds. Base images come from their Docker image registries; Nexus supplies npm packages.
+### Local Cube stack with an existing PostgreSQL database
+
+The Compose stack starts the frontend, Cube.js, and the Cube model-management API. It connects Cube to an existing PostgreSQL server; it does not create, migrate, or modify that database. Copy `.env.compose.example` to `.env.compose` and set the database connection values and a random `CUBE_MANAGEMENT_KEY` of at least 24 characters. For the host Vite development server (`pnpm dev` on port 3001), use the same `CUBE_MANAGEMENT_KEY` in `.env.server`; the Compose API is published only on loopback at port 3002 for the Vite proxy. Keep both ignored files private. The configured database account should be read-only where possible. Cube reads model files from `cube/model`, mounted at its default `/cube/conf/schema` path. The database connection and physical table browser work without models, but measures and data queries require you to create Cube models in **Configuration → Overview → Cube data → model builder**.
+
+```bash
+docker compose --env-file .env.compose up --build -d
+```
+
+Open the application at `http://localhost:8080`; Cube's local development API is at `http://localhost:4000`. Cube development mode is enabled for local schema discovery, so this stack is bound to loopback and is not a production deployment. Model files persist in `cube/model`. Stop the services with `docker compose --env-file .env.compose down`; this keeps the model files.
+
+The frontend proxy injects the management key server-side for the local model-management API. Do not publish these ports publicly or reuse this development setup as a production authentication boundary.
+
+The Dockerfile installs the pinned pnpm version and frozen dependencies through Nexus, builds the Vite application, and copies `dist/` into an unprivileged Nginx runtime. Nginx listens on port 8080, serves SPA routes with an index fallback, and can proxy the Cube management API when deployed alongside that service. Its health check requests `/`. Git hooks are skipped inside image builds. Base images come from their Docker image registries; Nexus supplies npm packages.
 
 ```bash
 # Production frontend at http://localhost:8080
@@ -103,3 +115,27 @@ Local environment files, credentials, Git metadata, dependencies, and generated 
 During `pnpm run dev`, the Reports panel automatically loads clearly labeled fictional data: 72 orders across six months, four regions, and three categories; two sample reports; KPI bindings; and paginated dataset rows. Charts, filters, CSV export, and local draft visualization work in the browser. Approval/publication metadata and timestamps are simulated, and all backend mutations still report unavailability. Configuration remains empty.
 
 The fixtures live in `src/lib/mocks/reports.ts` and are loaded through TanStack Query only on Analytics routes. Set `VITE_REPORTS_MOCKS=false` in `.env.local` and restart Vite to return to empty states. Production builds exclude the fixture module and never enable it, even if the environment flag is set. Mock edits are not persisted across reloads.
+
+### Sales Mart dashboard demo (no services required)
+
+Run `pnpm dev` and open the dashboard after login. The income and expense sheets use
+local synthetic data based on the [current sales definition](docs/mart-sales-definition-current.fa.pdf).
+No Cube.js, management API, database, token, or environment variable is required.
+The widget editor and searchable field pane also use local sample fields. Income includes independent formal/informal and cash/credit classifications with reconciled totals; see [the income sheet guide](docs/dashboard-income.fa.md).
+The demo is available in development and production builds by explicit request;
+all data is labeled fictional. Widget edits last for the current session only.
+
+The sample contains 36 goods invoices, separate allocated payment events,
+supplier purchases and hypothetical income/expense recognition entries in IRR
+for January–June 2026. The as-of date and customer filter recalculate widgets.
+Settled invoices use issue dates; successful collections use payment dates.
+Unconfirmed purchases are excluded, and purchase totals are never treated as
+recognized expenses. Financial entries have no customer attribution, so those
+widgets show an unavailable state when a customer is selected. No profit is
+calculated. Recognition policy, tax, returns, foreign exchange and salesperson
+mapping remain unapproved or outside this demo. The financial entries illustrate
+presentation only and do not resolve the PDF's open accounting definitions.
+
+Visualizations and Data have collapse/expand buttons inside their own headers;
+field sections can be collapsed individually. Existing Cube tooling is retained
+for future integration but is not mounted by the dashboard.

@@ -8,11 +8,13 @@ import {
   LinearScale,
   LineElement,
   PointElement,
+  RadialLinearScale,
   Tooltip,
   type ChartOptions,
+  type Plugin,
 } from 'chart.js';
 import { useEffect, useState } from 'react';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Bar, Doughnut, Line, Radar } from 'react-chartjs-2';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { formatExactValue } from '@/lib/flows/display';
@@ -28,18 +30,64 @@ ChartJS.register(
   LinearScale,
   LineElement,
   PointElement,
+  RadialLinearScale,
   Tooltip,
 );
 
-const colors = ['#14b8a6', '#81c995', '#cd8185', '#b5a5d4', '#dac38d', '#8fbcc5'];
+const chartColors = ['#0d9488', '#6366f1', '#f59e0b', '#e11d48', '#8b5cf6', '#0284c7'];
+const glowFrames = new WeakMap<ChartJS, number>();
+const lineGlow: Plugin<'line'> = {
+  id: 'dashboardLineGlow',
+  afterInit(chart) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let lastFrame = 0;
+    const frame = (time: number) => {
+      if (!document.hidden && time - lastFrame >= 66) {
+        chart.draw();
+        lastFrame = time;
+      }
+      glowFrames.set(chart, requestAnimationFrame(frame));
+    };
+    glowFrames.set(chart, requestAnimationFrame(frame));
+  },
+  afterDatasetsDraw(chart) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const line = chart.getDatasetMeta(0).dataset;
+    if (!(line instanceof LineElement)) return;
+    const ctx = chart.ctx;
+    ctx.save();
+    const color = chart.data.datasets[0]?.borderColor;
+    ctx.shadowColor = typeof color === 'string' ? color : '#0d9488';
+    ctx.shadowBlur = 3 + 5 * (0.5 + 0.5 * Math.sin(performance.now() / 550));
+    line.draw(ctx, chart.chartArea);
+    ctx.restore();
+  },
+  afterDestroy(chart) {
+    const frame = glowFrames.get(chart);
+    if (frame !== undefined) cancelAnimationFrame(frame);
+    glowFrames.delete(chart);
+  },
+};
 type VisualKind = 'bar' | 'line' | 'doughnut';
 interface Props {
-  kind: 'bar' | 'line' | 'pie';
+  kind: 'bar' | 'horizontalBar' | 'line' | 'pie' | 'radar' | 'heatmap';
   title: string;
   rows: AnalyticsResult['rows'];
+  showValues?: boolean;
+  dashboard?: boolean;
+  chartColor?: string;
+  categoryColors?: string[];
 }
 
-export const WarehouseChart = ({ kind, title, rows }: Props) => {
+export const WarehouseChart = ({
+  kind,
+  title,
+  rows,
+  showValues = true,
+  dashboard = false,
+  chartColor,
+  categoryColors,
+}: Props) => {
   const locale = useLocale();
   const t = useTranslations('studio');
   const [fontFamily, setFontFamily] = useState('sans-serif');
@@ -53,6 +101,16 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
     };
   }, [locale]);
 
+  const defaultColor =
+    kind === 'bar' || kind === 'horizontalBar'
+      ? '#6366f1'
+      : kind === 'radar'
+        ? '#8b5cf6'
+        : kind === 'heatmap'
+          ? '#0284c7'
+          : '#0d9488';
+  const primary = chartColor ?? defaultColor;
+  const colors = categoryColors ?? chartColors;
   const rtl = locale === 'fa';
   const labels = rows.map((row) => String(row.label ?? t('allRows')));
   const values = rows.map((row) => {
@@ -130,6 +188,9 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
     values.every((value) => value !== null && value >= 0) &&
     values.some((value) => value !== null && value > 0);
   const canvasProps = { role: 'img', 'aria-label': title };
+  const finiteValues = values.filter((value): value is number => value !== null);
+  const minimum = Math.min(...finiteValues);
+  const range = Math.max(...finiteValues) - minimum || 1;
 
   return (
     <div className="space-y-4">
@@ -137,20 +198,87 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
         className="workspace-chart-canvas relative h-[clamp(16rem,35dvh,25rem)] w-full min-w-0"
         dir={rtl ? 'rtl' : 'ltr'}
       >
-        {kind === 'bar' ? (
-          <Bar
+        {kind === 'heatmap' ? (
+          <div className="bi-heatmap" role="list" aria-label={title}>
+            {rows.map((row, index) => {
+              const value = values[index];
+              const intensity = value == null ? 0 : (value - minimum) / range;
+              return (
+                <div
+                  className="bi-heatmap-cell"
+                  role="listitem"
+                  key={JSON.stringify([row.label, index])}
+                  style={{
+                    backgroundColor:
+                      value == null
+                        ? '#f1f5f3'
+                        : `${primary}${Math.round((0.12 + intensity * 0.55) * 255)
+                            .toString(16)
+                            .padStart(2, '0')}`,
+                  }}
+                  title={`${labels[index]}: ${formatExactValue(row.value, locale)}`}
+                >
+                  <span>{labels[index]}</span>
+                  <strong>{formatExactValue(row.value, locale)}</strong>
+                </div>
+              );
+            })}
+          </div>
+        ) : kind === 'radar' ? (
+          <Radar
             {...canvasProps}
-            options={cartesian}
+            options={{
+              ...common,
+              scales: {
+                r: {
+                  beginAtZero: true,
+                  ticks: { display: false },
+                  grid: { color: '#d6e7e3' },
+                  angleLines: { color: '#d6e7e3' },
+                  pointLabels: { color: '#526a63', font },
+                },
+              },
+            }}
             data={{
               labels,
               datasets: [
                 {
                   label: title,
                   data: values,
-                  backgroundColor: '#14b8a6',
-                  hoverBackgroundColor: '#0d9488',
-                  borderRadius: 9,
-                  maxBarThickness: 64,
+                  borderColor: primary,
+                  backgroundColor: `${primary}37`,
+                  pointBackgroundColor: primary,
+                  borderWidth: 2,
+                  pointRadius: 3,
+                },
+              ],
+            }}
+          />
+        ) : kind === 'bar' || kind === 'horizontalBar' ? (
+          <Bar
+            {...canvasProps}
+            options={
+              kind === 'horizontalBar'
+                ? {
+                    ...cartesian,
+                    indexAxis: 'y',
+                    scales: {
+                      x: { ...cartesian.scales.y, position: 'bottom' },
+                      y: { ...cartesian.scales.x, position: rtl ? 'right' : 'left' },
+                    },
+                  }
+                : cartesian
+            }
+            data={{
+              labels,
+              datasets: [
+                {
+                  label: title,
+                  data: values,
+                  backgroundColor: `${primary}bb`,
+                  hoverBackgroundColor: primary,
+                  borderRadius: dashboard ? 6 : 9,
+                  maxBarThickness: dashboard ? 38 : 64,
                 },
               ],
             }}
@@ -158,6 +286,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
         ) : kind === 'line' ? (
           <Line
             {...canvasProps}
+            plugins={dashboard ? [lineGlow] : []}
             options={cartesian}
             data={{
               labels,
@@ -165,12 +294,14 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
                 {
                   label: title,
                   data: values,
-                  borderColor: '#14b8a6',
-                  backgroundColor: '#14b8a624',
+                  borderColor: primary,
+                  backgroundColor: `${primary}28`,
                   fill: true,
                   tension: 0.35,
                   borderWidth: 2,
-                  pointRadius: values.length > 60 ? 0 : 2.5,
+                  pointRadius: values.length > 60 ? 0 : dashboard ? 3 : 2.5,
+                  pointBackgroundColor: '#ffffff',
+                  pointBorderWidth: 2,
                   pointHoverRadius: 6,
                   pointHitRadius: 12,
                   spanGaps: false,
@@ -181,7 +312,7 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
         ) : canShowDistribution ? (
           <Doughnut
             {...canvasProps}
-            options={{ ...common, cutout: '68%' }}
+            options={{ ...common, cutout: dashboard ? '74%' : '68%' }}
             data={{
               labels,
               datasets: [
@@ -230,40 +361,42 @@ export const WarehouseChart = ({ kind, title, rows }: Props) => {
           ))}
         </ul>
       )}
-      <details className="rounded-xl border border-border-default bg-surface-raised p-3 text-sm">
-        <summary className="cursor-pointer font-medium text-text-secondary">
-          {t('charts.viewValues')}
-        </summary>
-        <div className="mt-3 max-h-80 overflow-auto">
-          <table className="w-full text-start text-sm">
-            <caption className="sr-only">{title}</caption>
-            <thead>
-              <tr>
-                <th scope="col" className="p-3 text-start">
-                  {t('charts.category')}
-                </th>
-                <th scope="col" className="p-3 text-start">
-                  {title}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => (
-                <tr key={JSON.stringify([row.label])} className="border-t border-border-default">
-                  <th scope="row" className="p-3 text-start font-normal" dir="auto">
-                    {labels[index]}
+      {showValues && (
+        <details className="rounded-xl border border-border-default bg-surface-raised p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-text-secondary">
+            {t('charts.viewValues')}
+          </summary>
+          <div className="mt-3 max-h-80 overflow-auto">
+            <table className="w-full text-start text-sm">
+              <caption className="sr-only">{title}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="p-3 text-start">
+                    {t('charts.category')}
                   </th>
-                  <td className="p-3 text-end tabular-nums" dir="auto">
-                    {row.value == null
-                      ? t('dataBrowser.null')
-                      : formatExactValue(row.value, locale)}
-                  </td>
+                  <th scope="col" className="p-3 text-start">
+                    {title}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr key={JSON.stringify([row.label])} className="border-t border-border-default">
+                    <th scope="row" className="p-3 text-start font-normal" dir="auto">
+                      {labels[index]}
+                    </th>
+                    <td className="p-3 text-end tabular-nums" dir="auto">
+                      {row.value == null
+                        ? t('dataBrowser.null')
+                        : formatExactValue(row.value, locale)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
     </div>
   );
 };

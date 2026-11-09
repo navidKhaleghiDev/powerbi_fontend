@@ -1,0 +1,79 @@
+services:
+  cube:
+    image: cubejs/cube:latest
+    restart: unless-stopped
+    environment:
+      CUBEJS_DEV_MODE: 'true'
+      CUBEJS_DB_TYPE: postgres
+      CUBEJS_DB_HOST: ${CUBEJS_DB_HOST:?Set CUBEJS_DB_HOST in .env.compose}
+      CUBEJS_DB_PORT: ${CUBEJS_DB_PORT:-5432}
+      CUBEJS_DB_NAME: ${CUBEJS_DB_NAME:?Set CUBEJS_DB_NAME in .env.compose}
+      CUBEJS_DB_USER: ${CUBEJS_DB_USER:?Set CUBEJS_DB_USER in .env.compose}
+      CUBEJS_DB_PASS: ${CUBEJS_DB_PASS:?Set CUBEJS_DB_PASS in .env.compose}
+    ports:
+      - '127.0.0.1:4000:4000'
+    volumes:
+      - ./cube/model:/cube/conf/schema
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          'fetch("http://127.0.0.1:4000/playground/db-schema").then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  cube-management:
+    build:
+      context: .
+      target: management
+    restart: unless-stopped
+    environment:
+      CUBE_MANAGEMENT_HOST: 0.0.0.0
+      CUBE_MANAGEMENT_PORT: 3002
+      CUBE_MANAGEMENT_KEY: ${CUBE_MANAGEMENT_KEY:?Set CUBE_MANAGEMENT_KEY in .env.compose}
+      CUBE_MANAGEMENT_ORIGINS: http://localhost:3001,http://127.0.0.1:3001,http://localhost:8080,http://127.0.0.1:8080
+      CUBE_MODEL_DIR: /models
+      CUBE_SERVER_API_URL: http://cube:4000/cubejs-api/v1
+      CUBE_SCHEMA_DISCOVERY_URL: http://cube:4000/playground/db-schema
+    volumes:
+      - ./cube/model:/models
+    ports:
+      - '127.0.0.1:3002:3002'
+    depends_on:
+      cube:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          'fetch("http://127.0.0.1:3002/api/cube-management/health").then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      target: production
+      args:
+        VITE_CUBE_API_URL: http://localhost:4000/cubejs-api/v1
+    restart: unless-stopped
+    environment:
+      CUBE_MANAGEMENT_KEY: ${CUBE_MANAGEMENT_KEY:?Set CUBE_MANAGEMENT_KEY in .env.compose}
+      NGINX_ENVSUBST_FILTER: ^CUBE_MANAGEMENT_KEY$
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      cube:
+        condition: service_healthy
+      cube-management:
+        condition: service_healthy

@@ -2,7 +2,7 @@ import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/
 
 import { LocaleWorkspace, NotFound } from './App';
 import { LoginPage } from './components/auth/LoginPage';
-import { WorkspaceOverviewPage } from './components/workspace/WorkspaceOverviewPage';
+import { DashboardPage } from './components/workspace/DashboardPage';
 
 const rootRoute = createRootRoute({ notFoundComponent: NotFound });
 const indexRoute = createRoute({
@@ -34,13 +34,19 @@ const loginRoute = createRoute({
 const overviewRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: 'data-platform',
-  component: WorkspaceOverviewPage,
+  beforeLoad: ({ params }) => redirect({ to: '/$locale/dashboard', params, replace: true }),
+});
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'dashboard',
+  component: DashboardPage,
 });
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
     indexRoute,
-    localeRoute.addChildren([localeIndexRoute, loginRoute, overviewRoute]),
+    localeRoute.addChildren([localeIndexRoute, loginRoute, overviewRoute, dashboardRoute]),
   ]),
 });
 

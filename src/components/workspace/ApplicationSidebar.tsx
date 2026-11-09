@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Globe2, LayoutDashboard } from 'lucide-react';
+import { Globe2, LayoutDashboard, LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { IconTooltip } from '@/components/ui/icon-tooltip';
@@ -8,13 +8,14 @@ export const ApplicationSidebar = () => {
   const t = useTranslations('studio');
   const tw = useTranslations('workspace');
   const locale = useLocale();
+  const d = useTranslations('dashboard');
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
 
   return (
     <aside className="workspace-rail">
       <IconTooltip label={t('design.brand')}>
         <Link
-          to="/$locale/data-platform"
+          to="/$locale/dashboard"
           params={{ locale }}
           className="workspace-rail-brand"
           aria-label={t('design.brand')}
@@ -23,24 +24,36 @@ export const ApplicationSidebar = () => {
         </Link>
       </IconTooltip>
       <nav className="workspace-rail-links" aria-label={t('workspaceNavigation')}>
-        <IconTooltip label={t('design.overviewTab')}>
+        <IconTooltip label={d('title')}>
           <Link
-            to="/$locale/data-platform"
+            to="/$locale/dashboard"
             params={{ locale }}
-            className="workspace-rail-link is-active"
-            aria-label={t('design.overviewTab')}
-            aria-current="page"
-            data-label={t('design.overviewTab')}
+            className="workspace-rail-link"
+            activeOptions={{ exact: true }}
+            activeProps={{ className: 'is-active', 'aria-current': 'page' }}
+            aria-label={d('title')}
+            data-label={d('title')}
           >
             <LayoutDashboard size={19} strokeWidth={1.5} aria-hidden="true" />
           </Link>
         </IconTooltip>
       </nav>
       <div className="workspace-rail-footer">
+        <IconTooltip label={t('logout')}>
+          <Link
+            to="/$locale/login"
+            params={{ locale }}
+            replace
+            className="workspace-rail-link workspace-rail-exit"
+            aria-label={t('logout')}
+          >
+            <LogOut size={18} strokeWidth={1.5} aria-hidden="true" />
+          </Link>
+        </IconTooltip>
         <IconTooltip label={tw('language')}>
           <Link
             className="workspace-rail-link"
-            to="/$locale/data-platform"
+            to="/$locale/dashboard"
             params={{ locale: otherLocale }}
             lang={otherLocale}
             aria-label={tw('language')}

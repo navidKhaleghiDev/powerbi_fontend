@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="پیش‌نویس عمومی هفت Mart کسب‌وکار برای بررسی پرسش‌ها، Factها و Grain"
+    />
+    <title>پیش‌نویس هفت مدل داده‌ی کسب‌وکار</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+        line-height: 1.85;
+        color: #171717;
+        background: #fff;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+      }
+      a {
+        color: inherit;
+      }
+      bdi {
+        unicode-bidi: isolate;
+      }
+
+      .site-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem 2rem;
+        padding: 1rem max(1.25rem, calc((100% - 68rem) / 2));
+        border-bottom: 1px solid #d4d4d4;
+      }
+
+      .brand {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+      nav a,
+      .back-link {
+        text-underline-offset: 0.2em;
+      }
+      main {
+        width: min(100% - 2.5rem, 68rem);
+        margin-inline: auto;
+        padding-block: 2rem 3rem;
+      }
+      .intro {
+        max-width: 52rem;
+        padding-block: 1.25rem 1.5rem;
+      }
+      .eyebrow {
+        margin-block: 0 0.25rem;
+        color: #404040;
+        font-size: 0.95rem;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.5;
+      }
+      h1 {
+        margin-block: 0 0.75rem;
+        font-size: clamp(1.75rem, 5vw, 2.5rem);
+      }
+      h2 {
+        margin-block: 2rem 0.75rem;
+        padding-block-end: 0.4rem;
+        border-bottom: 1px solid #d4d4d4;
+        font-size: 1.35rem;
+      }
+      h3 {
+        margin-block: 0 0.35rem;
+        font-size: 1.15rem;
+      }
+      p,
+      ul,
+      ol {
+        margin-block: 0.5rem 1rem;
+      }
+      ul,
+      ol {
+        padding-inline-start: 1.5rem;
+      }
+      section {
+        scroll-margin-block-start: 1rem;
+      }
+
+      .notice,
+      .caution {
+        padding: 1rem 1.25rem;
+        border: 1px solid #737373;
+      }
+      .notice h2 {
+        margin-block: 0 0.4rem;
+        padding: 0;
+        border: 0;
+        font-size: 1.15rem;
+      }
+      .notice p,
+      .caution {
+        margin-block-end: 0;
+      }
+      .page-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        gap: 1rem;
+      }
+      .page-card {
+        display: flex;
+        min-height: 9rem;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+        border: 1px solid #a3a3a3;
+        text-decoration: none;
+      }
+      .page-card p {
+        margin-block: 0.25rem 1rem;
+      }
+      .page-card span {
+        margin-block-start: auto;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+      }
+      .table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: start;
+      }
+      th,
+      td {
+        min-width: 8rem;
+        padding: 0.7rem;
+        border: 1px solid #a3a3a3;
+        vertical-align: top;
+      }
+      th {
+        font-weight: 700;
+      }
+      .back-link {
+        display: inline-block;
+        margin-block-start: 1rem;
+      }
+      footer {
+        padding: 1rem max(1.25rem, calc((100% - 68rem) / 2));
+        border-top: 1px solid #d4d4d4;
+        color: #404040;
+      }
+      footer p {
+        margin: 0;
+      }
+
+      @media (max-width: 36rem) {
+        .site-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        main {
+          width: min(100% - 2rem, 68rem);
+          padding-block-start: 1.25rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body id="top">
+    <header class="site-header">
+      <a class="brand" href="#top">پیش‌نویس <bdi>Mart</bdi>های کسب‌وکار</a>
+      <nav aria-label="رفتن به حوزه‌ی موردنظر">
+        <a href="#sales">فروش</a>
+        <a href="#finance">مالی</a>
+        <a href="#hr">منابع انسانی</a>
+        <a href="#inventory">موجودی</a>
+        <a href="#procurement">خرید</a>
+        <a href="#marketing">بازاریابی</a>
+        <a href="#customer-service">خدمات مشتریان</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">برنامه‌ریزی لایه‌ی کسب‌وکار</p>
+        <h1 id="page-title">پیش‌نویس هفت <bdi>Mart</bdi> کسب‌وکار</h1>
+        <p>
+          این صفحه یک نمونه‌ی مستقل برای مرور پرسش‌های تحلیلی، جدول‌های واقعیت، سطح جزئیات و بُعدهای
+          احتمالی است. این محتوا داشبورد تعاملی نیست و به
+          <bdi>ClickHouse</bdi> یا منبع داده‌ی زنده وصل نمی‌شود.
+        </p>
+      </section>
+
+      <section class="notice" aria-labelledby="status-title">
+        <h2 id="status-title">وضعیت و محدودیت‌ها</h2>
+        <p>
+          فقط بخشی از تعریف فروش بر اساس تصمیم‌هایی است که در گفت‌وگو مطرح شد. بخش‌های مالی، منابع
+          انسانی، موجودی، خرید، بازاریابی و خدمات مشتریان الگوهای عمومی‌اند و باید با مالک هر حوزه
+          بررسی شوند. هیچ‌یک از این صفحه‌ها بر اساس <bdi>schema</bdi> واقعی یا جدول‌های
+          <bdi>ClickHouse</bdi>
+          شما ساخته نشده‌اند. نام جدول‌های پیشنهادی و قواعد آن‌ها، نام و منطق واقعی سازمان شما
+          نیستند.
+        </p>
+      </section>
+
+      <section aria-labelledby="domains-title">
+        <h2 id="domains-title">انتخاب حوزه</h2>
+        <div class="page-list">
+          <a class="page-card" href="#sales">
+            <h3><bdi>Mart</bdi> فروش</h3>
+            <p>فروش دوره‌ای، مشتری، کارشناس فروش، فاکتور و وصول وجه.</p>
+            <span>رفتن به بخش فروش</span>
+          </a>
+          <a class="page-card" href="#finance">
+            <h3><bdi>Mart</bdi> مالی</h3>
+            <p>دفتر کل، مطالبات، بدهی‌ها، تراکنش‌ها و مانده‌ی حساب.</p>
+            <span>الگوی عمومی</span>
+          </a>
+          <a class="page-card" href="#hr">
+            <h3><bdi>Mart</bdi> منابع انسانی</h3>
+            <p>سرشمار، استخدام، خروج، جابه‌جایی و هزینه‌ی حقوق با دسترسی مجاز.</p>
+            <span>الگوی عمومی</span>
+          </a>
+          <a class="page-card" href="#inventory">
+            <h3><bdi>Mart</bdi> موجودی و انبار</h3>
+            <p>مانده‌ی تاریخ‌دار، گردش کالا و ارزش موجودی.</p>
+            <span>الگوی عمومی</span>
+          </a>
+          <a class="page-card" href="#procurement">
+            <h3><bdi>Mart</bdi> خرید و تأمین‌کنندگان</h3>
+            <p>سفارش، دریافت، فاکتور تأمین‌کننده و پرداخت.</p>
+            <span>الگوی عمومی</span>
+          </a>
+          <a class="page-card" href="#marketing">
+            <h3><bdi>Mart</bdi> بازاریابی</h3>
+            <p>هزینه‌ی کمپین، تعامل و نتیجه با قاعده‌ی روشن انتساب.</p>
+            <span>الگوی عمومی</span>
+          </a>
+          <a class="page-card" href="#customer-service">
+            <h3><bdi>Mart</bdi> خدمات مشتریان</h3>
+            <p>درخواست پشتیبانی، زمان رسیدگی، توافق خدمت و نتیجه.</p>
+            <span>الگوی عمومی</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="sales" aria-labelledby="sales-title">
+        <p class="eyebrow">حوزه‌ی فروش</p>
+        <h2 id="sales-title"><bdi>Mart</bdi> فروش</h2>
+        <p>
+          پرسش‌های مطرح‌شده شامل فروش ماهانه بر اساس تاریخ صدور فاکتور، تحلیل بر اساس مشتری و
+          کارشناس فروش، وضعیت فاکتورها و وجه واقعاً دریافت‌شده است.
+        </p>
+
+        <h3>تصمیم‌ها و پیشنهادها</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">موضوع</th>
+                <th scope="col">تعریف فعلی</th>
+                <th scope="col">وضعیت</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">ماه فروش</th>
+                <td>ماه بر اساس تاریخ صدور فاکتور تعیین شود.</td>
+                <td>تصمیم مطرح‌شده</td>
+              </tr>
+              <tr>
+                <th scope="row">فاکتور واجد شرایط</th>
+                <td>برای شاخص اولیه‌ی فروش، فقط فاکتور کاملاً تسویه‌شده شمرده شود.</td>
+                <td>مطرح‌شده؛ نیازمند تأیید مسئول فروش و مالی</td>
+              </tr>
+              <tr>
+                <th scope="row">وصول وجه</th>
+                <td>
+                  مبلغ واقعی دریافتی با تاریخ پرداخت گزارش شود؛ پرداخت جزئی فقط به اندازه‌ی وجه
+                  دریافت‌شده در وصول شمرده شود.
+                </td>
+                <td>تصمیم مطرح‌شده</td>
+              </tr>
+              <tr>
+                <th scope="row">لغو و برگشت</th>
+                <td>حذف فاکتور لغوشده و ثبت جداگانه‌ی برگشت تأییدشده پیشنهاد شده است.</td>
+                <td>پیشنهاد؛ نیازمند تأیید</td>
+              </tr>
+              <tr>
+                <th scope="row">تخفیف و مالیات</th>
+                <td>فروش پس از تخفیف و پیش از مالیات، با مالیات جداگانه، پیشنهاد شده است.</td>
+                <td>پیشنهاد؛ نیازمند تأیید</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">هر ردیف نشان‌دهنده‌ی چیست؟</th>
+                <th scope="col">کاربرد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_sales_invoice</bdi></th>
+                <td>یک فاکتور فروش</td>
+                <td>مبلغ و وضعیت فاکتور</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_sales_invoice_line</bdi></th>
+                <td>یک قلم از یک فاکتور</td>
+                <td>جزئیات کالا یا خدمت، اگر منبع داشته باشد</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_payment</bdi></th>
+                <td>یک رویداد دریافت وجه</td>
+                <td>وصول بر اساس تاریخ پرداخت</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caution">
+          فاکتور، قلم فاکتور و پرداخت در سطح جزئیات متفاوتی هستند. اتصال آن‌ها بدون تجمیع درست
+          می‌تواند مبالغ را چندباره بشمارد. فروش بر اساس تاریخ فاکتور نیز با وصول بر اساس تاریخ
+          پرداخت یکی نیست.
+        </p>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ فاکتور، تاریخ پرداخت، مشتری، کارشناس فروش، وضعیت
+          فاکتور و کالا یا خدمت.
+        </p>
+        <p>
+          <strong>پیش از ساخت:</strong> ستون‌های تاریخ و مبلغ، وضعیت‌ها، کلیدهای ارتباطی، تعریف
+          تسویه‌ی کامل و رفتار لغو و برگشت بررسی شوند.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="finance" aria-labelledby="finance-title">
+        <p class="eyebrow">حوزه‌ی مالی</p>
+        <h2 id="finance-title"><bdi>Mart</bdi> مالی</h2>
+        <p>
+          این الگو برای گفت‌وگو درباره‌ی دفتر کل، دریافتنی‌ها، پرداختنی‌ها و گردش نقدی است. قواعد و
+          منبع‌های مالی هنوز از طرف سازمان تأیید نشده‌اند.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>مانده و گردش هر حساب در پایان دوره‌ی مالی چقدر است؟</li>
+          <li>مطالبات و بدهی‌های سررسیدشده در تاریخ گزارش چه میزان‌اند؟</li>
+          <li>پرداخت‌ها و دریافت‌ها چه زمانی ثبت و به کدام سند تخصیص یافته‌اند؟</li>
+          <li>آیا جمع مدل با دفتر کل یا گزارش مالی مرجع تطبیق دارد؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد و نکته</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_journal_lines</bdi></th>
+                <td>یک ردیف سند حسابداری ثبت‌شده</td>
+                <td>گردش حساب و بدهکار/بستانکار؛ قواعد دفتر کل باید بررسی شود.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_receivables</bdi></th>
+                <td>یک قلم مطالبه یا تخصیص آن به فاکتور</td>
+                <td>مانده و سررسید؛ تعریف تخصیص و پرداخت جزئی لازم است.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_payables</bdi></th>
+                <td>یک قلم بدهی یا تخصیص آن به سند خرید</td>
+                <td>مانده و سررسید؛ وجود منبع و فرایند پرداخت باید بررسی شود.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_cash_transactions</bdi></th>
+                <td>یک تراکنش بانکی یا صندوق ثبت‌شده</td>
+                <td>دریافت و پرداخت با تاریخ مصوب.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_account_balance_snapshot</bdi></th>
+                <td>مانده‌ی یک حساب در یک تاریخ یا دوره‌ی مرجع</td>
+                <td>نامزد اختیاری؛ مانده‌ی تصویر لحظه‌ای را در زمان با هم جمع نکنید.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ و دوره‌ی مالی، حساب، مرکز هزینه، طرف حساب، ارز و
+          شرکت.
+        </p>
+        <p>
+          <strong>تصمیم‌های لازم:</strong> تقویم مالی، اسناد معتبر، اصلاح و ابطال، بدهکار و
+          بستانکار، تبدیل ارز و تعریف سررسید باید با تیم مالی نهایی شود.
+        </p>
+        <p class="caution">
+          این جدول‌ها فقط نامزدند؛ وجودشان در <bdi>ClickHouse</bdi> تأیید نشده است.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="hr" aria-labelledby="hr-title">
+        <p class="eyebrow">حوزه‌ی منابع انسانی</p>
+        <h2 id="hr-title"><bdi>Mart</bdi> منابع انسانی</h2>
+        <p>
+          تعریف کارکنان فعال، سرشمار و دامنه‌ی دسترسی باید با منابع واقعی و مسئولان منابع انسانی
+          بررسی شود. اطلاعات حقوقی و شناسایی‌کننده حساس‌اند.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>تعداد کارکنان فعال در یک تاریخ مشخص یا پایان هر ماه چقدر بوده است؟</li>
+          <li>استخدام‌ها، خروج‌ها و جابه‌جایی‌ها در هر دوره چگونه تغییر کرده‌اند؟</li>
+          <li>سرشمار بر اساس تعداد افراد است یا معادل تمام‌وقت (<bdi>FTE</bdi>)؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد و نکته</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_employee_snapshot</bdi></th>
+                <td>یک فرد در یک تاریخ مرجع</td>
+                <td>سرشمار و ویژگی‌های معتبر در زمان مرجع.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_employment_events</bdi></th>
+                <td>یک رویداد استخدامی تأییدشده</td>
+                <td>استخدام، خروج یا جابه‌جایی؛ فقط اگر تاریخچه در منبع وجود داشته باشد.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_employee_monthly</bdi></th>
+                <td>یک فرد یا رابطه‌ی استخدامی در یک ماه</td>
+                <td>
+                  روند ماهانه‌ی سرشمار یا <bdi>FTE</bdi>؛ با جدول رویدادهای استخدامی یکی نیست.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_payroll</bdi></th>
+                <td>یک جزء فیش حقوقی برای فرد و دوره‌ی پرداخت</td>
+                <td>فقط با نیاز و مجوز؛ کنترل دسترسی قوی لازم است.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ، دوره، واحد سازمانی، نوع قرارداد، موقعیت شغلی یا
+          محل کار، در صورت مجازبودن.
+        </p>
+        <p class="caution">
+          اگر منبع فقط وضعیت فعلی را نگه دارد، تاریخچه‌ی استخدام را نمی‌توان از آن استنباط کرد.
+          دسترسی به داده‌های فردی و حقوق باید پیشاپیش تعیین شود.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="inventory" aria-labelledby="inventory-title">
+        <p class="eyebrow">حوزه‌ی زنجیره‌ی تأمین</p>
+        <h2 id="inventory-title"><bdi>Mart</bdi> موجودی و انبار</h2>
+        <p>
+          این الگو برای بررسی موجودی کالا، جابه‌جایی بین انبارها و ارزش موجودی است. موجودی، رزرو،
+          کالای در راه و کالای قابل‌فروش تعریف‌های جداگانه‌ای‌اند.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>در تاریخ مرجع، از هر کالا در هر انبار چه مقدار موجود بوده است؟</li>
+          <li>گردش ورودی، خروجی، انتقال و اصلاح موجودی چگونه بوده است؟</li>
+          <li>کدام کالاها کمتر یا بیشتر از سطح موردنیاز موجودی دارند؟</li>
+          <li>ارزش موجودی با کدام روش قیمت‌گذاری و در چه ارزی محاسبه می‌شود؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_inventory_movement</bdi></th>
+                <td>یک ردیف رویداد ورود، خروج، انتقال یا اصلاح ثبت‌شده</td>
+                <td>تحلیل گردش بر اساس نوع رویداد تأییدشده.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_inventory_snapshot</bdi></th>
+                <td>یک کالا، انبار و در صورت نیاز بچ یا سری ساخت در یک تاریخ مرجع</td>
+                <td>نمایش موجودی در تاریخ مشخص؛ تصویرهای لحظه‌ای را در زمان با هم جمع نکنید.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_inventory_valuation</bdi></th>
+                <td>یک کالا یا قلم موجودی در تاریخ ارزش‌گذاری</td>
+                <td>نیازمند مقدار، بهای تمام‌شده و روش مصوب.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ، کالا، دسته‌بندی، واحد اندازه‌گیری، انبار، نوع
+          حرکت و بچ یا سری ساخت.
+        </p>
+        <p>
+          <strong>تصمیم‌های لازم:</strong> تعریف موجودی قابل‌فروش، زمان مرجع، بازسازی مانده،
+          قیمت‌گذاری، تبدیل واحد و ثبت دیرهنگام.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="procurement" aria-labelledby="procurement-title">
+        <p class="eyebrow">حوزه‌ی خرید</p>
+        <h2 id="procurement-title"><bdi>Mart</bdi> خرید و تأمین‌کنندگان</h2>
+        <p>
+          این چارچوب برای تحلیل سفارش خرید، دریافت کالا یا خدمت و پرداخت به تأمین‌کننده است. مراحل و
+          وضعیت‌ها باید با فرایند واقعی سازمان تطبیق داده شوند.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>سفارش‌های باز، تأییدشده و تکمیل‌شده چه حجمی دارند؟</li>
+          <li>زمان میان ثبت سفارش، دریافت و تأیید فاکتور چقدر است؟</li>
+          <li>مقدار سفارش‌شده با مقدار دریافت‌شده چه تفاوتی دارد؟</li>
+          <li>هزینه و زمان تأمین به تفکیک تأمین‌کننده چگونه تغییر می‌کند؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد و نکته</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_purchase_order_line</bdi></th>
+                <td>یک قلم از یک سفارش خرید</td>
+                <td>مقدار، مبلغ و وضعیت سفارش در سطح قلم.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_goods_receipt_line</bdi></th>
+                <td>یک قلم دریافت یا تحویل ثبت‌شده</td>
+                <td>مقدار و زمان دریافت واقعی.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_supplier_invoice_line</bdi></th>
+                <td>یک قلم فاکتور تأمین‌کننده</td>
+                <td>مبلغ فاکتور؛ ارتباط با سفارش و دریافت باید تأیید شود.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_supplier_payment</bdi></th>
+                <td>یک پرداخت ثبت‌شده به تأمین‌کننده</td>
+                <td>تحلیل پرداخت؛ با مبلغ سفارش جمع مستقیم نشود.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ‌های سفارش، دریافت، فاکتور و پرداخت؛ تأمین‌کننده؛
+          کالا یا خدمت؛ مرکز هزینه؛ وضعیت سفارش.
+        </p>
+        <p class="caution">
+          سفارش، دریافت، فاکتور و پرداخت در سطح جزئیات متفاوتی هستند؛ پیش از اتصال باید در سطح درست
+          تجمیع شوند.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="marketing" aria-labelledby="marketing-title">
+        <p class="eyebrow">حوزه‌ی بازاریابی</p>
+        <h2 id="marketing-title"><bdi>Mart</bdi> بازاریابی</h2>
+        <p>
+          این الگو برای بررسی هزینه‌ی کمپین‌ها و نتیجه‌ی فعالیت‌های بازاریابی است. نسبت‌دادن نتیجه
+          به کمپین به قاعده‌ی انتساب و داده‌ی قابل‌اعتماد نیاز دارد.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>هزینه و تعامل هر کمپین در هر روز یا دوره چقدر بوده است؟</li>
+          <li>کدام کمپین‌ها به سرنخ یا تبدیل تعریف‌شده منجر شده‌اند؟</li>
+          <li>هزینه‌ی جذب یا نرخ تبدیل با کدام تعریف و پنجره‌ی زمانی محاسبه می‌شود؟</li>
+          <li>نتیجه از سامانه‌ی تبلیغاتی آمده یا از رویدادهای ثبت‌شده‌ی خود سازمان؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_campaign_daily</bdi></th>
+                <td>یک کمپین، منبع و تاریخ در سطحی که منبع ارائه می‌دهد</td>
+                <td>هزینه و تعامل‌های گزارش‌شده.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_marketing_event</bdi></th>
+                <td>یک رویداد تعامل یا تبدیل ثبت‌شده</td>
+                <td>تحلیل رخدادها؛ تعریف تبدیل باید مصوب باشد.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_attributed_conversion</bdi></th>
+                <td>یک تبدیل تخصیص‌یافته به تماس یا کمپین طبق قاعده‌ی مشخص</td>
+                <td>فقط با روش و پنجره‌ی انتساب مصوب.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ، کمپین، کانال، محتوا، بخش مخاطب با مجوز مناسب و
+          منبع داده.
+        </p>
+        <p class="caution">
+          صورت، مخرج، پنجره‌ی زمانی و منبع شاخص‌هایی مانند نرخ تبدیل باید روشن و قابل‌مقایسه باشند.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section id="customer-service" aria-labelledby="service-title">
+        <p class="eyebrow">حوزه‌ی خدمات مشتریان</p>
+        <h2 id="service-title"><bdi>Mart</bdi> خدمات مشتریان</h2>
+        <p>
+          این چارچوب برای تحلیل درخواست‌های پشتیبانی، زمان رسیدگی و نتیجه‌ی خدمت‌رسانی است. اطلاعات
+          هویتی و متن پیام‌ها را بدون نیاز و مجوز وارد مدل تحلیلی نکنید.
+        </p>
+        <h3>پرسش‌های پیشنهادی</h3>
+        <ul>
+          <li>چند درخواست در هر دوره ثبت، باز، حل یا دوباره باز شده‌اند؟</li>
+          <li>زمان اولین پاسخ و زمان حل با چه مبدأ و توقف‌هایی سنجیده می‌شود؟</li>
+          <li>درخواست‌ها به تفکیک کانال، موضوع، اولویت و تیم چه توزیعی دارند؟</li>
+          <li>چه سهمی از پرونده‌ها در محدوده‌ی توافق سطح خدمت پاسخ گرفته‌اند؟</li>
+        </ul>
+        <h3>جدول‌های واقعیت نامزد و سطح جزئیات پیشنهادی</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">جدول واقعیت نامزد</th>
+                <th scope="col">سطح جزئیات پیشنهادی</th>
+                <th scope="col">کاربرد و نکته</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><bdi>fact_support_ticket</bdi></th>
+                <td>یک درخواست پشتیبانی</td>
+                <td>وضعیت، موضوع و نتیجه‌ی پرونده.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_ticket_event</bdi></th>
+                <td>یک رویداد وضعیت یا رسیدگی در تاریخ مشخص</td>
+                <td>تحلیل مسیر و زمان بین مراحل؛ نیازمند تاریخچه‌ی رخداد.</td>
+              </tr>
+              <tr>
+                <th scope="row"><bdi>fact_sla_milestone</bdi></th>
+                <td>یک مهلت پاسخ یا حل برای یک درخواست</td>
+                <td>سنجش توافق سطح خدمت بر اساس تقویم و استثناهای مصوب.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>بُعدهای احتمالی:</strong> تاریخ، کانال، موضوع، نوع و اولویت درخواست، تیم رسیدگی و
+          محصول یا خدمت مرتبط.
+        </p>
+        <p class="caution">
+          اگر منبع فقط وضعیت فعلی را نگه دارد، زمان پاسخ یا تاریخچه‌ی مراحل را نمی‌توان با اطمینان
+          از آن بازسازی کرد.
+        </p>
+        <a class="back-link" href="#top">بازگشت به بالای صفحه</a>
+      </section>
+
+      <section aria-labelledby="next-title">
+        <h2 id="next-title">گام‌های تبدیل این پیش‌نویس‌ها به مدل واقعی</h2>
+        <ol>
+          <li>پرسش‌ها و تعریف شاخص‌ها را با مسئول هر حوزه نهایی کنید.</li>
+          <li>نام پایگاه داده، جدول‌ها، ستون‌ها، کلیدها و نمونه‌ی داده را بررسی کنید.</li>
+          <li>سطح جزئیات هر جدول واقعیت و بُعدهای موردنیاز را با داده‌ی موجود تطبیق دهید.</li>
+          <li>تعریف‌های مصوب را بسازید، سپس نتایج را با گزارش مرجع اعتبارسنجی کنید.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer>
+      <p>یک فایل HTML مستقل برای بازبینی و برنامه‌ریزی؛ بدون اتصال به پایگاه داده یا گزارش زنده.</p>
+    </footer>
+  </body>
+</html>

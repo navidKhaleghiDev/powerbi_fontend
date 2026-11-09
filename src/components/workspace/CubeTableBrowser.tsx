@@ -21,9 +21,9 @@ export const CubeTableBrowser = () => {
   const [selected, setSelected] = useState('');
   const query = useQuery({
     queryKey: ['cube-management', 'tables'],
-    staleTime: Infinity,
+    staleTime: 30_000,
     gcTime: Infinity,
-    retry: false,
+    retry: 2,
     queryFn: () => cubeManagementRequest<{ tables: DatabaseTable[] }>('tables'),
   });
   const tables = query.data?.tables ?? [];
@@ -36,7 +36,6 @@ export const CubeTableBrowser = () => {
       <h4 id={`${id}-title`} className="font-bold">
         {t('title')}
       </h4>
-      <p className="text-sm text-muted-foreground">{t('description')}</p>
       {query.isPending && <p role="status">{t('loading')}</p>}
       {query.isError && (
         <div className="space-y-2">
@@ -53,7 +52,6 @@ export const CubeTableBrowser = () => {
       )}
       {query.isSuccess && (
         <>
-          <p role="status">{t('count', { count: tables.length })}</p>
           <label htmlFor={`${id}-search`}>{t('search')}</label>
           <Input
             id={`${id}-search`}
@@ -125,6 +123,7 @@ export const CubeTableBrowser = () => {
                     key={`${current.schema}.${current.name}`}
                     table={`${current.schema}.${current.name}`}
                     columns={current.columns}
+                    tables={tables}
                   />
                 </>
               )}

@@ -46,11 +46,11 @@ export const LocaleWorkspace = () => {
 export const NotFound = () => (
   <main className="p-8">
     <h1>404</h1>
-    <Link to="/$locale/data-platform" params={{ locale: 'fa' }}>
+    <Link to="/$locale/dashboard" params={{ locale: 'fa' }}>
       {fa.workspace.title}
     </Link>
     {' · '}
-    <Link to="/$locale/data-platform" params={{ locale: 'en' }}>
+    <Link to="/$locale/dashboard" params={{ locale: 'en' }}>
       {en.workspace.title}
     </Link>
   </main>

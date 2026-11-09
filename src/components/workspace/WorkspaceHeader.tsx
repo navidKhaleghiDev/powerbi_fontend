@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
@@ -7,13 +7,18 @@ import { Typography } from '@/components/ui/typography';
 export const WorkspaceHeader = () => {
   const locale = useLocale();
   const t = useTranslations('studio');
+  const d = useTranslations('dashboard');
+  const c = useTranslations('cube');
+  const dashboard = useLocation().pathname.replace(/\/$/, '').endsWith('/dashboard');
   return (
     <header className="workspace-header">
       <div className="workspace-header-copy">
         <Typography as="h1" variant="h4">
-          {t('design.overviewTitle')}
+          {dashboard ? d('title') : c('tabs.model')}
         </Typography>
-        <Typography variant="body3Medium">{t('design.sectionHelp.overview')}</Typography>
+        <Typography variant="body3Medium">
+          {dashboard ? d('description') : t('design.sectionHelp.overview')}
+        </Typography>
       </div>
       <Link
         to="/$locale/login"

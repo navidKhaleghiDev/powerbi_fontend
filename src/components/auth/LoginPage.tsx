@@ -51,7 +51,7 @@ export const LoginPage = () => {
                 event.preventDefault();
                 event.currentTarget.reset();
                 void navigate({
-                  to: '/$locale/data-platform',
+                  to: '/$locale/dashboard',
                   params: { locale },
                 });
               }}
