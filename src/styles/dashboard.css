@@ -400,6 +400,11 @@
   box-shadow: 0 25px 100px #102a2040;
   color: var(--text-primary);
 }
+.bi-editor::backdrop,
+.bi-sheet-dialog::backdrop {
+  background: #13261b65;
+  backdrop-filter: blur(3px);
+}
 .bi-editor-heading {
   display: flex;
   justify-content: space-between;

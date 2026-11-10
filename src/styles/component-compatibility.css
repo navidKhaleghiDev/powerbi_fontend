@@ -1,4 +1,4 @@
-/* shadcn aliases reuse the established semantic palette in both themes. */
+/* Legacy utility aliases keep app-owned controls aligned with the semantic palette. */
 :root {
   --background: var(--surface-default);
   --foreground: var(--text-primary);

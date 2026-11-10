@@ -1,7 +1,7 @@
 @import 'tailwindcss' source('../');
 @import './theme/compatibility.css';
 @import './theme/colors.css';
-@import './shadcn.css';
+@import './component-compatibility.css';
 @import './glass.css';
 @import './workspace.css';
 @import './dashboard.css';

@@ -3,6 +3,7 @@ import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/
 import { LocaleWorkspace, NotFound } from './App';
 import { LoginPage } from './components/auth/LoginPage';
 import { DashboardPage } from './components/workspace/DashboardPage';
+import { hasAccessToken } from './lib/api';
 
 const rootRoute = createRootRoute({ notFoundComponent: NotFound });
 const indexRoute = createRoute({
@@ -40,6 +41,9 @@ const overviewRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: 'dashboard',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
   component: DashboardPage,
 });
 

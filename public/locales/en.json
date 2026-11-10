@@ -3,7 +3,7 @@
     "title": "Power BI Control Center",
     "language": "فارسی",
     "connectedNotice": "Configure sources and data flows in Configuration. Analytics uses published warehouse datasets.",
-    "frontendOnlyNotice": "Frontend only. No accounts, connected services, saved changes, or live data are available. CSV previews stay in your browser.",
+    "frontendOnlyNotice": "Connected data services and saved changes are not available. CSV previews stay in your browser.",
     "reportsMockNotice": "Development mock data · All orders, reports, approvals, and timestamps are fictional. No live services are connected. Save and publish actions require a backend."
   },
   "studio": {
@@ -607,7 +607,9 @@
         "description": "Explore reports, charts, and visual perspectives in a focused analytics workspace."
       }
     },
-    "frontendOnlyNotice": "Frontend preview only. Credentials are not verified; continue to the workspace overview."
+    "frontendOnlyNotice": "Sign in with your Control Center account.",
+    "loginFailed": "Unable to sign in. Check your connection and credentials.",
+    "submitting": "Signing in…"
   },
   "cube": {
     "title": "Cube workspace",

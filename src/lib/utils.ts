@@ -1,2 +1,2 @@
-// Shared class merging used by shadcn primitives and custom application components.
+// Shared class merging for application components.
 export { cn } from 'cn';

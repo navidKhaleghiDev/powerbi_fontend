@@ -1,14 +1,14 @@
 # Application design system
 
-The application uses official shadcn/ui components as its foundation, with custom workspace components for the product's data workflows. Components were installed through the shadcn CLI. See the [official documentation](https://ui.shadcn.com/docs) and [Tailwind v4 guidance](https://ui.shadcn.com/docs/tailwind-v4).
+The application uses project-owned React controls and workspace compositions, styled with Tailwind utilities and the existing semantic theme. It does not use shadcn/ui or a component generator.
 
 ## Layers
 
-- `src/components/ui/`: owned shadcn Button, Input, Textarea, Label, Card, Badge, Alert, and Separator primitives. These contain no workspace permissions or server requests.
-- `src/styles/shadcn.css`: aliases shadcn theme variables to the existing semantic palette. The original theme token values remain unchanged.
+- `src/components/ui/`: project-owned Button, Input, Textarea, checkbox, tooltip, and dialog controls. These contain no workspace permissions or server requests.
+- `src/styles/component-compatibility.css`: legacy utility aliases mapped to the existing semantic palette. The original theme token values remain unchanged.
 - `src/lib/utils.ts`: shared class merging via `cn`.
 - `src/components/workspace/`: custom compositions such as PageHeading, StatusBadge, WorkspaceJourney, DataBrowser, and the login panel. They retain English/Persian text, RTL layout, and existing access checks.
-- `FormParts.tsx`: labeled fields with linked hints/errors, semantic notices, and shared action/control styles. Notices compose shadcn Alert; field labels compose Radix-backed Label.
+- Workspace forms use native labels and controls alongside the project-owned controls where shared behavior is needed.
 
 ## Usage
 
@@ -23,7 +23,7 @@ import { Field, buttonClass, inputClass } from "@/components/workspace/FormParts
 <Button type="submit" className={buttonClass}>{t("saved")}</Button>
 ```
 
-Use translated product-specific action labels in actual forms. Explicitly set `type="button"` for actions inside forms that must not submit. Keep React Hook Form registrations and refs attached to the actual input component. Button's `asChild` supports composing links without nesting interactive elements.
+Use translated product-specific action labels in actual forms. Explicitly set `type="button"` for actions inside forms that must not submit. Keep React Hook Form registrations and refs attached to the actual input component.
 
 The local Button `auto` size supports custom workflow cards and navigation buttons without imposing a fixed height or single-line text. Primary and secondary action styles retain comfortable touch targets. Custom classes are merged with primitive defaults rather than concatenated blindly.
 
@@ -31,7 +31,7 @@ Native select, checkbox, and radio controls retain their existing behavior and k
 
 ## Adding components
 
-`components.json` configures the source directories, Tailwind v4 stylesheet, Radix-based style, and RTL support. Add further primitives through the official CLI, review generated dependencies and theme changes, and use `@/lib/utils` for class merging. New theme colors must map to reviewed semantic tokens; do not overwrite the existing theme files with a stock palette.
+Add new shared controls under `src/components/ui/` using native HTML behavior where practical, preserve keyboard and RTL behavior, and use `@/lib/utils` for class merging. New theme colors must map to reviewed semantic tokens; do not overwrite the existing theme files with a stock palette.
 
 After structural changes, run `pnpm run check-types` and `pnpm run build`, and verify the relevant English/Persian browser flows at desktop and mobile widths.
 
@@ -79,7 +79,7 @@ The sidebar brand row uses local assets under `public/brand`: the existing Contr
 
 ## Restrained feedback and brand hierarchy
 
-Visible workspace errors use amber surfaces and readable error text while retaining `role="alert"`, linked field errors, and validation behavior. Remove/Exclude actions use neutral text. The shadcn destructive alias maps to the existing warning token; original imported theme definitions are preserved. Chart drawing colors use teal, blue, amber, purple, cyan, and slate rather than pink/red tones.
+Visible workspace errors use amber surfaces and readable error text while retaining `role="alert"`, linked field errors, and validation behavior. Remove/Exclude actions use neutral text. Original imported theme definitions are preserved. Chart drawing colors use teal, blue, amber, purple, cyan, and slate rather than pink/red tones.
 
 The header gives the local Netsep mark primary placement beside the workspace name. Brand provenance remains in `public/brand/README.md`. The logo is not evidence of a connected Power BI service.
 

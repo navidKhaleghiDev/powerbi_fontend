@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'use-intl';
 
 import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { Typography } from '@/components/ui/typography';
+import { login } from '@/lib/api';
 
 import { LoginShowcase } from './LoginShowcase';
 
@@ -13,6 +14,8 @@ export const LoginPage = () => {
   const locale = useLocale();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
 
   return (
@@ -42,18 +45,33 @@ export const LoginPage = () => {
               </Typography>
               <p>{t('introduction')}</p>
             </header>
-            <p role="status" className="mb-4 text-sm">
-              {t('frontendOnlyNotice')}
-            </p>
+            <p className="mb-4 text-sm text-text-secondary">{t('frontendOnlyNotice')}</p>
+            {errorMessage ? (
+              <p role="alert" className="mb-4 text-sm text-text-danger">
+                {errorMessage}
+              </p>
+            ) : null}
             <form
               className="login-form"
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
-                event.currentTarget.reset();
-                void navigate({
-                  to: '/$locale/dashboard',
-                  params: { locale },
-                });
+                const form = event.currentTarget;
+                const formData = new FormData(form);
+                const usernameEntry = formData.get('username');
+                const passwordEntry = formData.get('password');
+                const username = typeof usernameEntry === 'string' ? usernameEntry.trim() : '';
+                const password = typeof passwordEntry === 'string' ? passwordEntry : '';
+                setErrorMessage('');
+                setIsSubmitting(true);
+                try {
+                  await login({ username, password });
+                  form.reset();
+                  await navigate({ to: '/$locale/dashboard', params: { locale } });
+                } catch (error) {
+                  setErrorMessage(error instanceof Error ? error.message : t('loginFailed'));
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
             >
               <div className="login-field">
@@ -61,7 +79,8 @@ export const LoginPage = () => {
                 <input
                   id="login-username"
                   name="username"
-                  autoComplete="off"
+                  autoComplete="username"
+                  required
                   placeholder={t('usernamePlaceholder')}
                   spellCheck={false}
                   autoCapitalize="none"
@@ -74,7 +93,8 @@ export const LoginPage = () => {
                     id="login-password"
                     name="password"
                     type={visible ? 'text' : 'password'}
-                    autoComplete="off"
+                    autoComplete="current-password"
+                    required
                     placeholder={t('passwordPlaceholder')}
                   />
                   <IconTooltip label={t(visible ? 'hidePassword' : 'showPassword')}>
@@ -93,8 +113,8 @@ export const LoginPage = () => {
                   </IconTooltip>
                 </div>
               </div>
-              <button className="login-submit" type="submit">
-                {t('submit')}
+              <button className="login-submit" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? t('submitting') : t('submit')}
               </button>
             </form>
           </div>

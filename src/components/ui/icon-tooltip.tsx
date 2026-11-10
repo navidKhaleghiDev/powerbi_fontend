@@ -1,32 +1,23 @@
-import { Tooltip } from 'radix-ui';
+import { cloneElement, type ReactElement } from 'react';
 import { useLocale } from 'use-intl';
-
-import type { ReactElement } from 'react';
 
 interface Props {
   label: string;
-  children: ReactElement;
+  children: ReactElement<{ 'aria-label'?: string; title?: string }>;
 }
 
 export const IconTooltip = ({ label, children }: Props) => {
   const locale = useLocale();
+  const childProps = children.props;
   return (
-    <Tooltip.Provider delayDuration={150} skipDelayDuration={100}>
-      <Tooltip.Root>
-        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content
-            className="icon-tooltip"
-            side={locale === 'fa' ? 'left' : 'right'}
-            sideOffset={10}
-            collisionPadding={12}
-            dir={locale === 'fa' ? 'rtl' : 'ltr'}
-          >
-            {label}
-            <Tooltip.Arrow className="icon-tooltip-arrow" />
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-    </Tooltip.Provider>
+    <span className="app-icon-tooltip" data-side={locale === 'fa' ? 'left' : 'right'}>
+      {cloneElement(children, {
+        'aria-label': childProps['aria-label'] ?? label,
+        title: label,
+      })}
+      <span className="icon-tooltip" role="tooltip" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
+        {label}
+      </span>
+    </span>
   );
 };

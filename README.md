@@ -61,55 +61,6 @@ pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-If authentication is required in your environment, keep registry-scoped credentials in your user-level `~/.npmrc`, not the committed project `.npmrc`. Docker builds can receive that file through the optional BuildKit `npmrc` secret:
-
-```bash
-docker build --secret id=npmrc,src="$HOME/.npmrc" -t powerbi-control-center:local .
-```
-
-## Docker frontend
-
-Use Docker Engine with the Buildx/BuildKit plugin.
-
-### Local Cube stack with an existing PostgreSQL database
-
-The Compose stack starts the frontend, Cube.js, and the Cube model-management API. It connects Cube to an existing PostgreSQL server; it does not create, migrate, or modify that database. Copy `.env.compose.example` to `.env.compose` and set the database connection values and a random `CUBE_MANAGEMENT_KEY` of at least 24 characters. For the host Vite development server (`pnpm dev` on port 3001), use the same `CUBE_MANAGEMENT_KEY` in `.env.server`; the Compose API is published only on loopback at port 3002 for the Vite proxy. Keep both ignored files private. The configured database account should be read-only where possible. Cube reads model files from `cube/model`, mounted at its default `/cube/conf/schema` path. The database connection and physical table browser work without models, but measures and data queries require you to create Cube models in **Configuration → Overview → Cube data → model builder**.
-
-```bash
-docker compose --env-file .env.compose up --build -d
-```
-
-Open the application at `http://localhost:8080`; Cube's local development API is at `http://localhost:4000`. Cube development mode is enabled for local schema discovery, so this stack is bound to loopback and is not a production deployment. Model files persist in `cube/model`. Stop the services with `docker compose --env-file .env.compose down`; this keeps the model files.
-
-The frontend proxy injects the management key server-side for the local model-management API. Do not publish these ports publicly or reuse this development setup as a production authentication boundary.
-
-The Dockerfile installs the pinned pnpm version and frozen dependencies through Nexus, builds the Vite application, and copies `dist/` into an unprivileged Nginx runtime. Nginx listens on port 8080, serves SPA routes with an index fallback, and can proxy the Cube management API when deployed alongside that service. Its health check requests `/`. Git hooks are skipped inside image builds. Base images come from their Docker image registries; Nexus supplies npm packages.
-
-```bash
-# Production frontend at http://localhost:8080
-docker build -t powerbi-control-center:local .
-docker run --rm -p 8080:8080 powerbi-control-center:local
-
-# Development frontend with source updates at http://localhost:3001
-docker build --target development -t powerbi-control-center:dev .
-docker run --rm -it -p 3001:3001 \
-  --mount type=bind,src="$(pwd)/src",dst=/app/src,readonly \
-  --mount type=bind,src="$(pwd)/public",dst=/app/public,readonly \
-  --mount type=bind,src="$(pwd)/index.html",dst=/app/index.html,readonly \
-  --mount type=bind,src="$(pwd)/vite.config.ts",dst=/app/vite.config.ts,readonly \
-  --mount type=bind,src="$(pwd)/postcss.config.mjs",dst=/app/postcss.config.mjs,readonly \
-  --mount type=bind,src="$(pwd)/tsconfig.json",dst=/app/tsconfig.json,readonly \
-  powerbi-control-center:dev
-```
-
-Stop either foreground container with Ctrl+C. Change the host side of `-p` if a port is already in use. Development mounts preserve the container's dependencies; rebuild the development image after dependency or package-manager configuration changes.
-
-If Nexus requires credentials, add `--secret id=npmrc,src="$HOME/.npmrc"` to the appropriate `docker build` command. Keep credentials out of the committed project `.npmrc`.
-
-The default production Nginx configuration serves static files without a TanStack Router fallback. Open `/` and navigate within the app. Direct requests or refreshes on paths such as `/en/analytics/reports` return 404 unless your hosting layer rewrites frontend routes to `/index.html`. Custom asset caching and the former `/healthz` endpoint are not configured.
-
-Local environment files, credentials, Git metadata, dependencies, and generated builds are excluded from the Docker context. Runtime package installation and backend services are not included in the production image.
-
 ## Reports development fixtures
 
 During `pnpm run dev`, the Reports panel automatically loads clearly labeled fictional data: 72 orders across six months, four regions, and three categories; two sample reports; KPI bindings; and paginated dataset rows. Charts, filters, CSV export, and local draft visualization work in the browser. Approval/publication metadata and timestamps are simulated, and all backend mutations still report unavailability. Configuration remains empty.

@@ -21,7 +21,6 @@ import {
   Type,
   X,
 } from 'lucide-react';
-import { Dialog } from 'radix-ui';
 import { useState, type SetStateAction } from 'react';
 import DateObject from 'react-date-object';
 import gregorian from 'react-date-object/calendars/gregorian';
@@ -32,6 +31,7 @@ import persianFa from 'react-date-object/locales/persian_fa';
 import DatePickerModule from 'react-multi-date-picker';
 import { useLocale, useTranslations } from 'use-intl';
 
+import { AppDialog } from '@/components/ui/app-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -490,227 +490,217 @@ export const DashboardPage = () => {
         </DashboardPane>
         <DashboardChat />
       </div>
-      <Dialog.Root open={creatingSheet} onOpenChange={setCreatingSheet}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="bi-editor-overlay" />
-          <Dialog.Content className="bi-sheet-dialog" aria-describedby="bi-new-sheet-help">
-            <Dialog.Title>{t('addSheet')}</Dialog.Title>
-            <Dialog.Description id="bi-new-sheet-help">{t('newSheetHint')}</Dialog.Description>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                const name = sheetName.trim();
-                if (!name || !sheetMeasures.length) return;
-                const id = crypto.randomUUID();
-                const configuredWidgets: DashboardWidget[] = sheetMeasures.map((measure) => ({
-                  id: crypto.randomUUID(),
-                  title: demo(`fields.${measure}`),
-                  visual: sheetVisual,
-                  size: sheetVisual === 'card' ? 'small' : 'medium',
-                  query: {
-                    measures: [measure],
-                    ...(sheetDimension ? { dimensions: [sheetDimension] } : {}),
-                  },
-                }));
-                setSheets((items) => [...items, { id, name, widgets: configuredWidgets }]);
-                switchSheet(id);
-                setCreatingSheet(false);
-              }}
-            >
+      <AppDialog
+        open={creatingSheet}
+        className="bi-sheet-dialog"
+        describedBy="bi-new-sheet-help"
+        onClose={() => setCreatingSheet(false)}
+      >
+        <h2>{t('addSheet')}</h2>
+        <p id="bi-new-sheet-help">{t('newSheetHint')}</p>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const name = sheetName.trim();
+            if (!name || !sheetMeasures.length) return;
+            const id = crypto.randomUUID();
+            const configuredWidgets: DashboardWidget[] = sheetMeasures.map((measure) => ({
+              id: crypto.randomUUID(),
+              title: demo(`fields.${measure}`),
+              visual: sheetVisual,
+              size: sheetVisual === 'card' ? 'small' : 'medium',
+              query: {
+                measures: [measure],
+                ...(sheetDimension ? { dimensions: [sheetDimension] } : {}),
+              },
+            }));
+            setSheets((items) => [...items, { id, name, widgets: configuredWidgets }]);
+            switchSheet(id);
+            setCreatingSheet(false);
+          }}
+        >
+          <label>
+            {t('sheetName')}
+            <Input
+              autoFocus
+              required
+              maxLength={80}
+              value={sheetName}
+              onChange={(event) => setSheetName(event.target.value)}
+            />
+          </label>
+          <div className="bi-sheet-config">
+            <label>
+              {t('sheetDataSource')}
+              <NativeSelect aria-label={t('sheetDataSource')} defaultValue="sales-demo">
+                <option value="sales-demo">{demo('badge')}</option>
+              </NativeSelect>
+            </label>
+            <fieldset>
+              <legend>{t('sheetMeasures')}</legend>
+              <div className="bi-sheet-measure-options">
+                {demoMeasures.map((measure) => (
+                  <label key={measure}>
+                    <Checkbox
+                      checked={sheetMeasures.includes(measure)}
+                      onChange={(event) => {
+                        const checked = event.currentTarget.checked;
+                        setSheetMeasures((items) =>
+                          checked ? [...items, measure] : items.filter((item) => item !== measure),
+                        );
+                        if (checked && !supportsDemoDimension(measure, sheetDimension))
+                          setSheetDimension('');
+                      }}
+                    />
+                    {demo(`fields.${measure}`)}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label>
+              {demo('groupBy')}
+              <NativeSelect
+                aria-label={demo('groupBy')}
+                value={sheetDimension}
+                onChange={(event) => setSheetDimension(event.target.value)}
+              >
+                <option value="">{demo('total')}</option>
+                {demoDimensions
+                  .filter((dimension) =>
+                    sheetMeasures.every((measure) => supportsDemoDimension(measure, dimension)),
+                  )
+                  .map((dimension) => (
+                    <option key={dimension} value={dimension}>
+                      {demo(`fields.${dimension}`)}
+                    </option>
+                  ))}
+              </NativeSelect>
+            </label>
+            <label>
+              {t('visualizations')}
+              <NativeSelect
+                aria-label={t('visualizations')}
+                value={sheetVisual}
+                onChange={(event) => setSheetVisual(event.target.value as WidgetVisual)}
+              >
+                {visuals.map(({ kind }) => (
+                  <option key={kind} value={kind}>
+                    {t(`visuals.${kind}`)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
+            <p>{t('sheetDataHint')}</p>
+          </div>
+          <div>
+            <Button type="button" variant="outline" onClick={() => setCreatingSheet(false)}>
+              {t('cancelSheet')}
+            </Button>
+            <Button type="submit" disabled={!sheetName.trim() || !sheetMeasures.length}>
+              {t('createSheet')}
+            </Button>
+          </div>
+        </form>
+      </AppDialog>
+      <AppDialog
+        open={!!editing}
+        className="bi-editor"
+        describedBy="bi-editor-description"
+        onClose={() => setEditingId(null)}
+      >
+        <header className="bi-editor-heading">
+          <div>
+            <h2>{t('editWidget')}</h2>
+            <p id="bi-editor-description">{demo('editorHint')}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('closeEditor')}
+            onClick={() => setEditingId(null)}
+          >
+            <X />
+          </Button>
+        </header>
+        {editing && (
+          <>
+            <div className="bi-editor-settings">
               <label>
-                {t('sheetName')}
+                {t('widgetTitle')}
                 <Input
-                  autoFocus
-                  required
-                  maxLength={80}
-                  value={sheetName}
-                  onChange={(event) => setSheetName(event.target.value)}
+                  maxLength={100}
+                  value={editing.title}
+                  onChange={(event) => update(editing.id, { title: event.target.value })}
                 />
               </label>
-              <div className="bi-sheet-config">
-                <label>
-                  {t('sheetDataSource')}
-                  <NativeSelect aria-label={t('sheetDataSource')} defaultValue="sales-demo">
-                    <option value="sales-demo">{demo('badge')}</option>
-                  </NativeSelect>
-                </label>
-                <fieldset>
-                  <legend>{t('sheetMeasures')}</legend>
-                  <div className="bi-sheet-measure-options">
-                    {demoMeasures.map((measure) => (
-                      <label key={measure}>
-                        <Checkbox
-                          checked={sheetMeasures.includes(measure)}
-                          onCheckedChange={(value) => {
-                            const checked = value === true;
-                            setSheetMeasures((items) =>
-                              checked
-                                ? [...items, measure]
-                                : items.filter((item) => item !== measure),
-                            );
-                            if (checked && !supportsDemoDimension(measure, sheetDimension))
-                              setSheetDimension('');
-                          }}
-                        />
-                        {demo(`fields.${measure}`)}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label>
-                  {demo('groupBy')}
-                  <NativeSelect
-                    aria-label={demo('groupBy')}
-                    value={sheetDimension}
-                    onChange={(event) => setSheetDimension(event.target.value)}
-                  >
-                    <option value="">{demo('total')}</option>
-                    {demoDimensions
-                      .filter((dimension) =>
-                        sheetMeasures.every((measure) => supportsDemoDimension(measure, dimension)),
-                      )
-                      .map((dimension) => (
-                        <option key={dimension} value={dimension}>
-                          {demo(`fields.${dimension}`)}
-                        </option>
-                      ))}
-                  </NativeSelect>
-                </label>
-                <label>
-                  {t('visualizations')}
-                  <NativeSelect
-                    aria-label={t('visualizations')}
-                    value={sheetVisual}
-                    onChange={(event) => setSheetVisual(event.target.value as WidgetVisual)}
-                  >
-                    {visuals.map(({ kind }) => (
-                      <option key={kind} value={kind}>
-                        {t(`visuals.${kind}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </label>
-                <p>{t('sheetDataHint')}</p>
-              </div>
-              <div>
-                <Dialog.Close asChild>
-                  <Button type="button" variant="outline">
-                    {t('cancelSheet')}
-                  </Button>
-                </Dialog.Close>
-                <Button type="submit" disabled={!sheetName.trim() || !sheetMeasures.length}>
-                  {t('createSheet')}
-                </Button>
-              </div>
-            </form>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-      <Dialog.Root
-        open={!!editing}
-        onOpenChange={(open) => {
-          if (!open) setEditingId(null);
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="bi-editor-overlay" />
-          <Dialog.Content className="bi-editor" aria-describedby="bi-editor-description">
-            <header className="bi-editor-heading">
-              <div>
-                <Dialog.Title>{t('editWidget')}</Dialog.Title>
-                <Dialog.Description id="bi-editor-description">
-                  {demo('editorHint')}
-                </Dialog.Description>
-              </div>
-              <Dialog.Close asChild>
-                <Button variant="ghost" size="icon" aria-label={t('closeEditor')}>
-                  <X />
-                </Button>
-              </Dialog.Close>
-            </header>
-            {editing && (
-              <>
-                <div className="bi-editor-settings">
+              <label>
+                {t('visualizations')}
+                <NativeSelect
+                  value={editing.visual}
+                  onChange={(event) =>
+                    update(editing.id, { visual: event.target.value as WidgetVisual })
+                  }
+                >
+                  {visuals.map(({ kind }) => (
+                    <option key={kind} value={kind}>
+                      {t(`visuals.${kind}`)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+            </div>
+            {editing.visual !== 'card' && editing.visual !== 'table' && (
+              <fieldset className="bi-editor-settings">
+                <legend>{t('chartColors')}</legend>
+                {editing.visual === 'pie' ? (
+                  categoryPalette.map((color, index) => (
+                    <label key={color}>
+                      {t('categoryColor', { number: index + 1 })}
+                      <Input
+                        type="color"
+                        value={editing.categoryColors?.[index] ?? color}
+                        onChange={(event) => {
+                          const colors = categoryPalette.map(
+                            (fallback, i) => editing.categoryColors?.[i] ?? fallback,
+                          );
+                          colors[index] = event.target.value;
+                          update(editing.id, { categoryColors: colors });
+                        }}
+                      />
+                    </label>
+                  ))
+                ) : (
                   <label>
-                    {t('widgetTitle')}
+                    {t('seriesColor')}
                     <Input
-                      maxLength={100}
-                      value={editing.title}
-                      onChange={(event) => update(editing.id, { title: event.target.value })}
+                      type="color"
+                      value={
+                        editing.chartColor ??
+                        (editing.visual === 'bar' || editing.visual === 'horizontalBar'
+                          ? '#6366f1'
+                          : editing.visual === 'radar'
+                            ? '#8b5cf6'
+                            : editing.visual === 'heatmap'
+                              ? '#0284c7'
+                              : '#0d9488')
+                      }
+                      onChange={(event) => update(editing.id, { chartColor: event.target.value })}
                     />
                   </label>
-                  <label>
-                    {t('visualizations')}
-                    <NativeSelect
-                      value={editing.visual}
-                      onChange={(event) =>
-                        update(editing.id, { visual: event.target.value as WidgetVisual })
-                      }
-                    >
-                      {visuals.map(({ kind }) => (
-                        <option key={kind} value={kind}>
-                          {t(`visuals.${kind}`)}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </label>
-                </div>
-                {editing.visual !== 'card' && editing.visual !== 'table' && (
-                  <fieldset className="bi-editor-settings">
-                    <legend>{t('chartColors')}</legend>
-                    {editing.visual === 'pie' ? (
-                      categoryPalette.map((color, index) => (
-                        <label key={color}>
-                          {t('categoryColor', { number: index + 1 })}
-                          <Input
-                            type="color"
-                            value={editing.categoryColors?.[index] ?? color}
-                            onChange={(event) => {
-                              const colors = categoryPalette.map(
-                                (fallback, i) => editing.categoryColors?.[i] ?? fallback,
-                              );
-                              colors[index] = event.target.value;
-                              update(editing.id, { categoryColors: colors });
-                            }}
-                          />
-                        </label>
-                      ))
-                    ) : (
-                      <label>
-                        {t('seriesColor')}
-                        <Input
-                          type="color"
-                          value={
-                            editing.chartColor ??
-                            (editing.visual === 'bar' || editing.visual === 'horizontalBar'
-                              ? '#6366f1'
-                              : editing.visual === 'radar'
-                                ? '#8b5cf6'
-                                : editing.visual === 'heatmap'
-                                  ? '#0284c7'
-                                  : '#0d9488')
-                          }
-                          onChange={(event) =>
-                            update(editing.id, { chartColor: event.target.value })
-                          }
-                        />
-                      </label>
-                    )}
-                  </fieldset>
                 )}
-                <DemoQueryEditor
-                  key={editing.id}
-                  initialQuery={editing.query}
-                  onApply={(query) => {
-                    update(editing.id, { query });
-                    setEditingId(null);
-                  }}
-                />
-              </>
+              </fieldset>
             )}
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+            <DemoQueryEditor
+              key={editing.id}
+              initialQuery={editing.query}
+              onApply={(query) => {
+                update(editing.id, { query });
+                setEditingId(null);
+              }}
+            />
+          </>
+        )}
+      </AppDialog>
     </section>
   );
 };

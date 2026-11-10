@@ -20,5 +20,6 @@
   "tailwindCSS.codeActions": true,
   "files.associations": {
     "**/src/styles/**/*.css": "tailwindcss"
-  }
+  },
+  "cSpell.words": ["powerbi"]
 }

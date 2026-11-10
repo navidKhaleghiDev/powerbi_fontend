@@ -1,0 +1,139 @@
+export const API_ENDPOINTS = {
+  login: '/api/login/',
+  refreshToken: '/api/token/refresh/',
+} as const;
+
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? '';
+const ACCESS_TOKEN_KEY = 'control-center.access-token';
+const REFRESH_TOKEN_KEY = 'control-center.refresh-token';
+
+interface TokenPair {
+  access: string;
+  refresh: string;
+}
+
+interface AccessTokenResponse {
+  access: string;
+}
+
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+let refreshInProgress: Promise<string | null> | null = null;
+
+const readToken = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const saveTokens = (tokens: TokenPair): void => {
+  localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access);
+  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh);
+};
+
+export const clearAuthTokens = (): void => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+export const hasAccessToken = (): boolean => Boolean(readToken(ACCESS_TOKEN_KEY));
+
+const apiUrl = (endpoint: string): string => {
+  const path = endpoint.startsWith('/api/') ? endpoint : `/api/${endpoint.replace(/^\/+/, '')}`;
+  return `${API_BASE_URL}${path}`;
+};
+
+const readError = async (response: Response): Promise<string> => {
+  try {
+    const body: unknown = await response.json();
+    if (body && typeof body === 'object' && 'detail' in body && typeof body.detail === 'string') {
+      return body.detail;
+    }
+  } catch {
+    // Use the HTTP status when the server does not return a JSON error body.
+  }
+  return `Request failed (${response.status})`;
+};
+
+export const login = async (credentials: LoginCredentials): Promise<void> => {
+  const response = await fetch(apiUrl(API_ENDPOINTS.login), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+  if (!response.ok) throw new Error(await readError(response));
+  const tokens: unknown = await response.json();
+  if (
+    !tokens ||
+    typeof tokens !== 'object' ||
+    !('access' in tokens) ||
+    typeof tokens.access !== 'string' ||
+    !('refresh' in tokens) ||
+    typeof tokens.refresh !== 'string'
+  ) {
+    throw new Error('The login response did not contain valid tokens');
+  }
+  saveTokens(tokens as TokenPair);
+};
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  const refresh = readToken(REFRESH_TOKEN_KEY);
+  if (!refresh) return null;
+
+  const response = await fetch(apiUrl(API_ENDPOINTS.refreshToken), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
+  });
+  if (!response.ok) {
+    clearAuthTokens();
+    return null;
+  }
+  const result: unknown = await response.json();
+  if (
+    !result ||
+    typeof result !== 'object' ||
+    !('access' in result) ||
+    typeof result.access !== 'string'
+  ) {
+    clearAuthTokens();
+    return null;
+  }
+  localStorage.setItem(ACCESS_TOKEN_KEY, (result as AccessTokenResponse).access);
+  return (result as AccessTokenResponse).access;
+};
+
+export const apiRequest = async (endpoint: string, init: RequestInit = {}): Promise<Response> => {
+  const headers = new Headers(init.headers);
+  const access = readToken(ACCESS_TOKEN_KEY);
+  if (access) headers.set('Authorization', `Bearer ${access}`);
+
+  const response = await fetch(apiUrl(endpoint), { ...init, headers });
+  if (
+    response.status !== 401 ||
+    endpoint === API_ENDPOINTS.login ||
+    endpoint === API_ENDPOINTS.refreshToken
+  ) {
+    return response;
+  }
+
+  refreshInProgress ??= refreshAccessToken().finally(() => {
+    refreshInProgress = null;
+  });
+  const refreshedAccess = await refreshInProgress;
+  if (!refreshedAccess) return response;
+
+  const retryHeaders = new Headers(init.headers);
+  retryHeaders.set('Authorization', `Bearer ${refreshedAccess}`);
+  const retryResponse = await fetch(apiUrl(endpoint), { ...init, headers: retryHeaders });
+  if (retryResponse.status === 401) clearAuthTokens();
+  return retryResponse;
+};
+
+export const getApiErrorMessage = readError;

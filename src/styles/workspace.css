@@ -1125,7 +1125,30 @@
   display: none;
 }
 
-/* Portaled icon tooltips avoid clipping inside sidebar scroll containers. */
+/* App-owned icon tooltips. */
+.app-icon-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+.app-icon-tooltip .icon-tooltip {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: calc(100% + 10px);
+  transform: translateY(-50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.app-icon-tooltip[data-side='left'] .icon-tooltip {
+  inset-inline-start: auto;
+  inset-inline-end: calc(100% + 10px);
+}
+.app-icon-tooltip:hover .icon-tooltip,
+.app-icon-tooltip:focus-within .icon-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
 .workspace-rail-link::after {
   display: none;
 }
