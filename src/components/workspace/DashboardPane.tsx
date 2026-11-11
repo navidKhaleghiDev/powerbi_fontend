@@ -8,15 +8,17 @@ export const DashboardPane = ({
   title,
   className,
   actions,
+  defaultCollapsed = false,
   children,
 }: {
   title: string;
   className: string;
   actions?: ReactNode;
+  defaultCollapsed?: boolean;
   children: ReactNode;
 }) => {
   const t = useTranslations('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const id = useId();
   const label = t(collapsed ? 'expandPane' : 'collapsePane', { name: title });
   return (

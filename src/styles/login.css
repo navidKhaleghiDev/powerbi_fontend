@@ -140,7 +140,7 @@
 .login-submit {
   min-height: 46px;
   border-radius: var(--workspace-radius-control);
-  background: var(--color-teal-700);
+  background: #4b5563;
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -568,7 +568,7 @@
 }
 
 .login-submit:hover {
-  background: var(--color-teal-800);
+  background: #374151;
 }
 
 /* Keep the login form within the viewport without clipping its controls. */

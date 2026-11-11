@@ -1,14 +1,18 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from '@tanstack/react-router';
 import { LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { Typography } from '@/components/ui/typography';
+import { clearAuthTokens } from '@/lib/api';
+import { toast } from '@/lib/toast';
 
 export const WorkspaceHeader = () => {
   const locale = useLocale();
   const t = useTranslations('studio');
   const d = useTranslations('dashboard');
   const c = useTranslations('cube');
+  const queryClient = useQueryClient();
   const dashboard = useLocation().pathname.replace(/\/$/, '').endsWith('/dashboard');
   return (
     <header className="workspace-header">
@@ -24,6 +28,11 @@ export const WorkspaceHeader = () => {
         to="/$locale/login"
         params={{ locale }}
         replace
+        onClick={() => {
+          clearAuthTokens();
+          queryClient.clear();
+          toast.success();
+        }}
         className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border-default px-4 py-2 text-sm hover:bg-surface-raised"
       >
         <LogOut size={16} aria-hidden="true" />

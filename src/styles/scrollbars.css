@@ -4,7 +4,6 @@
   html:has(.workspace-stage),
   .workspace-canvas .workspace-page,
   .workspace-canvas .workspace-rail,
-  .workspace-canvas .workspace-rail-links,
   .workspace-canvas .login-form-side,
   .workspace-canvas textarea,
   .workspace-canvas [class*='overflow-auto'],

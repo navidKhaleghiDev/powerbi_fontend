@@ -1,10 +1,19 @@
+import { appEnv } from '@/lib/env';
+
 export const API_ENDPOINTS = {
   login: '/api/login/',
   refreshToken: '/api/token/refresh/',
+  databaseTypes: '/api/database-types/',
+  connectionTest: '/api/database/connection-test/',
+  databaseTables: '/api/database/tables/',
+  databaseColumns: '/api/database/columns/',
+  connect: '/api/connect/',
+  connector: (name: string) => `/api/connect/${encodeURIComponent(name)}/`,
+  connectorConfig: (source: string) => `/api/connect/${encodeURIComponent(source)}/config/`,
+  consumer: '/api/consumer/',
 } as const;
 
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? '';
+const API_BASE_URL = appEnv.apiBaseUrl;
 const ACCESS_TOKEN_KEY = 'control-center.access-token';
 const REFRESH_TOKEN_KEY = 'control-center.refresh-token';
 
@@ -33,11 +42,13 @@ const readToken = (key: string): string | null => {
 };
 
 const saveTokens = (tokens: TokenPair): void => {
+  window.dispatchEvent(new Event('control-center:session-change'));
   localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access);
   localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh);
 };
 
 export const clearAuthTokens = (): void => {
+  window.dispatchEvent(new Event('control-center:session-change'));
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
@@ -49,15 +60,40 @@ const apiUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${path}`;
 };
 
+const messageFromErrorBody = (body: unknown): string | null => {
+  if (typeof body === 'string') return body.trim() || null;
+  if (Array.isArray(body)) {
+    const messages = body
+      .map(messageFromErrorBody)
+      .filter((message): message is string => Boolean(message));
+    return messages.length ? messages.join(' · ') : null;
+  }
+  if (!body || typeof body !== 'object') return null;
+
+  const record = body as Record<string, unknown>;
+  for (const key of ['detail', 'message', 'error', 'errors', 'msg', 'non_field_errors']) {
+    if (key in record) {
+      const message = messageFromErrorBody(record[key]);
+      if (message) return message;
+    }
+  }
+  return null;
+};
+
 const readError = async (response: Response): Promise<string> => {
   try {
-    const body: unknown = await response.json();
-    if (body && typeof body === 'object' && 'detail' in body && typeof body.detail === 'string') {
-      return body.detail;
-    }
+    const message = messageFromErrorBody(await response.clone().json());
+    if (message) return message;
   } catch {
-    // Use the HTTP status when the server does not return a JSON error body.
+    // Continue with plain text responses when the server does not return JSON.
   }
+  const text = (
+    await response
+      .clone()
+      .text()
+      .catch(() => '')
+  ).trim();
+  if (text && !/^<!doctype html|^<html\b/i.test(text)) return text.slice(0, 500);
   return `Request failed (${response.status})`;
 };
 
@@ -86,14 +122,17 @@ const refreshAccessToken = async (): Promise<string | null> => {
   const refresh = readToken(REFRESH_TOKEN_KEY);
   if (!refresh) return null;
 
+  const access = readToken(ACCESS_TOKEN_KEY);
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  if (access) headers.set('Authorization', `Bearer ${access}`);
   const response = await fetch(apiUrl(API_ENDPOINTS.refreshToken), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ refresh }),
   });
   if (!response.ok) {
     clearAuthTokens();
-    return null;
+    throw new Error(await readError(response));
   }
   const result: unknown = await response.json();
   if (
@@ -103,7 +142,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     typeof result.access !== 'string'
   ) {
     clearAuthTokens();
-    return null;
+    throw new Error('The token refresh response did not contain a valid access token');
   }
   localStorage.setItem(ACCESS_TOKEN_KEY, (result as AccessTokenResponse).access);
   return (result as AccessTokenResponse).access;
@@ -120,6 +159,7 @@ export const apiRequest = async (endpoint: string, init: RequestInit = {}): Prom
     endpoint === API_ENDPOINTS.login ||
     endpoint === API_ENDPOINTS.refreshToken
   ) {
+    if (!response.ok) throw new Error(await readError(response));
     return response;
   }
 
@@ -127,12 +167,13 @@ export const apiRequest = async (endpoint: string, init: RequestInit = {}): Prom
     refreshInProgress = null;
   });
   const refreshedAccess = await refreshInProgress;
-  if (!refreshedAccess) return response;
+  if (!refreshedAccess) throw new Error(await readError(response));
 
   const retryHeaders = new Headers(init.headers);
   retryHeaders.set('Authorization', `Bearer ${refreshedAccess}`);
   const retryResponse = await fetch(apiUrl(endpoint), { ...init, headers: retryHeaders });
   if (retryResponse.status === 401) clearAuthTokens();
+  if (!retryResponse.ok) throw new Error(await readError(retryResponse));
   return retryResponse;
 };
 

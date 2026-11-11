@@ -1,7 +1,7 @@
 /* Shared control dimensions from the supplied input/button references. */
 .workspace-canvas {
-  --control-input-radius: 12px;
-  --control-button-radius: 8px;
+  --control-input-radius: 4px;
+  --control-button-radius: 4px;
   --control-input-padding: 10px;
   --control-button-padding: 8px;
 }

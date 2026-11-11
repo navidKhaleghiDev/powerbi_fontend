@@ -6,7 +6,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { useIsFetching, useQueryClient } from '@tanstack/react-query';
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
   ChartBar,
@@ -36,6 +36,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
+import { useAssistantPage } from '@/lib/assistant/context';
 import {
   demoDefaults,
   demoDimensions,
@@ -162,6 +163,55 @@ export const DashboardPage = () => {
   };
   const [editingId, setEditingId] = useState<string | null>(null);
   const editing = widgets.find((widget) => widget.id === editingId);
+  const contextWidget = editing ?? widgets[0];
+  const contextResult = useQuery<{ values: Record<string, unknown> }[]>({
+    queryKey: ['dashboard-widget', 'sales-demo', filters, contextWidget?.id, contextWidget?.query],
+    // Observe only the existing widget query; the assistant never fetches extra records.
+    enabled: false,
+  });
+  const contextRows = (contextResult.data ?? []).slice(0, 8).map(({ values }) =>
+    Object.fromEntries(
+      [...demoMeasures, ...demoDimensions].flatMap((field) => {
+        const value = values[field];
+        return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))
+          ? [[field, value]]
+          : [];
+      }),
+    ),
+  );
+  useAssistantPage({
+    page: 'dashboard',
+    source: 'synthetic',
+    sheet: {
+      id: activeSheetId,
+      name: sheets.find((sheet) => sheet.id === activeSheetId)?.name || t('title'),
+    },
+    selectedWidgetId: editingId,
+    selectedData: {
+      widgetId: contextWidget?.id ?? null,
+      status: contextResult.isError ? 'error' : contextResult.data ? 'available' : 'unavailable',
+      fetchedAt: contextResult.dataUpdatedAt
+        ? new Date(contextResult.dataUpdatedAt).toISOString()
+        : null,
+      fetching: contextResult.isFetching,
+      rows: contextRows,
+      truncated: (contextResult.data?.length ?? 0) > 8,
+    },
+    filters: {
+      asOf: filters.asOf,
+      timeGrain: filters.timeGrain,
+      solarMonth: filters.solarMonth,
+      incomeType: filters.incomeType,
+      paymentTerms: filters.paymentTerms,
+    },
+    widgets: widgets.slice(0, 15).map((widget) => ({
+      id: widget.id,
+      title: (widget.title || demo(`widgets.${widget.id}`)).slice(0, 160),
+      visual: widget.visual,
+      measures: widget.query?.measures?.slice(0, 5) ?? [],
+      dimensions: widget.query?.dimensions?.slice(0, 5) ?? [],
+    })),
+  });
   const update = (id: string, patch: Partial<DashboardWidget>) =>
     setWidgets((items) => items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
   const add = (visual: WidgetVisual) => {
@@ -384,7 +434,7 @@ export const DashboardPage = () => {
             <span>{t('canvasHint')}</span>
           </footer>
         </div>
-        <DashboardPane className="bi-filter-pane" title={t('filtersTitle')}>
+        <DashboardPane className="bi-filter-pane" title={t('filtersTitle')} defaultCollapsed>
           <form
             className="bi-dashboard-filters"
             aria-label={t('filtersTitle')}

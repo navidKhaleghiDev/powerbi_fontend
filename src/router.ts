@@ -2,7 +2,10 @@ import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/
 
 import { LocaleWorkspace, NotFound } from './App';
 import { LoginPage } from './components/auth/LoginPage';
+import { CreateConsumerPage } from './components/workspace/CreateConsumerAction';
 import { DashboardPage } from './components/workspace/DashboardPage';
+import { DataFlowPage } from './components/workspace/DataFlowPage';
+import { DataFlowsPage } from './components/workspace/DataFlowsPage';
 import { hasAccessToken } from './lib/api';
 
 const rootRoute = createRootRoute({ notFoundComponent: NotFound });
@@ -46,11 +49,52 @@ const dashboardRoute = createRoute({
   },
   component: DashboardPage,
 });
+const dataFlowRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'data-flows/new',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: DataFlowPage,
+});
+const dataFlowsRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'data-flows',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: DataFlowsPage,
+});
+const cdcConnectionsRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'cdc-connections',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: DataFlowsPage,
+});
+const createConsumerRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'cdc-connections/$connectorName/consumer',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: CreateConsumerPage,
+});
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
     indexRoute,
-    localeRoute.addChildren([localeIndexRoute, loginRoute, overviewRoute, dashboardRoute]),
+    localeRoute.addChildren([
+      localeIndexRoute,
+      loginRoute,
+      overviewRoute,
+      dashboardRoute,
+      dataFlowsRoute,
+      cdcConnectionsRoute,
+      createConsumerRoute,
+      dataFlowRoute,
+    ]),
   ]),
 });
 

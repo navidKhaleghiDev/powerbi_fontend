@@ -1,10 +1,9 @@
 import cubejs from '@cubejs-client/core';
+import { appEnv } from '@/lib/env';
 
-const configuredUrl: unknown = import.meta.env.VITE_CUBE_API_URL;
-const configuredToken: unknown = import.meta.env.VITE_CUBE_TOKEN;
 export const cubeDefaults = {
-  url: typeof configuredUrl === 'string' ? configuredUrl.trim() : '',
-  token: typeof configuredToken === 'string' ? configuredToken.trim() : '',
+  url: appEnv.cubeApiUrl,
+  token: appEnv.cubeToken,
 };
 
 export const createCubeClient = (url: string, token: string) =>

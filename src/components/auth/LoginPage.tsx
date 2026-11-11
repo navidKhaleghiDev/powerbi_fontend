@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'use-intl';
 import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { Typography } from '@/components/ui/typography';
 import { login } from '@/lib/api';
+import { toast } from '@/lib/toast';
 
 import { LoginShowcase } from './LoginShowcase';
 
@@ -15,7 +16,6 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
 
   return (
@@ -46,11 +46,6 @@ export const LoginPage = () => {
               <p>{t('introduction')}</p>
             </header>
             <p className="mb-4 text-sm text-text-secondary">{t('frontendOnlyNotice')}</p>
-            {errorMessage ? (
-              <p role="alert" className="mb-4 text-sm text-text-danger">
-                {errorMessage}
-              </p>
-            ) : null}
             <form
               className="login-form"
               onSubmit={async (event) => {
@@ -61,14 +56,14 @@ export const LoginPage = () => {
                 const passwordEntry = formData.get('password');
                 const username = typeof usernameEntry === 'string' ? usernameEntry.trim() : '';
                 const password = typeof passwordEntry === 'string' ? passwordEntry : '';
-                setErrorMessage('');
                 setIsSubmitting(true);
                 try {
                   await login({ username, password });
                   form.reset();
+                  toast.success(t('loginSuccess'));
                   await navigate({ to: '/$locale/dashboard', params: { locale } });
                 } catch (error) {
-                  setErrorMessage(error instanceof Error ? error.message : t('loginFailed'));
+                  toast.error(error instanceof Error ? error.message : t('loginFailed'));
                 } finally {
                   setIsSubmitting(false);
                 }

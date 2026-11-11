@@ -1,8 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Globe2, LayoutDashboard, LogOut } from 'lucide-react';
+import { Database, Globe2, LayoutDashboard, LogOut, Workflow } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { IconTooltip } from '@/components/ui/icon-tooltip';
+import { clearAuthTokens } from '@/lib/api';
+import { toast } from '@/lib/toast';
 
 export const ApplicationSidebar = () => {
   const t = useTranslations('studio');
@@ -10,6 +13,7 @@ export const ApplicationSidebar = () => {
   const locale = useLocale();
   const d = useTranslations('dashboard');
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
+  const queryClient = useQueryClient();
 
   return (
     <aside className="workspace-rail">
@@ -37,6 +41,30 @@ export const ApplicationSidebar = () => {
             <LayoutDashboard size={19} strokeWidth={1.5} aria-hidden="true" />
           </Link>
         </IconTooltip>
+        <IconTooltip label={tw('cdcConnections')}>
+          <Link
+            to="/$locale/cdc-connections"
+            params={{ locale }}
+            className="workspace-rail-link"
+            activeProps={{ className: 'is-active', 'aria-current': 'page' }}
+            aria-label={tw('cdcConnections')}
+            data-label={tw('cdcConnections')}
+          >
+            <Database size={19} strokeWidth={1.5} aria-hidden="true" />
+          </Link>
+        </IconTooltip>
+        <IconTooltip label={tw('createFlow')}>
+          <Link
+            to="/$locale/data-flows/new"
+            params={{ locale }}
+            className="workspace-rail-link"
+            activeProps={{ className: 'is-active', 'aria-current': 'page' }}
+            aria-label={tw('createFlow')}
+            data-label={tw('createFlow')}
+          >
+            <Workflow size={19} strokeWidth={1.5} aria-hidden="true" />
+          </Link>
+        </IconTooltip>
       </nav>
       <div className="workspace-rail-footer">
         <IconTooltip label={t('logout')}>
@@ -44,6 +72,11 @@ export const ApplicationSidebar = () => {
             to="/$locale/login"
             params={{ locale }}
             replace
+            onClick={() => {
+              clearAuthTokens();
+              queryClient.clear();
+              toast.success();
+            }}
             className="workspace-rail-link workspace-rail-exit"
             aria-label={t('logout')}
           >

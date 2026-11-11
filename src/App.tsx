@@ -14,6 +14,7 @@ export const LocaleWorkspace = () => {
   const login = pathname.replace(/\/$/, '').endsWith('/login');
   const valid = locale === 'en' || locale === 'fa';
   const messages = locale === 'en' ? en : fa;
+
   useEffect(() => {
     if (!valid) return;
     document.documentElement.lang = locale;
@@ -27,7 +28,7 @@ export const LocaleWorkspace = () => {
       <WorkspaceProviders>
         <a
           href="#workspace-content"
-          className="sr-only rounded-xl bg-surface-default px-4 py-3 text-text-info shadow-lg focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50"
+          className="focus:inset-s-4focus:top-4 sr-only rounded-xl bg-surface-default px-4 py-3 text-text-info shadow-lg focus:not-sr-only focus:fixed focus:z-50"
         >
           {messages.studio.skipToContent}
         </a>

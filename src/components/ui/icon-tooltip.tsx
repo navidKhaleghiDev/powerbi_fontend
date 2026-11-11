@@ -1,4 +1,5 @@
-import { cloneElement, type ReactElement } from 'react';
+import { cloneElement, useRef, useState, type ReactElement } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocale } from 'use-intl';
 
 interface Props {
@@ -9,15 +10,48 @@ interface Props {
 export const IconTooltip = ({ label, children }: Props) => {
   const locale = useLocale();
   const childProps = children.props;
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const [position, setPosition] = useState<{
+    left: number;
+    top: number;
+    side: 'left' | 'right';
+  } | null>(null);
+  const side = locale === 'fa' ? 'left' : 'right';
+  const show = () => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPosition({
+      left: side === 'right' ? rect.right + 10 : rect.left - 10,
+      top: rect.top + rect.height / 2,
+      side,
+    });
+  };
+
   return (
-    <span className="app-icon-tooltip" data-side={locale === 'fa' ? 'left' : 'right'}>
+    <span
+      ref={anchorRef}
+      className="app-icon-tooltip"
+      onMouseEnter={show}
+      onMouseLeave={() => setPosition(null)}
+      onFocusCapture={show}
+      onBlurCapture={() => setPosition(null)}
+    >
       {cloneElement(children, {
         'aria-label': childProps['aria-label'] ?? label,
-        title: label,
       })}
-      <span className="icon-tooltip" role="tooltip" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
-        {label}
-      </span>
+      {position
+        ? createPortal(
+            <span
+              className={`icon-tooltip icon-tooltip--${position.side}`}
+              role="tooltip"
+              dir={locale === 'fa' ? 'rtl' : 'ltr'}
+              style={{ left: position.left, top: position.top }}
+            >
+              {label}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 };
