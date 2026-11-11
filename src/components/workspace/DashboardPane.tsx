@@ -64,8 +64,8 @@ export const DashboardPane = ({
           {title}
         </Button>
       )}
-      <div id={id} hidden={collapsed}>
-        {children}
+      <div id={id} className="bi-pane-content" aria-hidden={collapsed} inert={collapsed}>
+        <div className="bi-pane-content-inner">{children}</div>
       </div>
     </aside>
   );

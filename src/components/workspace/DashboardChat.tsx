@@ -55,7 +55,6 @@ export const DashboardChat = () => {
                 <Sparkles size={24} aria-hidden="true" />
               </span>
               <h3>{t('welcome')}</h3>
-              <p>{t('welcomeHint')}</p>
             </div>
           )}
           {turns.map((turn) => (
@@ -74,7 +73,11 @@ export const DashboardChat = () => {
           ))}
           {pending && (
             <div className="bi-chat-thinking" role="status">
-              <Sparkles size={14} aria-hidden="true" />
+              <span className="bi-chat-typing-dots" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
               <span>{t('thinking')}</span>
             </div>
           )}
@@ -98,28 +101,29 @@ export const DashboardChat = () => {
             if (assistant.send(draft)) setDraft('');
           }}
         >
-          <Textarea
-            id="dashboard-chat-input"
-            aria-label={t('message')}
-            placeholder={t('message')}
-            dir="auto"
-            rows={2}
-            aria-describedby="dashboard-chat-keyboard-hint"
-            onKeyDown={(event) => {
-              if (
-                event.key !== 'Enter' ||
-                event.shiftKey ||
-                event.nativeEvent.isComposing ||
-                event.keyCode === 229
-              )
-                return;
-              event.preventDefault();
-              event.currentTarget.form?.requestSubmit();
-            }}
-            value={draft}
-            maxLength={MAX_QUESTION}
-            onChange={(event) => setDraft(event.target.value)}
-          />
+          <div className="bi-chat-input-field">
+            <Textarea
+              id="dashboard-chat-input"
+              aria-label={t('message')}
+              placeholder={t('message')}
+              dir="auto"
+              rows={2}
+              onKeyDown={(event) => {
+                if (
+                  event.key !== 'Enter' ||
+                  event.shiftKey ||
+                  event.nativeEvent.isComposing ||
+                  event.keyCode === 229
+                )
+                  return;
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }}
+              value={draft}
+              maxLength={MAX_QUESTION}
+              onChange={(event) => setDraft(event.target.value)}
+            />
+          </div>
           <div className="bi-chat-actions">
             <div className="bi-chat-secondary-actions">
               <Button
@@ -140,48 +144,46 @@ export const DashboardChat = () => {
                 </summary>
                 <p>{t('privacy')}</p>
               </details>
+              <div className="bi-chat-composer-controls">
+                <NativeSelect
+                  id="dashboard-chat-model"
+                  aria-label={t('model')}
+                  value={model}
+                  onChange={(event) => assistant.setModel(event.target.value)}
+                  disabled={pending}
+                >
+                  {SUPPORTED_MODELS.map((id) => (
+                    <option key={id} value={id}>
+                      {id === 'openrouter/free' ? t('freeModel') : id}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
             </div>
-            <div className="bi-chat-composer-controls">
-              <NativeSelect
-                aria-label={t('model')}
-                value={model}
-                onChange={(event) => assistant.setModel(event.target.value)}
-                disabled={pending}
+            {pending ? (
+              <Button
+                type="button"
+                className="bi-chat-send"
+                size="icon-sm"
+                aria-label={t('stop')}
+                title={t('stop')}
+                onClick={assistant.stop}
               >
-                {SUPPORTED_MODELS.map((id) => (
-                  <option key={id} value={id}>
-                    {id === 'openrouter/free' ? t('freeModel') : id}
-                  </option>
-                ))}
-              </NativeSelect>
-              {pending ? (
-                <Button
-                  type="button"
-                  className="bi-chat-send"
-                  size="icon-sm"
-                  aria-label={t('stop')}
-                  title={t('stop')}
-                  onClick={assistant.stop}
-                >
-                  <Square size={14} aria-hidden="true" />
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="bi-chat-send"
-                  size="icon-sm"
-                  aria-label={t('send')}
-                  title={t('send')}
-                  disabled={!draft.trim() || !apiKey.trim()}
-                >
-                  <ArrowUp aria-hidden="true" />
-                </Button>
-              )}
-            </div>
+                <Square size={14} aria-hidden="true" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                className="bi-chat-send"
+                size="icon-sm"
+                aria-label={t('send')}
+                title={t('send')}
+                disabled={!draft.trim() || !apiKey.trim()}
+              >
+                <ArrowUp aria-hidden="true" />
+              </Button>
+            )}
           </div>
-          <small id="dashboard-chat-keyboard-hint" className="bi-chat-keyboard-hint">
-            {t('keyboardHint')}
-          </small>
         </form>
       </div>
     </DashboardPane>

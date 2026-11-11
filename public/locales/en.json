@@ -1130,7 +1130,7 @@
     }
   },
   "dashboardChat": {
-    "title": "AI chat",
+    "title": "AI assistant",
     "description": "Ask about this dashboard, its widgets and financial demo terminology.",
     "key": "OpenRouter API key",
     "model": "OpenRouter model",

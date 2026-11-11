@@ -78,3 +78,62 @@
     border-color: ButtonText;
   }
 }
+
+/* Assistant controls intentionally have no individual borders. */
+#dashboard-chat-input,
+#dashboard-chat-model {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+#dashboard-chat-model:focus-visible {
+  outline: 2px solid var(--text-info);
+  outline-offset: 2px;
+}
+.bi-chat-input-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  direction: ltr;
+}
+.bi-chat-input-field textarea {
+  flex: 1;
+  min-width: 0;
+}
+.bi-chat-input-field .bi-chat-send {
+  margin-bottom: 4px;
+}
+
+/* Compact, two-row assistant composer, matching the editor-style reference. */
+#dashboard-chat-input {
+  min-height: 40px;
+  max-height: 140px;
+  padding: 2px 0;
+  font-size: 13px;
+}
+#dashboard-chat-model {
+  min-height: 28px;
+  height: 28px;
+  padding-block: 2px;
+  font-size: 11px;
+}
+.bi-chat-secondary-actions {
+  flex: 1;
+  gap: 4px;
+}
+.bi-chat-secondary-actions > button {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+}
+.bi-chat-secondary-actions .bi-chat-info summary {
+  padding: 6px;
+}
+.bi-chat-secondary-actions .bi-chat-composer-controls {
+  margin-left: 4px;
+}
+@media (pointer: coarse) {
+  #dashboard-chat-input {
+    font-size: 16px;
+  }
+}
