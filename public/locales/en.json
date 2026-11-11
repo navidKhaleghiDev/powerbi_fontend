@@ -13,7 +13,7 @@
   },
   "dataFlow": {
     "eyebrow": "Data setup · CDC",
-    "title": "Create a data flow",
+    "title": "Create a CDC connection",
     "description": "Connect a source database, inspect its tables and columns, then configure a CDC connector.",
     "steps": "Data flow setup steps",
     "step": {
@@ -1066,12 +1066,18 @@
     "error": "Could not load CDC connections.",
     "retry": "Try again",
     "emptyTitle": "No CDC connections yet",
-    "emptyHelp": "Create a data flow to configure your first CDC connection.",
+    "emptyHelp": "Create your first CDC connection from this page.",
     "count": "{count} connections",
     "refresh": "Refresh",
     "connectionNumber": "Connection {number}",
     "valueNumber": "Value {number}",
     "emptyEntry": "No connection details were returned.",
+    "noAdditionalDetails": "No additional details",
+    "table": {
+      "name": "Connection",
+      "details": "Details",
+      "actions": "Actions"
+    },
     "retrieveConfig": "Retrieve config",
     "retrieving": "Retrieving…",
     "delete": "Delete",

@@ -52,6 +52,12 @@ const dashboardRoute = createRoute({
 const dataFlowRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: 'data-flows/new',
+  beforeLoad: ({ params }) =>
+    redirect({ to: '/$locale/cdc-connections/new', params, replace: true }),
+});
+const createCdcConnectionRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'cdc-connections/new',
   beforeLoad: ({ params }) => {
     if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
   },
@@ -60,10 +66,7 @@ const dataFlowRoute = createRoute({
 const dataFlowsRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: 'data-flows',
-  beforeLoad: ({ params }) => {
-    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
-  },
-  component: DataFlowsPage,
+  beforeLoad: ({ params }) => redirect({ to: '/$locale/cdc-connections', params, replace: true }),
 });
 const cdcConnectionsRoute = createRoute({
   getParentRoute: () => localeRoute,
@@ -93,6 +96,7 @@ export const router = createRouter({
       dataFlowsRoute,
       cdcConnectionsRoute,
       createConsumerRoute,
+      createCdcConnectionRoute,
       dataFlowRoute,
     ]),
   ]),

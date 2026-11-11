@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Database, Plus, RefreshCw, Settings2, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { ArrowRight, Database, Plus, RefreshCw, Settings2, Trash2 } from 'lucide-react';
+import { Fragment, useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,8 @@ export const DataFlowsPage = () => {
   };
 
   const removeConnection = (name: string) => {
+    // The destructive action requires an explicit, synchronous user confirmation.
+    // eslint-disable-next-line no-alert
     if (!window.confirm(t('confirmDelete', { name }))) return;
     void deleteMutation.mutateAsync(name).catch(() => undefined);
   };
@@ -54,7 +56,7 @@ export const DataFlowsPage = () => {
           </div>
         </div>
         <Link
-          to="/$locale/data-flows/new"
+          to="/$locale/cdc-connections/new"
           params={{ locale }}
           className="hover:bg-action-brand-hover inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
         >
@@ -81,7 +83,7 @@ export const DataFlowsPage = () => {
           <h2 className="mt-4 text-lg font-semibold text-text-primary">{t('emptyTitle')}</h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-text-secondary">{t('emptyHelp')}</p>
           <Link
-            to="/$locale/data-flows/new"
+            to="/$locale/cdc-connections/new"
             params={{ locale }}
             className="hover:bg-action-brand-hover mt-5 inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
           >
@@ -108,70 +110,96 @@ export const DataFlowsPage = () => {
               {t('refresh')}
             </Button>
           </div>
-          <ul className="grid gap-4 md:grid-cols-2">
-            {connectionsQuery.data.map((values, index) => (
-              <li
-                key={`${index}-${values.join('|')}`}
-                className="rounded-2xl border border-border-default bg-surface-default/80 p-5 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="rounded-lg bg-surface-info-subtle p-2 text-text-info">
-                    <Database size={18} aria-hidden="true" />
-                  </span>
-                  <h2 className="font-semibold text-text-primary">
-                    {values[0] || t('connectionNumber', { number: index + 1 })}
-                  </h2>
-                </div>
-                {values.length ? (
-                  <ol className="mt-4 space-y-2">
-                    {values.map((value, valueIndex) => (
-                      <li
-                        key={`${valueIndex}-${value}`}
-                        className="flex min-w-0 flex-wrap gap-x-2 rounded-lg bg-surface-raised px-3 py-2 text-sm"
-                      >
-                        <span className="shrink-0 text-text-secondary">
-                          {t('valueNumber', { number: valueIndex + 1 })}
-                        </span>
-                        <span className="break-all text-text-primary">{value}</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="mt-4 text-sm text-text-secondary">{t('emptyEntry')}</p>
-                )}
-                {values[0] ? (
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <CreateConsumerAction connectorName={values[0]} />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={configMutation.isPending}
-                      onClick={() => void retrieveConfig(values[0]).catch(() => undefined)}
-                    >
-                      <Settings2 size={15} aria-hidden="true" />
-                      {configMutation.isPending ? t('retrieving') : t('retrieveConfig')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      disabled={deleteMutation.isPending}
-                      onClick={() => removeConnection(values[0])}
-                    >
-                      <Trash2 size={15} aria-hidden="true" />
-                      {t('delete')}
-                    </Button>
-                  </div>
-                ) : null}
-                {values[0] && Object.prototype.hasOwnProperty.call(configs, values[0]) ? (
-                  <pre className="mt-4 max-h-72 overflow-auto rounded-lg bg-surface-raised p-3 text-xs text-text-primary">
-                    {JSON.stringify(configs[values[0]], null, 2)}
-                  </pre>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto rounded-2xl border border-border-default bg-surface-default/80 shadow-sm">
+            <table className="w-full min-w-[52rem] text-start text-sm">
+              <thead className="bg-surface-raised text-text-secondary">
+                <tr>
+                  <th className="px-5 py-3 font-medium">{t('table.name')}</th>
+                  <th className="px-5 py-3 font-medium">{t('table.details')}</th>
+                  <th className="px-5 py-3 font-medium">{t('table.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {connectionsQuery.data.map((values, index) => {
+                  const name = values[0];
+                  const hasConfig = Boolean(
+                    name && Object.prototype.hasOwnProperty.call(configs, name),
+                  );
+
+                  return (
+                    <Fragment key={values.join('|')}>
+                      <tr className="border-t border-border-default align-top">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="rounded-lg bg-surface-info-subtle p-2 text-text-info">
+                              <Database size={18} aria-hidden="true" />
+                            </span>
+                            <span className="font-semibold text-text-primary">
+                              {name || t('connectionNumber', { number: index + 1 })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          {values.length > 1 ? (
+                            <div className="flex max-w-xl flex-wrap gap-2">
+                              {values.slice(1).map((value) => (
+                                <span
+                                  key={value}
+                                  className="max-w-full rounded-md bg-surface-raised px-2.5 py-1 break-all text-text-primary"
+                                >
+                                  {value}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-text-secondary">{t('noAdditionalDetails')}</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4">
+                          {name ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <CreateConsumerAction connectorName={name} />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={configMutation.isPending}
+                                onClick={() => void retrieveConfig(name).catch(() => undefined)}
+                              >
+                                <Settings2 size={15} aria-hidden="true" />
+                                {configMutation.isPending ? t('retrieving') : t('retrieveConfig')}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                disabled={deleteMutation.isPending}
+                                onClick={() => removeConnection(name)}
+                              >
+                                <Trash2 size={15} aria-hidden="true" />
+                                {t('delete')}
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-text-secondary">—</span>
+                          )}
+                        </td>
+                      </tr>
+                      {name && hasConfig ? (
+                        <tr key={`${name}-config`} className="border-t border-border-default">
+                          <td colSpan={3} className="px-5 py-4">
+                            <pre className="max-h-72 overflow-auto rounded-lg bg-surface-raised p-3 text-xs text-text-primary">
+                              {JSON.stringify(configs[name], null, 2)}
+                            </pre>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </section>

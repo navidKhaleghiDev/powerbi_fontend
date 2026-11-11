@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Database, Globe2, LayoutDashboard, LogOut, Workflow } from 'lucide-react';
+import { Database, Globe2, LayoutDashboard, LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { IconTooltip } from '@/components/ui/icon-tooltip';
@@ -51,18 +51,6 @@ export const ApplicationSidebar = () => {
             data-label={tw('cdcConnections')}
           >
             <Database size={19} strokeWidth={1.5} aria-hidden="true" />
-          </Link>
-        </IconTooltip>
-        <IconTooltip label={tw('createFlow')}>
-          <Link
-            to="/$locale/data-flows/new"
-            params={{ locale }}
-            className="workspace-rail-link"
-            activeProps={{ className: 'is-active', 'aria-current': 'page' }}
-            aria-label={tw('createFlow')}
-            data-label={tw('createFlow')}
-          >
-            <Workflow size={19} strokeWidth={1.5} aria-hidden="true" />
           </Link>
         </IconTooltip>
       </nav>
