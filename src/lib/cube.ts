@@ -1,4 +1,5 @@
 import cubejs from '@cubejs-client/core';
+
 import { appEnv } from '@/lib/env';
 
 export const cubeDefaults = {

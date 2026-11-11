@@ -90,3 +90,16 @@ presentation only and do not resolve the PDF's open accounting definitions.
 Visualizations and Data have collapse/expand buttons inside their own headers;
 field sections can be collapsed individually. Existing Cube tooling is retained
 for future integration but is not mounted by the dashboard.
+
+## Live dashboard data
+
+The dashboard now reads published KPIs through the Django `/api/analytics/` API.
+Set the existing `VITE_API_BASE_URL` to the Django deployment. Staff users can
+open **Datasets & mappings** to create, preview and publish mappings; published
+KPIs populate the widget editor automatically. No mock amounts are used as a
+fallback. Dashboard layouts are saved per account with **Save dashboard**.
+Period filters use Gregorian date inputs with an exclusive end date; reporting
+groups support Persian and Gregorian calendars. Historical mode requires retained
+history and an explicit cutoff. **View records** provides paginated mapped rows.
+The separate Cube client settings are not required for this dashboard.
+Backend setup and contracts: [analytics guide](../backend/docs/analytics.md).

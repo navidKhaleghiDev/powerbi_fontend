@@ -3,6 +3,8 @@
   display: flex;
   flex-direction: column;
   padding: 0;
+  height: 100%;
+  min-height: 0;
 }
 /* Power BI-inspired tile canvas; scoped to the BI dashboard. */
 .bi-dashboard {
@@ -305,10 +307,28 @@
   position: relative;
 }
 .bi-widget-menu summary {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
-  padding: 0 7px;
+  padding: 0;
   list-style: none;
-  font-weight: bold;
+  border-radius: 8px;
+  color: #5f6f69;
+}
+.bi-widget-menu summary:hover,
+.bi-widget-menu[open] summary {
+  background: #edf5f2;
+  color: #0f766e;
+}
+.bi-widget-menu summary:focus-visible {
+  outline: 2px solid var(--border-brand);
+  outline-offset: 2px;
+}
+.bi-widget-menu summary svg {
+  width: 18px;
+  height: 18px;
 }
 .bi-widget-menu summary::-webkit-details-marker {
   display: none;
@@ -321,7 +341,7 @@
   background: #fff;
   border: 1px solid #d7dfd9;
   padding: 8px;
-  z-index: 20;
+  z-index: 110;
   box-shadow: 0 10px 25px #18332020;
   display: flex;
   flex-direction: column;
@@ -1731,8 +1751,8 @@
 
 /* Dashboard assistant: physical message alignment stays consistent in both locales. */
 .bi-chat-pane {
-  width: 700px;
-  flex: 0 0 700px;
+  width: clamp(320px, 36vw, 700px);
+  flex: 0 0 clamp(320px, 36vw, 700px);
   min-width: 0;
   padding: 16px;
   background: var(--surface-default);
@@ -1742,6 +1762,11 @@
     width 240ms ease,
     flex-basis 240ms ease,
     padding 240ms ease;
+}
+[dir='rtl'] .bi-chat-pane {
+  direction: rtl;
+  border-inline-start: 0;
+  border-left: 1px solid var(--border-default);
 }
 .bi-chat-pane.is-collapsed {
   width: 46px;
@@ -2007,10 +2032,12 @@
   text-align: center;
 }
 @media (max-width: 800px) {
-  .bi-chat-pane {
+  .bi-chat-pane,
+  [dir='rtl'] .bi-chat-pane {
     width: 100%;
     flex: none;
     border-inline-start: 0;
+    border-left: 0;
     border-top: 1px solid var(--border-default);
   }
   .bi-chat-pane.is-collapsed {
@@ -2081,5 +2108,486 @@
   .bi-chat-typing-dots > span {
     animation: none;
     opacity: 0.7;
+  }
+}
+
+/* Governed live analytics workspace. */
+.analytics-filter-pane {
+  width: 260px;
+  flex: 0 0 260px;
+  padding: 16px;
+  background: var(--surface-default);
+  border-left: 1px solid var(--border-default);
+}
+[dir='rtl'] .analytics-filter-pane {
+  direction: rtl;
+}
+.analytics-filter-pane.is-collapsed {
+  flex-basis: 42px;
+}
+.analytics-filter-pane .analytics-filters {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 16px 0;
+}
+.analytics-filter-pane .analytics-help {
+  padding: 12px 0;
+}
+.analytics-filter-pane :is(input, select) {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 800px) {
+  .analytics-filter-pane,
+  .analytics-filter-pane.is-collapsed {
+    width: 100%;
+    flex: none;
+    border-left: 0;
+    border-top: 1px solid var(--border-default);
+  }
+}
+.analytics-loading {
+  padding: 2rem;
+}
+.analytics-filters,
+.analytics-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.analytics-filters {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--workspace-border, #dfe3e1);
+}
+.analytics-filters label,
+.analytics-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+}
+.analytics-help,
+.analytics-alert {
+  padding: 8px 20px;
+  font-size: 12px;
+}
+.analytics-live-badge {
+  font-size: 11px;
+  border: 1px solid #0d9488;
+  color: #0d9488;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.analytics-form,
+.analytics-management {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.analytics-dialog {
+  width: min(1050px, 95vw);
+  max-width: 1050px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.analytics-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bi-edit-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 28px;
+  border: 1px solid #d8e2de;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text-primary);
+  box-shadow: 0 28px 90px rgba(15, 42, 35, 0.24);
+}
+.bi-edit-dialog::backdrop {
+  background: rgba(18, 35, 30, 0.58);
+  backdrop-filter: blur(4px);
+}
+.bi-edit-dialog .analytics-form {
+  gap: 16px;
+}
+.bi-edit-dialog .analytics-form > label {
+  gap: 7px;
+  color: #40554e;
+  font-size: 12px;
+  font-weight: 600;
+}
+.bi-edit-dialog .analytics-form > p {
+  margin: -6px 0 0;
+  color: #6a7b75;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.bi-edit-dialog .analytics-form :is(input, select) {
+  width: 100%;
+  min-height: 42px;
+  border-color: #d4dfdb;
+  border-radius: 8px;
+  background: #fbfdfc;
+}
+.bi-edit-dialog .analytics-form input[type='checkbox'] {
+  width: 16px;
+  min-height: 16px;
+}
+.bi-edit-dialog .analytics-form > label:has(input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+}
+.bi-edit-dialog .analytics-form > button:last-child {
+  min-height: 42px;
+  margin-top: 4px;
+  border-radius: 8px;
+}
+.bi-edit-dialog.analytics-dialog {
+  width: min(1050px, calc(100vw - 32px));
+}
+@media (max-width: 600px) {
+  .bi-edit-dialog,
+  .bi-edit-dialog.analytics-dialog {
+    width: calc(100vw - 20px);
+    padding: 18px;
+  }
+}
+.analytics-dataset-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #dfe3e1;
+}
+.analytics-dataset-row small,
+.analytics-template-list small {
+  display: block;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.analytics-mapping-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 1.5fr auto;
+  gap: 8px;
+}
+.analytics-template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.analytics-template-list label {
+  flex-direction: row;
+  align-items: start;
+}
+.analytics-widget-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  gap: 8px;
+}
+.analytics-widget-footer small {
+  font-size: 10px;
+}
+.analytics-management pre {
+  max-height: 200px;
+  overflow: auto;
+  direction: ltr;
+  font-size: 11px;
+}
+@media (max-width: 640px) {
+  .analytics-mapping-row {
+    grid-template-columns: 1fr;
+  }
+  .analytics-dataset-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.analytics-widget-menu {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 110;
+  min-width: 190px;
+  background: var(--surface-default, white);
+  border: 1px solid #dfe3e1;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px #0002;
+}
+.analytics-widget-menu button {
+  justify-content: start;
+  gap: 10px;
+  min-height: 34px;
+  border-radius: 6px;
+}
+.analytics-widget-menu button svg {
+  width: 15px;
+  height: 15px;
+}
+.analytics-widget-menu .bi-widget-action-danger {
+  margin-top: 4px;
+  border-top: 1px solid #edf0ee;
+  border-radius: 0 0 6px 6px;
+  color: var(--text-danger, #b42318);
+}
+.bi-widget:has(.bi-widget-menu[open]) {
+  z-index: 100;
+}
+.bi-widget-menu[open] {
+  z-index: 110;
+}
+
+/* Dashboard workspace polish. */
+.workspace-page:has(.bi-dashboard) {
+  background: #f4f7f6;
+}
+.bi-dashboard {
+  --dashboard-accent: #0f766e;
+  --dashboard-accent-soft: #e7f5f2;
+  --dashboard-border: #d9e3df;
+  --dashboard-muted: #64736d;
+  background: #f4f7f6;
+}
+.bi-toolbar {
+  min-height: 68px;
+  padding: 12px 18px;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--dashboard-border);
+  box-shadow: 0 1px 0 rgba(15, 118, 110, 0.03);
+}
+.bi-toolbar-title {
+  gap: 10px;
+}
+.bi-toolbar-title strong {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #17352f;
+}
+.analytics-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 0;
+  background: var(--dashboard-accent-soft);
+  color: var(--dashboard-accent);
+  font-weight: 650;
+}
+.analytics-live-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.13);
+}
+.bi-toolbar-actions {
+  gap: 8px;
+}
+.bi-toolbar-actions :is(button, a) {
+  min-height: 36px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.bi-toolbar-actions svg {
+  width: 15px;
+  height: 15px;
+}
+.bi-board-layout {
+  margin: 14px;
+  border-color: var(--dashboard-border);
+  border-radius: 14px;
+  background: #edf2f0;
+  box-shadow:
+    0 10px 30px rgba(26, 63, 55, 0.07),
+    0 1px 2px rgba(26, 63, 55, 0.05);
+}
+.bi-canvas-area {
+  background: #f3f6f5;
+}
+.bi-widget-grid {
+  padding: 18px;
+  gap: 16px;
+  scrollbar-gutter: stable;
+}
+.bi-widget-grid > .bi-widget {
+  border-color: rgba(199, 214, 208, 0.9);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 22px rgba(23, 53, 47, 0.07),
+    0 1px 2px rgba(23, 53, 47, 0.05);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+.bi-widget-grid > .bi-widget:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 118, 110, 0.28);
+  box-shadow:
+    0 14px 30px rgba(23, 53, 47, 0.1),
+    0 2px 4px rgba(23, 53, 47, 0.05);
+}
+.bi-canvas-footer {
+  min-height: 54px;
+  padding: 7px 14px;
+  border-color: var(--dashboard-border);
+  background: rgba(255, 255, 255, 0.96);
+}
+.bi-sheet-tabs {
+  gap: 4px;
+}
+.bi-sheet-tabs button[aria-selected='true'] {
+  background: var(--dashboard-accent-soft);
+  color: var(--dashboard-accent);
+  box-shadow: inset 0 -2px 0 var(--dashboard-accent);
+}
+.bi-collapsible-pane {
+  background: #fff;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd8d3 transparent;
+}
+.bi-pane-title {
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8efec;
+}
+.bi-pane-title h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #24433c;
+}
+.analytics-filter-pane {
+  width: 252px;
+  flex-basis: 252px;
+  padding: 14px;
+  border-left-color: var(--dashboard-border);
+}
+.analytics-filter-pane .analytics-filters {
+  gap: 12px;
+  padding: 8px 0 4px;
+  border: 0;
+}
+.analytics-filter-pane .analytics-filters label {
+  gap: 6px;
+  color: #526660;
+  font-size: 12px;
+  font-weight: 600;
+}
+.analytics-filter-pane :is(input, select) {
+  min-height: 38px;
+  border-color: #d6e1dd;
+  border-radius: 8px;
+  background: #fbfdfc;
+}
+.analytics-filter-pane :is(input, select):focus {
+  background: #fff;
+}
+.analytics-filter-pane .analytics-filters > button {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 4px;
+  border-radius: 8px;
+}
+.analytics-filter-pane .analytics-help {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f2f7f5;
+  color: var(--dashboard-muted);
+  line-height: 1.65;
+}
+.bi-chat-pane {
+  width: clamp(330px, 28vw, 460px);
+  flex-basis: clamp(330px, 28vw, 460px);
+  padding: 14px;
+  border-inline-start-color: var(--dashboard-border);
+}
+.bi-chat {
+  gap: 12px;
+  padding-top: 8px;
+}
+.bi-chat-messages {
+  gap: 18px;
+  padding: 10px 3px 18px;
+}
+.bi-chat-message {
+  padding: 11px 14px;
+  border-radius: 14px;
+  line-height: 1.7;
+}
+.bi-chat-message.is-user {
+  background: #e8f5f2;
+  color: #173f36;
+}
+.bi-chat-message.is-assistant {
+  border: 1px solid #e2eae7;
+  background: #f8faf9;
+}
+.bi-chat form {
+  border-color: #d6e1dd;
+  border-radius: 12px;
+  background: #fbfdfc;
+  box-shadow: 0 4px 16px rgba(23, 53, 47, 0.05);
+}
+.bi-chat form:focus-within {
+  border-color: rgba(15, 118, 110, 0.58);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+.bi-empty-board {
+  background-color: #f5f8f7;
+  background-image: radial-gradient(#d4dfdb 0.8px, transparent 0.8px);
+  background-size: 20px 20px;
+}
+@media (max-width: 1280px) {
+  .bi-chat-pane {
+    width: 330px;
+    flex-basis: 330px;
+  }
+  .analytics-filter-pane {
+    width: 228px;
+    flex-basis: 228px;
+  }
+}
+@media (max-width: 1020px) and (min-width: 801px) {
+  .bi-chat-pane:not(.is-collapsed),
+  .analytics-filter-pane:not(.is-collapsed) {
+    width: 280px;
+    flex-basis: 280px;
+  }
+  .bi-widget-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .bi-toolbar {
+    align-items: flex-start;
+  }
+  .bi-toolbar-actions {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .bi-toolbar-actions :is(button, a) {
+    flex: 0 0 auto;
+  }
+  .bi-board-layout {
+    margin: 10px;
+    border-radius: 12px;
+  }
+  .bi-chat-pane,
+  .analytics-filter-pane {
+    padding: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bi-widget-grid > .bi-widget {
+    transition: none;
   }
 }

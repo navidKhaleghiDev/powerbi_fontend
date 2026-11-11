@@ -6,751 +6,558 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  BarChart3,
-  ChartBar,
-  ChartLine,
-  ChartPie,
-  LayoutGrid,
-  Grid2X2,
-  Radar,
-  Plus,
-  RefreshCw,
-  Table2,
-  Type,
-  X,
-} from 'lucide-react';
-import { useState, type SetStateAction } from 'react';
-import DateObject from 'react-date-object';
-import gregorian from 'react-date-object/calendars/gregorian';
-import persian from 'react-date-object/calendars/persian';
-import gregorianEn from 'react-date-object/locales/gregorian_en';
-import persianEn from 'react-date-object/locales/persian_en';
-import persianFa from 'react-date-object/locales/persian_fa';
-import DatePickerModule from 'react-multi-date-picker';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { Database, Plus, RefreshCw, Save } from 'lucide-react';
+import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { AppDialog } from '@/components/ui/app-dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useAssistantPage } from '@/lib/assistant/context';
 import {
-  demoDefaults,
-  demoDimensions,
-  demoMeasures,
-  initialIncomeExpenseWidgets,
-  isIncomeMeasure,
-  type DemoFilters,
-  supportsDemoDimension,
-} from '@/lib/sales-demo';
-import { demoSolarMonths, formatSolarPeriod, toSolarDate } from '@/lib/solar-calendar';
+  analyticsRequest,
+  defaultAnalyticsFilters,
+  metricId,
+  resolveMetric,
+  type AnalyticsFilters,
+  type AnalyticsMetadata,
+  type AnalyticsResult,
+} from '@/lib/analytics';
+import { useAssistantPage } from '@/lib/assistant/context';
 
+import { AnalyticsWidgetCard } from './AnalyticsWidgetCard';
 import { DashboardChat } from './DashboardChat';
 import { DashboardPane } from './DashboardPane';
-import { DashboardWidgetCard } from './DashboardWidgetCard';
-import { DemoQueryEditor } from './DemoQueryEditor';
 
 import type { DashboardSheet, DashboardWidget, WidgetVisual } from '@/lib/dashboard';
 
-// The CommonJS package can arrive as a module wrapper in Vite development.
-const DatePicker = (
-  'default' in DatePickerModule ? DatePickerModule.default : DatePickerModule
-) as typeof DatePickerModule;
-
-const categoryPalette = ['#0d9488', '#6366f1', '#f59e0b', '#e11d48', '#8b5cf6', '#0284c7'];
-
-const visuals = [
-  { kind: 'bar', Icon: BarChart3 },
-  { kind: 'horizontalBar', Icon: ChartBar },
-  { kind: 'line', Icon: ChartLine },
-  { kind: 'pie', Icon: ChartPie },
-  { kind: 'radar', Icon: Radar },
-  { kind: 'heatmap', Icon: Grid2X2 },
-  { kind: 'card', Icon: Type },
-  { kind: 'table', Icon: Table2 },
-] as const;
+interface SavedDashboard {
+  sheets: DashboardSheet[];
+  revision: number;
+}
+const visuals: WidgetVisual[] = [
+  'card',
+  'bar',
+  'horizontalBar',
+  'line',
+  'pie',
+  'radar',
+  'heatmap',
+  'table',
+];
 
 export const DashboardPage = () => {
-  const t = useTranslations('dashboard');
-  const demo = useTranslations('salesDemo');
+  const t = useTranslations('analytics');
+  const metadata = useQuery({
+    queryKey: ['analytics-metadata'],
+    queryFn: ({ signal }) =>
+      analyticsRequest<AnalyticsMetadata>('metadata/', undefined, undefined, signal),
+    retry: false,
+  });
+  const dashboard = useQuery({
+    queryKey: ['analytics-dashboard'],
+    queryFn: ({ signal }) =>
+      analyticsRequest<SavedDashboard>('dashboard/', undefined, undefined, signal),
+    retry: false,
+  });
+  if (metadata.isError || dashboard.isError)
+    return (
+      <section className="analytics-loading" role="alert">
+        <h1>{t('titleDashboard')}</h1>
+        <p>{metadata.error?.message ?? dashboard.error?.message}</p>
+        <Button
+          onClick={() => {
+            void metadata.refetch();
+            void dashboard.refetch();
+          }}
+        >
+          {t('retry')}
+        </Button>
+      </section>
+    );
+  if (!metadata.data || !dashboard.data)
+    return (
+      <section className="analytics-loading" role="status">
+        {t('loading')}
+      </section>
+    );
+  return <LiveDashboard metadata={metadata.data} saved={dashboard.data} />;
+};
+
+const LiveDashboard = ({
+  metadata,
+  saved,
+}: {
+  metadata: AnalyticsMetadata;
+  saved: SavedDashboard;
+}) => {
+  const t = useTranslations('analytics');
+  const d = useTranslations('dashboard');
   const locale = useLocale();
+  const queryClient = useQueryClient();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor),
   );
-  const [sheetFilters, setSheetFilters] = useState<Record<string, DemoFilters>>({});
-  const queryClient = useQueryClient();
-  const refreshing = useIsFetching({ queryKey: ['dashboard-widget'] }) > 0;
-  const [sheets, setSheets] = useState<DashboardSheet[]>(() => [
-    { id: 'sales', name: '', widgets: initialIncomeExpenseWidgets() },
-  ]);
-  const [activeSheetId, setActiveSheetId] = useState('sales');
-  const [creatingSheet, setCreatingSheet] = useState(false);
-  const [sheetName, setSheetName] = useState('');
-  const [sheetMeasures, setSheetMeasures] = useState<string[]>(['income']);
-  const [sheetDimension, setSheetDimension] = useState('month');
-  const [sheetVisual, setSheetVisual] = useState<WidgetVisual>('bar');
-  const widgets = sheets.find((sheet) => sheet.id === activeSheetId)?.widgets ?? [];
-  const filters = sheetFilters[activeSheetId] ?? demoDefaults;
-  const setFilters = (action: SetStateAction<DemoFilters>) =>
-    setSheetFilters((current) => ({
-      ...current,
-      [activeSheetId]:
-        typeof action === 'function' ? action(current[activeSheetId] ?? demoDefaults) : action,
-    }));
-  const activeFilters = [
-    ...(filters.asOf !== demoDefaults.asOf
-      ? [
-          {
-            key: 'asOf',
-            label: `${demo('asOf')}: ${formatSolarPeriod(toSolarDate(filters.asOf).format('YYYY-MM-DD'), 'day', locale)}`,
-            clear: () => setFilters((current) => ({ ...current, asOf: demoDefaults.asOf })),
-          },
-        ]
-      : []),
-    ...(filters.timeGrain && filters.timeGrain !== 'month'
-      ? [
-          {
-            key: 'timeGrain',
-            label: `${t('timeGrain')}: ${t(filters.timeGrain === 'day' ? 'daily' : 'yearly')}`,
-            clear: () => setFilters((current) => ({ ...current, timeGrain: undefined })),
-          },
-        ]
-      : []),
-    ...(filters.solarMonth
-      ? [
-          {
-            key: 'solarMonth',
-            label: `${t('solarMonth')}: ${formatSolarPeriod(filters.solarMonth, 'month', locale)}`,
-            clear: () => setFilters((current) => ({ ...current, solarMonth: '' })),
-          },
-        ]
-      : []),
-    ...(filters.incomeType
-      ? [
-          {
-            key: 'incomeType',
-            label: `${demo('fields.incomeType')}: ${demo(`values.${filters.incomeType}`)}`,
-            clear: () => setFilters((current) => ({ ...current, incomeType: '' })),
-          },
-        ]
-      : []),
-    ...(filters.paymentTerms
-      ? [
-          {
-            key: 'paymentTerms',
-            label: `${demo('fields.paymentTerms')}: ${demo(`values.${filters.paymentTerms}`)}`,
-            clear: () => setFilters((current) => ({ ...current, paymentTerms: '' })),
-          },
-        ]
-      : []),
-  ];
-  const hasIncome = widgets.some((widget) => widget.query?.measures?.some(isIncomeMeasure));
-  const setWidgets = (action: SetStateAction<DashboardWidget[]>) =>
+  const [sheets, setSheets] = useState<DashboardSheet[]>(() =>
+    saved.sheets.length
+      ? saved.sheets
+      : [{ id: crypto.randomUUID(), name: t('defaultSheet'), widgets: [] }],
+  );
+  const [active, setActive] = useState(sheets[0]?.id ?? '');
+  const [revision, setRevision] = useState(saved.revision);
+  const [savedContent, setSavedContent] = useState(JSON.stringify(saved.sheets));
+  const [filters, setFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
+  const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
+  const [editing, setEditing] = useState<DashboardWidget | null>(null);
+  const widgets = sheets.find((sheet) => sheet.id === active)?.widgets ?? [];
+  const updateWidgets = (transform: (current: DashboardWidget[]) => DashboardWidget[]) =>
     setSheets((items) =>
       items.map((sheet) =>
-        sheet.id === activeSheetId
-          ? { ...sheet, widgets: typeof action === 'function' ? action(sheet.widgets) : action }
-          : sheet,
+        sheet.id === active ? { ...sheet, widgets: transform(sheet.widgets) } : sheet,
       ),
     );
-  const switchSheet = (id: string) => {
-    setEditingId(null);
-    setActiveSheetId(id);
-  };
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const editing = widgets.find((widget) => widget.id === editingId);
-  const contextWidget = editing ?? widgets[0];
-  const contextResult = useQuery<{ values: Record<string, unknown> }[]>({
-    queryKey: ['dashboard-widget', 'sales-demo', filters, contextWidget?.id, contextWidget?.query],
-    // Observe only the existing widget query; the assistant never fetches extra records.
+  const changeFilter = <K extends keyof AnalyticsFilters>(key: K, value: AnalyticsFilters[K]) =>
+    setFilters((current) => ({ ...current, [key]: value }));
+  const save = useMutation({
+    mutationFn: () => analyticsRequest<SavedDashboard>('dashboard/', { sheets, revision }, 'PUT'),
+    onSuccess: (value) => {
+      setRevision(value.revision);
+      setSavedContent(JSON.stringify(value.sheets));
+      queryClient.setQueryData(['analytics-dashboard'], value);
+    },
+  });
+  const firstWidget = widgets[0];
+  const firstMetric = resolveMetric(metadata.datasets, firstWidget?.query?.measures?.[0] ?? '');
+  const context = useQuery<AnalyticsResult>({
+    queryKey: [
+      'dashboard-widget',
+      'live',
+      firstMetric?.dataset.slug,
+      firstMetric?.dataset.revision,
+      firstMetric?.metric.key,
+      firstWidget?.query?.dimensions ?? [],
+      appliedFilters,
+    ],
     enabled: false,
   });
-  const contextRows = (contextResult.data ?? []).slice(0, 8).map(({ values }) =>
-    Object.fromEntries(
-      [...demoMeasures, ...demoDimensions].flatMap((field) => {
-        const value = values[field];
-        return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))
-          ? [[field, value]]
-          : [];
-      }),
-    ),
-  );
   useAssistantPage({
     page: 'dashboard',
-    source: 'synthetic',
-    sheet: {
-      id: activeSheetId,
-      name: sheets.find((sheet) => sheet.id === activeSheetId)?.name || t('title'),
-    },
-    selectedWidgetId: editingId,
+    source: 'clickhouse',
+    sheet: { id: active, name: sheets.find((sheet) => sheet.id === active)?.name ?? '' },
+    selectedWidgetId: firstWidget?.id ?? null,
     selectedData: {
-      widgetId: contextWidget?.id ?? null,
-      status: contextResult.isError ? 'error' : contextResult.data ? 'available' : 'unavailable',
-      fetchedAt: contextResult.dataUpdatedAt
-        ? new Date(contextResult.dataUpdatedAt).toISOString()
-        : null,
-      fetching: contextResult.isFetching,
-      rows: contextRows,
-      truncated: (contextResult.data?.length ?? 0) > 8,
+      widgetId: firstWidget?.id ?? null,
+      status: context.isError ? 'error' : context.data ? 'available' : 'unavailable',
+      fetchedAt: context.data?.meta.queried_at ?? null,
+      fetching: context.isFetching,
+      rows: (context.data?.rows ?? [])
+        .slice(0, 8)
+        .map((row) =>
+          Object.fromEntries(
+            Object.entries(row).filter(
+              (entry): entry is [string, string | number] =>
+                typeof entry[1] === 'string' || typeof entry[1] === 'number',
+            ),
+          ),
+        ),
+      truncated: (context.data?.rows.length ?? 0) > 8 || !!context.data?.meta.truncated,
     },
     filters: {
-      asOf: filters.asOf,
-      timeGrain: filters.timeGrain,
-      solarMonth: filters.solarMonth,
-      incomeType: filters.incomeType,
-      paymentTerms: filters.paymentTerms,
+      from: appliedFilters.from,
+      toExclusive: appliedFilters.to,
+      calendar: appliedFilters.calendar,
+      mode: appliedFilters.mode,
+      knownAt: appliedFilters.knownAt,
     },
     widgets: widgets.slice(0, 15).map((widget) => ({
       id: widget.id,
-      title: (widget.title || demo(`widgets.${widget.id}`)).slice(0, 160),
+      title: widget.title,
       visual: widget.visual,
-      measures: widget.query?.measures?.slice(0, 5) ?? [],
-      dimensions: widget.query?.dimensions?.slice(0, 5) ?? [],
+      measures: widget.query?.measures ?? [],
+      dimensions: widget.query?.dimensions ?? [],
     })),
   });
-  const update = (id: string, patch: Partial<DashboardWidget>) =>
-    setWidgets((items) => items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
-  const add = (visual: WidgetVisual) => {
-    const widget: DashboardWidget = {
-      id: crypto.randomUUID(),
-      title: t('defaultTitle', { type: t(`visuals.${visual}`), count: widgets.length + 1 }),
-      visual,
-      size: visual === 'card' ? 'small' : 'medium',
-      query: null,
-    };
-    setWidgets((items) => [...items, widget]);
-    setEditingId(widget.id);
-  };
+  const dirty = JSON.stringify(sheets) !== savedContent;
+  const newWidget = () =>
+    setEditing({ id: crypto.randomUUID(), title: '', visual: 'card', size: 'small', query: null });
+  const used = widgets.flatMap((widget) => {
+    const selected = resolveMetric(metadata.datasets, widget.query?.measures?.[0] ?? '');
+    return selected ? [selected] : [];
+  });
+  const categoricalFields = [
+    ...new Set(
+      used.flatMap(({ dataset, metric }) =>
+        metric.dimensions.filter((field) => dataset.mapping[field]?.type === 'string'),
+      ),
+    ),
+  ];
   return (
-    <section className="bi-dashboard" aria-label={t('canvas')}>
-      <nav className="bi-toolbar" aria-label={t('toolbar')}>
+    <section className="bi-dashboard">
+      <nav className="bi-toolbar" aria-label={t('titleDashboard')}>
         <div className="bi-toolbar-title">
-          <LayoutGrid size={17} aria-hidden="true" />
-          <span>{t('title')}</span>
-          <span className="bi-sample-badge">{demo('data')}</span>
-        </div>
-        <div className="bi-toolbar-insert" role="group" aria-label={t('visualizations')}>
-          {visuals.map(({ kind, Icon }) => (
-            <Button
-              key={kind}
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={t(`visuals.${kind}`)}
-              aria-label={t(`visuals.${kind}`)}
-              onClick={() => add(kind)}
-            >
-              <Icon aria-hidden="true" />
-            </Button>
-          ))}
+          <strong>{t('titleDashboard')}</strong>
+          <span className="analytics-live-badge">{t('live')}</span>
         </div>
         <div className="bi-toolbar-actions">
+          <Button variant="outline" onClick={newWidget} disabled={!metadata.datasets.length}>
+            <Plus aria-hidden="true" />
+            {t('addWidget')}
+          </Button>
           <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            title={t('refreshAll')}
-            aria-label={t('refreshAll')}
-            disabled={refreshing || !widgets.some((widget) => widget.query)}
+            variant="outline"
             onClick={() => void queryClient.invalidateQueries({ queryKey: ['dashboard-widget'] })}
           >
-            <RefreshCw aria-hidden="true" className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw aria-hidden="true" />
+            {t('refresh')}
           </Button>
+          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+            <Save aria-hidden="true" />
+            {t(save.isPending ? 'saving' : 'saveDashboard')}
+          </Button>
+          {metadata.can_manage && (
+            <Link
+              to="/$locale/datasets"
+              params={{ locale }}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              <Database aria-hidden="true" />
+              {t('manageDatasets')}
+            </Link>
+          )}
         </div>
       </nav>
+      {save.isError && (
+        <p className="analytics-alert" role="alert">
+          {save.error.message}{' '}
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t('reload')}
+          </Button>
+        </p>
+      )}
       <div className="bi-board-layout">
         <div className="bi-canvas-area">
-          {activeFilters.length > 0 && (
-            <div className="bi-active-filters" role="group" aria-label={t('activeFilters')}>
-              <span>{t('activeFilters')}</span>
-              {activeFilters.map((filter) => (
-                <Button
-                  key={filter.key}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={filter.clear}
-                  aria-label={t('clearFilter', { name: filter.label })}
-                >
-                  {filter.label}
-                  <X size={14} aria-hidden="true" />
-                </Button>
-              ))}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setFilters(demoDefaults)}
-              >
-                {t('resetFilters')}
-              </Button>
+          {!metadata.datasets.length ? (
+            <div className="bi-empty-board">
+              <h2>{t('noDatasets')}</h2>
+              <p>{t(metadata.can_manage ? 'noDatasetsAdmin' : 'noDatasetsUser')}</p>
+              {metadata.can_manage && (
+                <Link to="/$locale/datasets" params={{ locale }} className={buttonVariants()}>
+                  {t('manageDatasets')}
+                </Link>
+              )}
             </div>
-          )}
-          <div
-            className="bi-sheet-content"
-            role="tabpanel"
-            id={`bi-sheet-panel-${activeSheetId}`}
-            aria-labelledby={`bi-sheet-tab-${activeSheetId}`}
-          >
-            {!widgets.length ? (
-              <div className="bi-empty-board">
-                <span className="bi-empty-art">
-                  <LayoutGrid size={54} strokeWidth={1} />
-                </span>
-                <p className="bi-eyebrow">{t('startLabel')}</p>
-                <h2>{t('emptyTitle')}</h2>
-                <p>{demo('emptyHint')}</p>
-                <Button onClick={() => add('bar')}>
-                  <Plus />
-                  {t('firstWidget')}
-                </Button>
-                <small>{demo('dataNote')}</small>
+          ) : !widgets.length ? (
+            <div className="bi-empty-board">
+              <h2>{t('noWidgets')}</h2>
+              <Button onClick={newWidget}>{t('addWidget')}</Button>
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={({ active: dragged, over }) => {
+                if (!over || dragged.id === over.id) return;
+                updateWidgets((items) => {
+                  const next = [...items];
+                  const from = next.findIndex((item) => item.id === dragged.id);
+                  const to = next.findIndex((item) => item.id === over.id);
+                  if (from < 0 || to < 0) return items;
+                  const moved = next.splice(from, 1)[0];
+                  if (moved) next.splice(to, 0, moved);
+                  return next;
+                });
+              }}
+            >
+              <div className="bi-widget-grid">
+                {widgets.map((widget, index) => (
+                  <AnalyticsWidgetCard
+                    key={widget.id}
+                    widget={widget}
+                    datasets={metadata.datasets}
+                    filters={appliedFilters}
+                    first={index === 0}
+                    last={index === widgets.length - 1}
+                    onDuplicate={() =>
+                      updateWidgets((items) => [...items, { ...widget, id: crypto.randomUUID() }])
+                    }
+                    onMove={(offset) =>
+                      updateWidgets((items) => {
+                        const next = [...items];
+                        const target = index + offset;
+                        if (target < 0 || target >= next.length) return items;
+                        [next[index], next[target]] = [next[target], next[index]];
+                        return next;
+                      })
+                    }
+                    onEdit={() => setEditing(widget)}
+                    onRemove={() =>
+                      updateWidgets((items) => items.filter((item) => item.id !== widget.id))
+                    }
+                  />
+                ))}
               </div>
-            ) : (
-              <DndContext
-                key={activeSheetId}
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                accessibility={{
-                  screenReaderInstructions: { draggable: t('dragInstructions') },
-                  announcements: {
-                    onDragStart: () => t('dragStarted'),
-                    onDragOver: ({ over }) => (over ? t('dragOver') : undefined),
-                    onDragEnd: () => t('dragDropped'),
-                    onDragCancel: () => t('dragCancelled'),
-                  },
-                }}
-                onDragEnd={({ active, over }) => {
-                  if (!over || active.id === over.id) return;
-                  setWidgets((items) => {
-                    const from = items.findIndex((item) => item.id === active.id);
-                    const to = items.findIndex((item) => item.id === over.id);
-                    if (from < 0 || to < 0) return items;
-                    const next = [...items];
-                    const moved = next.splice(from, 1)[0];
-                    if (!moved) return items;
-                    next.splice(to, 0, moved);
-                    return next;
-                  });
-                }}
-              >
-                <div className="bi-widget-grid">
-                  {widgets.map((widget, index) => (
-                    <DashboardWidgetCard
-                      key={widget.id}
-                      widget={{ ...widget, title: widget.title || demo(`widgets.${widget.id}`) }}
-                      filters={filters}
-                      first={index === 0}
-                      last={index === widgets.length - 1}
-                      onEdit={() => setEditingId(widget.id)}
-                      onTableWidthChange={(tableWidth) => update(widget.id, { tableWidth })}
-                      onRemove={() =>
-                        setWidgets((items) => items.filter((item) => item.id !== widget.id))
-                      }
-                      onDuplicate={() =>
-                        setWidgets((items) => [
-                          ...items,
-                          {
-                            ...widget,
-                            id: crypto.randomUUID(),
-                            title: t('copyTitle', {
-                              title: widget.title || demo(`widgets.${widget.id}`),
-                            }),
-                          },
-                        ])
-                      }
-                      onMove={(offset) =>
-                        setWidgets((items) => {
-                          const next = [...items];
-                          const target = index + offset;
-                          if (target < 0 || target >= next.length) return items;
-                          [next[index], next[target]] = [next[target], next[index]];
-                          return next;
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-              </DndContext>
-            )}
-          </div>
+            </DndContext>
+          )}
           <footer className="bi-canvas-footer">
             <div className="bi-sheet-tabs" role="tablist" aria-label={t('sheets')}>
-              {sheets.map((sheet, index) => (
+              {sheets.map((sheet) => (
                 <Button
                   variant="ghost"
-                  size="auto"
-                  type="button"
-                  role="tab"
                   key={sheet.id}
-                  id={`bi-sheet-tab-${sheet.id}`}
-                  aria-controls={`bi-sheet-panel-${sheet.id}`}
-                  aria-selected={activeSheetId === sheet.id}
-                  tabIndex={activeSheetId === sheet.id ? 0 : -1}
-                  className="bi-sheet-tab"
-                  onClick={() => switchSheet(sheet.id)}
-                  onKeyDown={(event) => {
-                    const forward = locale === 'fa' ? 'ArrowLeft' : 'ArrowRight';
-                    const backward = locale === 'fa' ? 'ArrowRight' : 'ArrowLeft';
-                    if (![forward, backward, 'Home', 'End'].includes(event.key)) return;
-                    event.preventDefault();
-                    const target =
-                      event.key === 'Home'
-                        ? 0
-                        : event.key === 'End'
-                          ? sheets.length - 1
-                          : (index + (event.key === forward ? 1 : -1) + sheets.length) %
-                            sheets.length;
-                    const next = sheets[target];
-                    if (!next) return;
-                    switchSheet(next.id);
-                    event.currentTarget.parentElement
-                      ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
-                      [target]?.focus();
-                  }}
+                  role="tab"
+                  aria-selected={active === sheet.id}
+                  onClick={() => setActive(sheet.id)}
                 >
-                  {sheet.id === 'sales' ? t('salesSheet') : sheet.name}
+                  {sheet.name}
                 </Button>
               ))}
             </div>
             <Button
-              type="button"
-              className="bi-add-sheet"
-              variant="ghost"
-              size="icon-sm"
-              title={t('addSheet')}
-              aria-label={t('addSheet')}
+              variant="outline"
               onClick={() => {
-                setSheetName(t('defaultSheetName', { count: sheets.length + 1 }));
-                setCreatingSheet(true);
+                const sheet = {
+                  id: crypto.randomUUID(),
+                  name: `${t('defaultSheet')} ${sheets.length + 1}`,
+                  widgets: [],
+                };
+                setSheets((items) => [...items, sheet]);
+                setActive(sheet.id);
               }}
+              disabled={sheets.length >= 20}
             >
-              <Plus aria-hidden="true" />
+              {t('addSheet')}
             </Button>
-            <span>{t('canvasHint')}</span>
+            <Input
+              aria-label={t('sheetName')}
+              value={sheets.find((sheet) => sheet.id === active)?.name ?? ''}
+              onChange={(e) =>
+                setSheets((items) =>
+                  items.map((sheet) =>
+                    sheet.id === active ? { ...sheet, name: e.target.value } : sheet,
+                  ),
+                )
+              }
+            />
+            <small>{t(dirty ? 'unsaved' : 'saved')}</small>
           </footer>
         </div>
-        <DashboardPane className="bi-filter-pane" title={t('filtersTitle')} defaultCollapsed>
+        <DashboardPane title={d('filtersTitle')} className="analytics-filter-pane">
           <form
-            className="bi-dashboard-filters"
-            aria-label={t('filtersTitle')}
-            onSubmit={(event) => event.preventDefault()}
+            className="analytics-filters"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setAppliedFilters(filters);
+            }}
           >
             <label>
-              {demo('asOf')}
-              <DatePicker
-                calendar={persian}
-                locale={locale === 'fa' ? persianFa : persianEn}
-                format="YYYY/MM/DD"
-                value={toSolarDate(filters.asOf)}
-                minDate={toSolarDate('2026-01-01')}
-                maxDate={toSolarDate('2026-06-30')}
-                editable={false}
-                inputClass="bi-solar-date-input"
-                onChange={(date) => {
-                  if (!date?.isValid) return;
-                  const value = new DateObject(date)
-                    .convert(gregorian, gregorianEn)
-                    .format('YYYY-MM-DD');
-                  if (value >= '2026-01-01' && value <= '2026-06-30')
-                    setFilters((current) => ({ ...current, asOf: value }));
-                }}
+              {t('from')}
+              <Input
+                type="date"
+                value={filters.from}
+                onChange={(e) => changeFilter('from', e.target.value)}
+                required
               />
             </label>
             <label>
-              {t('timeGrain')}
+              {t('toExclusive')}
+              <Input
+                type="date"
+                value={filters.to}
+                onChange={(e) => changeFilter('to', e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              {t('calendar')}
               <NativeSelect
-                value={filters.timeGrain ?? 'month'}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value === 'day' || value === 'month' || value === 'year')
-                    setFilters((current) => ({ ...current, timeGrain: value, solarMonth: '' }));
-                }}
+                value={filters.calendar}
+                onChange={(e) =>
+                  changeFilter('calendar', e.target.value as AnalyticsFilters['calendar'])
+                }
               >
-                <option value="day">{t('daily')}</option>
-                <option value="month">{t('monthly')}</option>
-                <option value="year">{t('yearly')}</option>
+                <option value="persian">{t('persian')}</option>
+                <option value="gregorian">{t('gregorian')}</option>
               </NativeSelect>
             </label>
-            {(filters.timeGrain ?? 'month') === 'month' && (
+            <label>
+              {t('dataView')}
+              <NativeSelect
+                value={filters.mode}
+                onChange={(e) => changeFilter('mode', e.target.value as AnalyticsFilters['mode'])}
+              >
+                <option value="latest">{t('latest')}</option>
+                <option value="historical">{t('historical')}</option>
+              </NativeSelect>
+            </label>
+            {filters.mode === 'historical' && (
               <label>
-                {t('solarMonth')}
-                <NativeSelect
-                  value={filters.solarMonth ?? ''}
-                  onChange={(event) =>
-                    setFilters((current) => ({ ...current, solarMonth: event.target.value }))
-                  }
-                >
-                  <option value="">{t('allMonths')}</option>
-                  {demoSolarMonths().map((month) => (
-                    <option key={month} value={month}>
-                      {formatSolarPeriod(month, 'month', locale)}
-                    </option>
-                  ))}
-                </NativeSelect>
+                {t('knownAt')}
+                <Input
+                  required
+                  type="datetime-local"
+                  value={filters.knownAt}
+                  onChange={(e) => changeFilter('knownAt', e.target.value)}
+                />
               </label>
             )}
-            {hasIncome && (
-              <>
-                <label>
-                  {demo('fields.incomeType')}
-                  <NativeSelect
-                    value={filters.incomeType}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (value === '' || value === 'formal' || value === 'informal')
-                        setFilters((current) => ({ ...current, incomeType: value }));
-                    }}
-                  >
-                    <option value="">{t('allIncomeTypes')}</option>
-                    <option value="formal">{demo('values.formal')}</option>
-                    <option value="informal">{demo('values.informal')}</option>
-                  </NativeSelect>
-                </label>
-                <label>
-                  {demo('fields.paymentTerms')}
-                  <NativeSelect
-                    value={filters.paymentTerms}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (value === '' || value === 'cash' || value === 'credit')
-                        setFilters((current) => ({ ...current, paymentTerms: value }));
-                    }}
-                  >
-                    <option value="">{t('allPaymentTerms')}</option>
-                    <option value="cash">{demo('values.cash')}</option>
-                    <option value="credit">{demo('values.credit')}</option>
-                  </NativeSelect>
-                </label>
-              </>
-            )}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilters(demoDefaults)}
-            >
-              {t('resetFilters')}
-            </Button>
+            {categoricalFields.map((field) => (
+              <label key={field}>
+                {field}
+                <Input
+                  value={filters.values[field] ?? ''}
+                  placeholder={t('allValues')}
+                  onChange={(e) =>
+                    changeFilter('values', { ...filters.values, [field]: e.target.value })
+                  }
+                />
+              </label>
+            ))}
+            <Button type="submit">{t('applyFilters')}</Button>
           </form>
+          <p className="analytics-help">
+            {t('timeHelp')}
+            {filters.mode === 'historical' ? ` ${t('historicalHelp')}` : ''} {t('dateInputHelp')}
+          </p>
         </DashboardPane>
         <DashboardChat />
       </div>
-      <AppDialog
-        open={creatingSheet}
-        className="bi-sheet-dialog"
-        describedBy="bi-new-sheet-help"
-        onClose={() => setCreatingSheet(false)}
-      >
-        <h2>{t('addSheet')}</h2>
-        <p id="bi-new-sheet-help">{t('newSheetHint')}</p>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            const name = sheetName.trim();
-            if (!name || !sheetMeasures.length) return;
-            const id = crypto.randomUUID();
-            const configuredWidgets: DashboardWidget[] = sheetMeasures.map((measure) => ({
-              id: crypto.randomUUID(),
-              title: demo(`fields.${measure}`),
-              visual: sheetVisual,
-              size: sheetVisual === 'card' ? 'small' : 'medium',
-              query: {
-                measures: [measure],
-                ...(sheetDimension ? { dimensions: [sheetDimension] } : {}),
-              },
-            }));
-            setSheets((items) => [...items, { id, name, widgets: configuredWidgets }]);
-            switchSheet(id);
-            setCreatingSheet(false);
-          }}
-        >
-          <label>
-            {t('sheetName')}
-            <Input
-              autoFocus
-              required
-              maxLength={80}
-              value={sheetName}
-              onChange={(event) => setSheetName(event.target.value)}
-            />
-          </label>
-          <div className="bi-sheet-config">
-            <label>
-              {t('sheetDataSource')}
-              <NativeSelect aria-label={t('sheetDataSource')} defaultValue="sales-demo">
-                <option value="sales-demo">{demo('badge')}</option>
-              </NativeSelect>
-            </label>
-            <fieldset>
-              <legend>{t('sheetMeasures')}</legend>
-              <div className="bi-sheet-measure-options">
-                {demoMeasures.map((measure) => (
-                  <label key={measure}>
-                    <Checkbox
-                      checked={sheetMeasures.includes(measure)}
-                      onChange={(event) => {
-                        const checked = event.currentTarget.checked;
-                        setSheetMeasures((items) =>
-                          checked ? [...items, measure] : items.filter((item) => item !== measure),
-                        );
-                        if (checked && !supportsDemoDimension(measure, sheetDimension))
-                          setSheetDimension('');
-                      }}
-                    />
-                    {demo(`fields.${measure}`)}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <label>
-              {demo('groupBy')}
-              <NativeSelect
-                aria-label={demo('groupBy')}
-                value={sheetDimension}
-                onChange={(event) => setSheetDimension(event.target.value)}
-              >
-                <option value="">{demo('total')}</option>
-                {demoDimensions
-                  .filter((dimension) =>
-                    sheetMeasures.every((measure) => supportsDemoDimension(measure, dimension)),
-                  )
-                  .map((dimension) => (
-                    <option key={dimension} value={dimension}>
-                      {demo(`fields.${dimension}`)}
-                    </option>
-                  ))}
-              </NativeSelect>
-            </label>
-            <label>
-              {t('visualizations')}
-              <NativeSelect
-                aria-label={t('visualizations')}
-                value={sheetVisual}
-                onChange={(event) => setSheetVisual(event.target.value as WidgetVisual)}
-              >
-                {visuals.map(({ kind }) => (
-                  <option key={kind} value={kind}>
-                    {t(`visuals.${kind}`)}
-                  </option>
-                ))}
-              </NativeSelect>
-            </label>
-            <p>{t('sheetDataHint')}</p>
-          </div>
-          <div>
-            <Button type="button" variant="outline" onClick={() => setCreatingSheet(false)}>
-              {t('cancelSheet')}
-            </Button>
-            <Button type="submit" disabled={!sheetName.trim() || !sheetMeasures.length}>
-              {t('createSheet')}
-            </Button>
-          </div>
-        </form>
-      </AppDialog>
-      <AppDialog
-        open={!!editing}
-        className="bi-editor"
-        describedBy="bi-editor-description"
-        onClose={() => setEditingId(null)}
-      >
-        <header className="bi-editor-heading">
-          <div>
-            <h2>{t('editWidget')}</h2>
-            <p id="bi-editor-description">{demo('editorHint')}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t('closeEditor')}
-            onClick={() => setEditingId(null)}
-          >
-            <X />
+      <AppDialog open={!!editing} className="bi-edit-dialog" onClose={() => setEditing(null)}>
+        <header>
+          <h2>{t('configureWidget')}</h2>
+          <Button variant="ghost" onClick={() => setEditing(null)}>
+            {t('close')}
           </Button>
         </header>
         {editing && (
-          <>
-            <div className="bi-editor-settings">
-              <label>
-                {t('widgetTitle')}
-                <Input
-                  maxLength={100}
-                  value={editing.title}
-                  onChange={(event) => update(editing.id, { title: event.target.value })}
-                />
-              </label>
-              <label>
-                {t('visualizations')}
-                <NativeSelect
-                  value={editing.visual}
-                  onChange={(event) =>
-                    update(editing.id, { visual: event.target.value as WidgetVisual })
-                  }
-                >
-                  {visuals.map(({ kind }) => (
-                    <option key={kind} value={kind}>
-                      {t(`visuals.${kind}`)}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </label>
-            </div>
-            {editing.visual !== 'card' && editing.visual !== 'table' && (
-              <fieldset className="bi-editor-settings">
-                <legend>{t('chartColors')}</legend>
-                {editing.visual === 'pie' ? (
-                  categoryPalette.map((color, index) => (
-                    <label key={color}>
-                      {t('categoryColor', { number: index + 1 })}
-                      <Input
-                        type="color"
-                        value={editing.categoryColors?.[index] ?? color}
-                        onChange={(event) => {
-                          const colors = categoryPalette.map(
-                            (fallback, i) => editing.categoryColors?.[i] ?? fallback,
-                          );
-                          colors[index] = event.target.value;
-                          update(editing.id, { categoryColors: colors });
-                        }}
-                      />
-                    </label>
-                  ))
-                ) : (
-                  <label>
-                    {t('seriesColor')}
-                    <Input
-                      type="color"
-                      value={
-                        editing.chartColor ??
-                        (editing.visual === 'bar' || editing.visual === 'horizontalBar'
-                          ? '#6366f1'
-                          : editing.visual === 'radar'
-                            ? '#8b5cf6'
-                            : editing.visual === 'heatmap'
-                              ? '#0284c7'
-                              : '#0d9488')
-                      }
-                      onChange={(event) => update(editing.id, { chartColor: event.target.value })}
-                    />
-                  </label>
-                )}
-              </fieldset>
-            )}
-            <DemoQueryEditor
-              key={editing.id}
-              initialQuery={editing.query}
-              onApply={(query) => {
-                update(editing.id, { query });
-                setEditingId(null);
-              }}
-            />
-          </>
+          <WidgetEditor
+            key={editing.id}
+            widget={editing}
+            metadata={metadata}
+            visualLabel={(value) => d(`visuals.${value}`)}
+            onApply={(widget) => {
+              updateWidgets((items) =>
+                items.some((item) => item.id === widget.id)
+                  ? items.map((item) => (item.id === widget.id ? widget : item))
+                  : [...items, widget],
+              );
+              setEditing(null);
+            }}
+          />
         )}
       </AppDialog>
     </section>
+  );
+};
+
+const WidgetEditor = ({
+  widget,
+  metadata,
+  visualLabel,
+  onApply,
+}: {
+  widget: DashboardWidget;
+  metadata: AnalyticsMetadata;
+  visualLabel: (value: WidgetVisual) => string;
+  onApply: (widget: DashboardWidget) => void;
+}) => {
+  const t = useTranslations('analytics');
+  const [measure, setMeasure] = useState(widget.query?.measures?.[0] ?? '');
+  const [dimension, setDimension] = useState(widget.query?.dimensions?.[0] ?? '');
+  const [visual, setVisual] = useState<WidgetVisual>(widget.visual);
+  const [title, setTitle] = useState(widget.title);
+  const [color, setColor] = useState(widget.chartColor ?? '#0d9488');
+  const [showValues, setShowValues] = useState(widget.showValues ?? false);
+  const selected = resolveMetric(metadata.datasets, measure);
+  return (
+    <form
+      className="analytics-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!selected) return;
+        onApply({
+          ...widget,
+          title: title || selected.metric.title,
+          chartColor: color,
+          showValues,
+          visual,
+          size: visual === 'card' ? 'small' : visual === 'table' ? 'wide' : 'medium',
+          query: {
+            measures: [measure],
+            dimensions: visual === 'card' || !dimension ? [] : [dimension],
+          },
+        });
+      }}
+    >
+      <label>
+        {t('metric')}
+        <NativeSelect
+          value={measure}
+          required
+          onChange={(e) => {
+            setMeasure(e.target.value);
+            setDimension('');
+          }}
+        >
+          <option value="">{t('selectMetric')}</option>
+          {metadata.datasets.map((dataset) => (
+            <optgroup key={dataset.slug} label={dataset.title}>
+              {dataset.metrics.map((metric) => (
+                <option key={metric.key} value={metricId(dataset, metric)}>
+                  {metric.title}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </NativeSelect>
+      </label>
+      <p>{selected?.metric.description}</p>
+      <label>
+        {t('visual')}
+        <NativeSelect value={visual} onChange={(e) => setVisual(e.target.value as WidgetVisual)}>
+          {visuals.map((value) => (
+            <option key={value} value={value}>
+              {visualLabel(value)}
+            </option>
+          ))}
+        </NativeSelect>
+      </label>
+      {visual !== 'card' && (
+        <label>
+          {t('groupBy')}
+          <NativeSelect
+            value={dimension}
+            required={visual !== 'table'}
+            onChange={(e) => setDimension(e.target.value)}
+          >
+            <option value="">{t('total')}</option>
+            {selected?.metric.dimensions.map((field) => (
+              <option key={field} value={field}>
+                {['day', 'month', 'year'].includes(field) ? t(field) : field}
+              </option>
+            ))}
+          </NativeSelect>
+        </label>
+      )}
+      <label>
+        {t('title')}
+        <Input value={title} maxLength={160} onChange={(e) => setTitle(e.target.value)} />
+      </label>
+      <label>
+        {t('chartColor')}
+        <Input type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={showValues}
+          onChange={(event) => setShowValues(event.target.checked)}
+        />
+        {t('showValues')}
+      </label>
+      <Button disabled={!selected}>{t('apply')}</Button>
+    </form>
   );
 };

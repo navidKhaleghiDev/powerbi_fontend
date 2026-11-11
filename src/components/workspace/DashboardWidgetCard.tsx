@@ -14,6 +14,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { Button } from '@/components/ui/button';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { loadDemoQuery, type DemoFilters } from '@/lib/sales-demo';
 import { formatSolarPeriod } from '@/lib/solar-calendar';
 
@@ -60,28 +61,21 @@ export const DashboardWidgetCard = ({
     onMove(offset);
     menuRef.current?.querySelector('summary')?.focus();
   };
+  useOutsideClick(
+    menuRef,
+    useCallback(() => {
+      if (menuRef.current) menuRef.current.open = false;
+    }, []),
+  );
   useEffect(() => {
-    const closeOnOutside = (event: PointerEvent) => {
-      if (
-        menuRef.current?.open &&
-        event.target instanceof Node &&
-        !menuRef.current.contains(event.target)
-      ) {
-        if (menuRef.current) menuRef.current.open = false;
-      }
-    };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && menuRef.current?.open) {
         menuRef.current.open = false;
         menuRef.current.querySelector('summary')?.focus();
       }
     };
-    document.addEventListener('pointerdown', closeOnOutside);
     document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutside);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
+    return () => document.removeEventListener('keydown', closeOnEscape);
   }, []);
   const {
     attributes,

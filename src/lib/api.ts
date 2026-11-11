@@ -77,7 +77,11 @@ const messageFromErrorBody = (body: unknown): string | null => {
       if (message) return message;
     }
   }
-  return null;
+  const fields = Object.entries(record).flatMap(([field, value]) => {
+    const message = messageFromErrorBody(value);
+    return message ? [`${field}: ${message}`] : [];
+  });
+  return fields.length ? fields.join(' · ') : null;
 };
 
 const readError = async (response: Response): Promise<string> => {

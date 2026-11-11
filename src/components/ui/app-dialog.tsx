@@ -19,7 +19,12 @@ export function AppDialog({ open, className, describedBy, onClose, children }: A
   }, [open]);
 
   return (
-    <dialog ref={dialogRef} className={className} aria-describedby={describedBy} onClose={onClose}>
+    <dialog
+      ref={dialogRef}
+      className={`app-dialog ${className}`}
+      aria-describedby={describedBy}
+      onClose={onClose}
+    >
       {children}
     </dialog>
   );

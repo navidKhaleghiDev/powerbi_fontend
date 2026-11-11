@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AssistantProvider } from '@/components/AssistantProvider';
 import { ToastViewport } from '@/components/ui/ToastViewport';
@@ -21,6 +21,11 @@ export const WorkspaceProviders = ({ children }: Props) => {
         }),
       }),
   );
+  useEffect(() => {
+    const clearSessionData = () => client.clear();
+    window.addEventListener('control-center:session-change', clearSessionData);
+    return () => window.removeEventListener('control-center:session-change', clearSessionData);
+  }, [client]);
   return (
     <QueryClientProvider client={client}>
       <AssistantProvider>{children}</AssistantProvider>

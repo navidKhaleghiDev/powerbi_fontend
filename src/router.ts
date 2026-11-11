@@ -6,6 +6,7 @@ import { CreateConsumerPage } from './components/workspace/CreateConsumerAction'
 import { DashboardPage } from './components/workspace/DashboardPage';
 import { DataFlowPage } from './components/workspace/DataFlowPage';
 import { DataFlowsPage } from './components/workspace/DataFlowsPage';
+import { DatasetsPage } from './components/workspace/DatasetsPage';
 import { hasAccessToken } from './lib/api';
 
 const rootRoute = createRootRoute({ notFoundComponent: NotFound });
@@ -48,6 +49,14 @@ const dashboardRoute = createRoute({
     if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
   },
   component: DashboardPage,
+});
+const datasetsRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'datasets',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: DatasetsPage,
 });
 const dataFlowRoute = createRoute({
   getParentRoute: () => localeRoute,
@@ -93,6 +102,7 @@ export const router = createRouter({
       loginRoute,
       overviewRoute,
       dashboardRoute,
+      datasetsRoute,
       dataFlowsRoute,
       cdcConnectionsRoute,
       createConsumerRoute,
