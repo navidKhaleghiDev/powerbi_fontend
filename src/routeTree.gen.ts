@@ -12,13 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as LocaleIndexRouteImport } from './routes/$locale/index'
-import { Route as LocaleCdcConnectionsRouteImport } from './routes/$locale/cdc-connections'
+import { Route as LocaleCdcConnectionsRouteRouteImport } from './routes/$locale/cdc-connections/route'
 import { Route as LocaleDashboardRouteImport } from './routes/$locale/dashboard'
-import { Route as LocaleDataFlowsRouteImport } from './routes/$locale/data-flows'
 import { Route as LocaleDataPlatformRouteImport } from './routes/$locale/data-platform'
 import { Route as LocaleDatasetsRouteImport } from './routes/$locale/datasets'
 import { Route as LocaleLoginRouteImport } from './routes/$locale/login'
+import { Route as LocaleCdcConnectionsIndexRouteImport } from './routes/$locale/cdc-connections/index'
 import { Route as LocaleCdcConnectionsNewRouteImport } from './routes/$locale/cdc-connections/new'
+import { Route as LocaleDataFlowsIndexRouteImport } from './routes/$locale/data-flows/index'
 import { Route as LocaleDataFlowsNewRouteImport } from './routes/$locale/data-flows/new'
 import { Route as LocaleCdcConnectionsConnectorNameConsumerRouteImport } from './routes/$locale/cdc-connections/$connectorName/consumer'
 
@@ -37,19 +38,15 @@ const LocaleIndexRoute = LocaleIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
-const LocaleCdcConnectionsRoute = LocaleCdcConnectionsRouteImport.update({
-  id: '/cdc-connections',
-  path: '/cdc-connections',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
+const LocaleCdcConnectionsRouteRoute =
+  LocaleCdcConnectionsRouteRouteImport.update({
+    id: '/cdc-connections',
+    path: '/cdc-connections',
+    getParentRoute: () => LocaleRouteRoute,
+  } as any)
 const LocaleDashboardRoute = LocaleDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleDataFlowsRoute = LocaleDataFlowsRouteImport.update({
-  id: '/data-flows',
-  path: '/data-flows',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleDataPlatformRoute = LocaleDataPlatformRouteImport.update({
@@ -67,63 +64,76 @@ const LocaleLoginRoute = LocaleLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
+const LocaleCdcConnectionsIndexRoute =
+  LocaleCdcConnectionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleCdcConnectionsRouteRoute,
+  } as any)
 const LocaleCdcConnectionsNewRoute = LocaleCdcConnectionsNewRouteImport.update({
   id: '/new',
   path: '/new',
-  getParentRoute: () => LocaleCdcConnectionsRoute,
+  getParentRoute: () => LocaleCdcConnectionsRouteRoute,
+} as any)
+const LocaleDataFlowsIndexRoute = LocaleDataFlowsIndexRouteImport.update({
+  id: '/data-flows/',
+  path: '/data-flows/',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleDataFlowsNewRoute = LocaleDataFlowsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LocaleDataFlowsRoute,
+  id: '/data-flows/new',
+  path: '/data-flows/new',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleCdcConnectionsConnectorNameConsumerRoute =
   LocaleCdcConnectionsConnectorNameConsumerRouteImport.update({
     id: '/$connectorName/consumer',
     path: '/$connectorName/consumer',
-    getParentRoute: () => LocaleCdcConnectionsRoute,
+    getParentRoute: () => LocaleCdcConnectionsRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteRouteWithChildren
-  '/$locale/cdc-connections': typeof LocaleCdcConnectionsRouteWithChildren
+  '/$locale/cdc-connections': typeof LocaleCdcConnectionsRouteRouteWithChildren
   '/$locale/dashboard': typeof LocaleDashboardRoute
-  '/$locale/data-flows': typeof LocaleDataFlowsRouteWithChildren
   '/$locale/data-platform': typeof LocaleDataPlatformRoute
   '/$locale/datasets': typeof LocaleDatasetsRoute
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/cdc-connections/new': typeof LocaleCdcConnectionsNewRoute
   '/$locale/data-flows/new': typeof LocaleDataFlowsNewRoute
+  '/$locale/cdc-connections/': typeof LocaleCdcConnectionsIndexRoute
+  '/$locale/data-flows/': typeof LocaleDataFlowsIndexRoute
   '/$locale/cdc-connections/$connectorName/consumer': typeof LocaleCdcConnectionsConnectorNameConsumerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$locale/cdc-connections': typeof LocaleCdcConnectionsRouteWithChildren
   '/$locale/dashboard': typeof LocaleDashboardRoute
-  '/$locale/data-flows': typeof LocaleDataFlowsRouteWithChildren
   '/$locale/data-platform': typeof LocaleDataPlatformRoute
   '/$locale/datasets': typeof LocaleDatasetsRoute
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/cdc-connections/new': typeof LocaleCdcConnectionsNewRoute
   '/$locale/data-flows/new': typeof LocaleDataFlowsNewRoute
+  '/$locale/cdc-connections': typeof LocaleCdcConnectionsIndexRoute
+  '/$locale/data-flows': typeof LocaleDataFlowsIndexRoute
   '/$locale/cdc-connections/$connectorName/consumer': typeof LocaleCdcConnectionsConnectorNameConsumerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteRouteWithChildren
-  '/$locale/cdc-connections': typeof LocaleCdcConnectionsRouteWithChildren
+  '/$locale/cdc-connections': typeof LocaleCdcConnectionsRouteRouteWithChildren
   '/$locale/dashboard': typeof LocaleDashboardRoute
-  '/$locale/data-flows': typeof LocaleDataFlowsRouteWithChildren
   '/$locale/data-platform': typeof LocaleDataPlatformRoute
   '/$locale/datasets': typeof LocaleDatasetsRoute
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/cdc-connections/new': typeof LocaleCdcConnectionsNewRoute
   '/$locale/data-flows/new': typeof LocaleDataFlowsNewRoute
+  '/$locale/cdc-connections/': typeof LocaleCdcConnectionsIndexRoute
+  '/$locale/data-flows/': typeof LocaleDataFlowsIndexRoute
   '/$locale/cdc-connections/$connectorName/consumer': typeof LocaleCdcConnectionsConnectorNameConsumerRoute
 }
 export interface FileRouteTypes {
@@ -133,26 +143,27 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/$locale/cdc-connections'
     | '/$locale/dashboard'
-    | '/$locale/data-flows'
     | '/$locale/data-platform'
     | '/$locale/datasets'
     | '/$locale/login'
     | '/$locale/'
     | '/$locale/cdc-connections/new'
     | '/$locale/data-flows/new'
+    | '/$locale/cdc-connections/'
+    | '/$locale/data-flows/'
     | '/$locale/cdc-connections/$connectorName/consumer'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$locale/cdc-connections'
     | '/$locale/dashboard'
-    | '/$locale/data-flows'
     | '/$locale/data-platform'
     | '/$locale/datasets'
     | '/$locale/login'
     | '/$locale'
     | '/$locale/cdc-connections/new'
     | '/$locale/data-flows/new'
+    | '/$locale/cdc-connections'
+    | '/$locale/data-flows'
     | '/$locale/cdc-connections/$connectorName/consumer'
   id:
     | '__root__'
@@ -160,13 +171,14 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/$locale/cdc-connections'
     | '/$locale/dashboard'
-    | '/$locale/data-flows'
     | '/$locale/data-platform'
     | '/$locale/datasets'
     | '/$locale/login'
     | '/$locale/'
     | '/$locale/cdc-connections/new'
     | '/$locale/data-flows/new'
+    | '/$locale/cdc-connections/'
+    | '/$locale/data-flows/'
     | '/$locale/cdc-connections/$connectorName/consumer'
   fileRoutesById: FileRoutesById
 }
@@ -202,7 +214,7 @@ declare module '@tanstack/react-router' {
       id: '/$locale/cdc-connections'
       path: '/cdc-connections'
       fullPath: '/$locale/cdc-connections'
-      preLoaderRoute: typeof LocaleCdcConnectionsRouteImport
+      preLoaderRoute: typeof LocaleCdcConnectionsRouteRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/dashboard': {
@@ -210,13 +222,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/$locale/dashboard'
       preLoaderRoute: typeof LocaleDashboardRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/data-flows': {
-      id: '/$locale/data-flows'
-      path: '/data-flows'
-      fullPath: '/$locale/data-flows'
-      preLoaderRoute: typeof LocaleDataFlowsRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/data-platform': {
@@ -240,74 +245,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleLoginRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
+    '/$locale/cdc-connections/': {
+      id: '/$locale/cdc-connections/'
+      path: '/'
+      fullPath: '/$locale/cdc-connections/'
+      preLoaderRoute: typeof LocaleCdcConnectionsIndexRouteImport
+      parentRoute: typeof LocaleCdcConnectionsRouteRoute
+    }
     '/$locale/cdc-connections/new': {
       id: '/$locale/cdc-connections/new'
       path: '/new'
       fullPath: '/$locale/cdc-connections/new'
       preLoaderRoute: typeof LocaleCdcConnectionsNewRouteImport
-      parentRoute: typeof LocaleCdcConnectionsRoute
+      parentRoute: typeof LocaleCdcConnectionsRouteRoute
+    }
+    '/$locale/data-flows/': {
+      id: '/$locale/data-flows/'
+      path: '/data-flows'
+      fullPath: '/$locale/data-flows/'
+      preLoaderRoute: typeof LocaleDataFlowsIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/data-flows/new': {
       id: '/$locale/data-flows/new'
-      path: '/new'
+      path: '/data-flows/new'
       fullPath: '/$locale/data-flows/new'
       preLoaderRoute: typeof LocaleDataFlowsNewRouteImport
-      parentRoute: typeof LocaleDataFlowsRoute
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/cdc-connections/$connectorName/consumer': {
       id: '/$locale/cdc-connections/$connectorName/consumer'
       path: '/$connectorName/consumer'
       fullPath: '/$locale/cdc-connections/$connectorName/consumer'
       preLoaderRoute: typeof LocaleCdcConnectionsConnectorNameConsumerRouteImport
-      parentRoute: typeof LocaleCdcConnectionsRoute
+      parentRoute: typeof LocaleCdcConnectionsRouteRoute
     }
   }
 }
 
-interface LocaleCdcConnectionsRouteChildren {
+interface LocaleCdcConnectionsRouteRouteChildren {
   LocaleCdcConnectionsNewRoute: typeof LocaleCdcConnectionsNewRoute
+  LocaleCdcConnectionsIndexRoute: typeof LocaleCdcConnectionsIndexRoute
   LocaleCdcConnectionsConnectorNameConsumerRoute: typeof LocaleCdcConnectionsConnectorNameConsumerRoute
 }
 
-const LocaleCdcConnectionsRouteChildren: LocaleCdcConnectionsRouteChildren = {
-  LocaleCdcConnectionsNewRoute: LocaleCdcConnectionsNewRoute,
-  LocaleCdcConnectionsConnectorNameConsumerRoute:
-    LocaleCdcConnectionsConnectorNameConsumerRoute,
-}
+const LocaleCdcConnectionsRouteRouteChildren: LocaleCdcConnectionsRouteRouteChildren =
+  {
+    LocaleCdcConnectionsNewRoute: LocaleCdcConnectionsNewRoute,
+    LocaleCdcConnectionsIndexRoute: LocaleCdcConnectionsIndexRoute,
+    LocaleCdcConnectionsConnectorNameConsumerRoute:
+      LocaleCdcConnectionsConnectorNameConsumerRoute,
+  }
 
-const LocaleCdcConnectionsRouteWithChildren =
-  LocaleCdcConnectionsRoute._addFileChildren(LocaleCdcConnectionsRouteChildren)
-
-interface LocaleDataFlowsRouteChildren {
-  LocaleDataFlowsNewRoute: typeof LocaleDataFlowsNewRoute
-}
-
-const LocaleDataFlowsRouteChildren: LocaleDataFlowsRouteChildren = {
-  LocaleDataFlowsNewRoute: LocaleDataFlowsNewRoute,
-}
-
-const LocaleDataFlowsRouteWithChildren = LocaleDataFlowsRoute._addFileChildren(
-  LocaleDataFlowsRouteChildren,
-)
+const LocaleCdcConnectionsRouteRouteWithChildren =
+  LocaleCdcConnectionsRouteRoute._addFileChildren(
+    LocaleCdcConnectionsRouteRouteChildren,
+  )
 
 interface LocaleRouteRouteChildren {
-  LocaleCdcConnectionsRoute: typeof LocaleCdcConnectionsRouteWithChildren
+  LocaleCdcConnectionsRouteRoute: typeof LocaleCdcConnectionsRouteRouteWithChildren
   LocaleDashboardRoute: typeof LocaleDashboardRoute
-  LocaleDataFlowsRoute: typeof LocaleDataFlowsRouteWithChildren
   LocaleDataPlatformRoute: typeof LocaleDataPlatformRoute
   LocaleDatasetsRoute: typeof LocaleDatasetsRoute
   LocaleLoginRoute: typeof LocaleLoginRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
+  LocaleDataFlowsNewRoute: typeof LocaleDataFlowsNewRoute
+  LocaleDataFlowsIndexRoute: typeof LocaleDataFlowsIndexRoute
 }
 
 const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
-  LocaleCdcConnectionsRoute: LocaleCdcConnectionsRouteWithChildren,
+  LocaleCdcConnectionsRouteRoute: LocaleCdcConnectionsRouteRouteWithChildren,
   LocaleDashboardRoute: LocaleDashboardRoute,
-  LocaleDataFlowsRoute: LocaleDataFlowsRouteWithChildren,
   LocaleDataPlatformRoute: LocaleDataPlatformRoute,
   LocaleDatasetsRoute: LocaleDatasetsRoute,
   LocaleLoginRoute: LocaleLoginRoute,
   LocaleIndexRoute: LocaleIndexRoute,
+  LocaleDataFlowsNewRoute: LocaleDataFlowsNewRoute,
+  LocaleDataFlowsIndexRoute: LocaleDataFlowsIndexRoute,
 }
 
 const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(
