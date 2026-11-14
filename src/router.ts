@@ -6,7 +6,12 @@ import { CreateConsumerPage } from './components/workspace/CreateConsumerAction'
 import { DashboardPage } from './components/workspace/DashboardPage';
 import { DataFlowPage } from './components/workspace/DataFlowPage';
 import { DataFlowsPage } from './components/workspace/DataFlowsPage';
-import { DatasetsPage } from './components/workspace/DatasetsPage';
+import {
+  CloneDatasetPage,
+  CreateDatasetPage,
+  DatasetsPage,
+  EditDatasetPage,
+} from './components/workspace/DatasetsPage';
 import { hasAccessToken } from './lib/api';
 
 const rootRoute = createRootRoute({ notFoundComponent: NotFound });
@@ -58,6 +63,30 @@ const datasetsRoute = createRoute({
   },
   component: DatasetsPage,
 });
+const createDatasetRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'datasets/new',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: CreateDatasetPage,
+});
+const editDatasetRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'datasets/$datasetId/edit',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: EditDatasetPage,
+});
+const cloneDatasetRoute = createRoute({
+  getParentRoute: () => localeRoute,
+  path: 'datasets/$datasetId/clone',
+  beforeLoad: ({ params }) => {
+    if (!hasAccessToken()) return redirect({ to: '/$locale/login', params, replace: true });
+  },
+  component: CloneDatasetPage,
+});
 const dataFlowRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: 'data-flows/new',
@@ -103,6 +132,9 @@ export const router = createRouter({
       overviewRoute,
       dashboardRoute,
       datasetsRoute,
+      createDatasetRoute,
+      editDatasetRoute,
+      cloneDatasetRoute,
       dataFlowsRoute,
       cdcConnectionsRoute,
       createConsumerRoute,

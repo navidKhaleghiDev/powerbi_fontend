@@ -412,7 +412,7 @@ export const CreateConsumerAction = ({ connectorName }: Props) => {
       params={{ locale, connectorName }}
       aria-label={t('open')}
       title={t('open')}
-      className="inline-flex size-8 items-center justify-center rounded-md border bg-background text-foreground hover:bg-accent"
+      className="inline-flex size-8 items-center justify-center rounded-md bg-background text-foreground hover:bg-accent"
     >
       <PlusCircle aria-hidden="true" className="size-4" />
     </Link>
@@ -479,7 +479,7 @@ export const CreateConsumerPage = () => {
         <Link
           to="/$locale/cdc-connections"
           params={{ locale }}
-          className="inline-flex size-9 items-center justify-center rounded-lg border border-border-default text-text-secondary hover:bg-surface-raised"
+          className="inline-flex size-9 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-raised"
           aria-label={t('back')}
         >
           {isPersian ? (
