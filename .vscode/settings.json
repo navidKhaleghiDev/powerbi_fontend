@@ -16,11 +16,11 @@
   "css.validate": true,
   "json.validate.enable": true,
   "tailwindCSS.validate": true,
-  "tailwindCSS.experimental.configFile": "src/styles/globals.css",
+  "tailwindCSS.experimental.configFile": "src/global.css",
   "tailwindCSS.classFunctions": ["cn", "cva"],
   "tailwindCSS.codeActions": true,
   "files.associations": {
-    "**/src/styles/**/*.css": "tailwindcss"
+    "**/src/global.css": "tailwindcss"
   },
   "cSpell.words": ["powerbi"]
 }

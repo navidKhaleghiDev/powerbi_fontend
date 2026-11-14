@@ -12,7 +12,7 @@ The second requested frame, `34487:97703`, remains uninspected and unimported.
 
 - Figma `text/primary` maps to CSS `--text-primary` and the Tailwind color
   `text-primary`, used as `text-text-primary`.
-- `colors.css` owns complete CSS color values and maps them to utilities with
+- The color-token section of `src/global.css` owns complete CSS color values and maps them to utilities with
   Tailwind v4 `@theme inline`. Opacity modifiers use v4's native color mixing.
 - Light values live on `:root`; `.dark` overrides values. The existing theme
   provider controls that class. Token utilities need no duplicate `dark:` color.
@@ -21,9 +21,8 @@ The second requested frame, `34487:97703`, remains uninspected and unimported.
 - Keep role tokens separate even when their values match.
 - Existing Tailwind colors and legacy background/foreground values remain
   available. This adds utilities; existing components have not been migrated.
-- This project uses Tailwind v4 with `@tailwindcss/postcss`. Global CSS imports
-  Tailwind with `source("../")` to scan `src`, including both component trees.
-- `compatibility.css` retains the v3 palette, shape/effect values, default
+- This project uses Tailwind v4 with `@tailwindcss/postcss`. The single global stylesheet imports Tailwind with `source("./")` to scan `src`.
+- The compatibility section of `src/global.css` retains the v3 palette, shape/effect values, default
   borders, placeholders, rings, outline-none behavior, and legacy flex/opacity
   utilities. Do not remove compatibility rules until their consumers have been
   migrated.

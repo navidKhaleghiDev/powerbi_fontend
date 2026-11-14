@@ -3,7 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { router } from '@/app/router';
-import '@/styles/globals.css';
+import '@/global.css';
 
 const root = document.getElementById('root');
 
