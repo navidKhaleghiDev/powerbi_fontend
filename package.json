@@ -13,8 +13,7 @@
     "format:check": "prettier . --check",
     "lint:staged": "lint-staged",
     "commitlint": "commitlint",
-    "prepare": "husky",
-    "test:assistant": "node assistant-tests.config.mjs"
+    "prepare": "husky"
   },
   "dependencies": {
     "@cubejs-client/core": "^1.6.76",

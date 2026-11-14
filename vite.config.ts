@@ -17,8 +17,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@ui': fileURLToPath(new URL('./src/components', import.meta.url)),
-      '@uiShare': fileURLToPath(new URL('./src/ui/components', import.meta.url)),
     },
   },
 });

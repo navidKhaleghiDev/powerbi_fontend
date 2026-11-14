@@ -819,6 +819,7 @@
     "exportHelp": "Models with relationships must be downloaded and deployed to Cube manually. Server saving does not support relationships. Complete all joins, choose a source primary key and ensure each target has exactly one primary key to enable download. Verify uniqueness and relationship cardinality in your database; these are not checked here."
   },
   "dashboard": {
+    "sampleBadge": "Sample data",
     "title": "BI dashboard",
     "description": "Build a view from your cubes. Assign dimensions to columns and measures to rows, apply filters, then run your query.",
     "cubes": "Cubes",

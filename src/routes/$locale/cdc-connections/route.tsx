@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { hasAccessToken } from '../../../lib/api';
+import { hasAccessToken } from '@/shared/network/api';
 
 export const Route = createFileRoute('/$locale/cdc-connections')({
   beforeLoad: ({ params }) => {

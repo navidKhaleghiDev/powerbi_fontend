@@ -2,6 +2,8 @@
 
 A frontend-only React application built with Vite and strict TypeScript, TanStack Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
 
+See [frontend architecture](docs/frontend-architecture.md) for code ownership and extension rules.
+
 ## Development
 
 Use Node.js 22.22+ and pnpm 12.16.1 (pinned in `package.json`). Enable pnpm with `corepack enable` if your Node.js installation includes Corepack, or install the pinned pnpm CLI using its official installation instructions. Run `pnpm install --frozen-lockfile`, then `pnpm run dev` (port 3001). Vite provides React Fast Refresh.
