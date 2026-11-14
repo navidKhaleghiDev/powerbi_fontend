@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useId, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { CubeQueryPanel } from '@/features/data-platform/components/CubeQueryPanel';
 import { createCubeClient, cubeDefaults } from '@/features/data-platform/lib/cube';
+import { CubeQueryPanel } from '@/features/data-platform/organisms/CubeQueryPanel';
 
 import type { Query } from '@cubejs-client/core';
 

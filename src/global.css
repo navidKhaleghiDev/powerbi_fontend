@@ -3595,8 +3595,8 @@
     box-shadow 150ms ease;
 }
 .bi-chat form:focus-within {
-  border-color: var(--color-blue-600);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-blue-600) 20%, transparent);
+  border-color: var(--color-teal-600);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-teal-600) 20%, transparent);
 }
 .workspace-canvas .workspace-page .bi-chat form textarea {
   min-height: 52px;
@@ -5866,8 +5866,71 @@ body:has(.login-stage) {
   }
 }
 
+/* Reusable border trail: opt in with ui-border-trail on a rounded container. */
+@property --ui-border-trail-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.ui-border-trail {
+  --ui-border-trail-color: var(--color-teal-500);
+  --ui-border-trail-width: 2px;
+  --ui-border-trail-duration: 3.2s;
+  position: relative;
+  isolation: isolate;
+}
+.ui-border-trail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: var(--ui-border-trail-width);
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--ui-border-trail-angle),
+    transparent 0deg 280deg,
+    color-mix(in srgb, var(--ui-border-trail-color) 25%, transparent) 300deg,
+    var(--ui-border-trail-color) 326deg,
+    transparent 350deg 360deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+@keyframes ui-border-trail-spin {
+  to {
+    --ui-border-trail-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-border-trail::before {
+    animation: ui-border-trail-spin var(--ui-border-trail-duration) linear infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-border-trail::before {
+    background: var(--ui-border-trail-color);
+  }
+}
+@supports not (mask-composite: exclude) {
+  .ui-border-trail::before {
+    padding: 0;
+    border: var(--ui-border-trail-width) solid var(--ui-border-trail-color);
+    background: none;
+    animation: none;
+  }
+}
+@media (forced-colors: active) {
+  .ui-border-trail::before {
+    background: CanvasText;
+  }
+}
+
 /* Motion */
-/* Short, interaction-driven motion; no continuous decorative animation. */
+/* Short interaction motion, plus the opt-in border trail above. */
 @media (prefers-reduced-motion: no-preference) {
   :where(.workspace-stage, .login-stage)
     :is(a, button, summary, input, select, textarea, .login-panel-option) {

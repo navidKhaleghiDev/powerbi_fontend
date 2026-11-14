@@ -17,9 +17,9 @@ import {
   getCdcConnections,
   getConnectorConfig,
 } from '@/features/data-flows/api/data-flow-api';
-import { CreateConsumerAction } from '@/features/data-flows/components/CreateConsumerAction';
-import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { IconTooltip } from '@/shared/components/ui/icon-tooltip';
+import { CreateConsumerAction } from '@/features/data-flows/molecules/CreateConsumerAction';
+import { Button, buttonVariants } from '@/shared/components/atoms/button';
+import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 
 export const DataFlowsPage = () => {
   const t = useTranslations('cdcConnections');

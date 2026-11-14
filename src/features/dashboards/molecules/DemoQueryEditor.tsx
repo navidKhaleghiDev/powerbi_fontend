@@ -6,8 +6,8 @@ import {
   demoMeasures,
   supportsDemoDimension,
 } from '@/features/dashboards/lib/sales-demo';
-import { Button } from '@/shared/components/ui/button';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import { Button } from '@/shared/components/atoms/button';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
 
 import type { Query } from '@cubejs-client/core';
 

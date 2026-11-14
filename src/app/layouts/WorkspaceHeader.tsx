@@ -3,7 +3,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { Typography } from '@/shared/components/ui/typography';
+import { Typography } from '@/shared/components/atoms/typography';
 import { toast } from '@/shared/lib/toast';
 import { clearAuthTokens } from '@/shared/network/api';
 

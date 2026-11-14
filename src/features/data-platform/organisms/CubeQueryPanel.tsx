@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense, useId, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/atoms/button';
+import { Input } from '@/shared/components/atoms/input';
 
 import type { createCubeClient } from '@/features/data-platform/lib/cube';
 import type { Query } from '@cubejs-client/core';
 
 const WarehouseChart = lazy(() =>
-  import('@/shared/components/charts/WarehouseChart').then((module) => ({
+  import('@/shared/components/organisms/WarehouseChart').then((module) => ({
     default: module.WarehouseChart,
   })),
 );

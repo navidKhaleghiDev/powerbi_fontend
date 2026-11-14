@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { LoginIllustration } from '@/features/auth/components/LoginIllustration';
+import { LoginIllustration } from '@/features/auth/organisms/LoginIllustration';
 
 const slides = ['overview'] as const;
 

@@ -2,7 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { createAppQueryClient } from '@/app/query-client';
-import { ToastViewport } from '@/shared/components/ui/ToastViewport';
+import { ToastViewport } from '@/shared/components/organisms/ToastViewport';
 
 import { AssistantProvider } from './AssistantProvider';
 

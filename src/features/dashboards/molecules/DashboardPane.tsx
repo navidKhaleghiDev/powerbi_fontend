@@ -2,7 +2,7 @@ import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/atoms/button';
 
 export const DashboardPane = ({
   title,

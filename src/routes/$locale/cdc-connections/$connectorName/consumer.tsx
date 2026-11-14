@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { CreateConsumerPage } from '@/features/data-flows/components/CreateConsumerAction';
+import { CreateConsumerPage } from '@/features/data-flows/pages/ConsumerPage';
 import { hasAccessToken } from '@/shared/network/api';
 
 export const Route = createFileRoute('/$locale/cdc-connections/$connectorName/consumer')({

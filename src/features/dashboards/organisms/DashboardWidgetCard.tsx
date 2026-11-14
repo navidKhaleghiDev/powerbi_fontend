@@ -14,14 +14,14 @@ import { lazy, Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { loadDemoQuery, type DemoFilters } from '@/features/dashboards/lib/sales-demo';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/atoms/button';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
 import { formatSolarPeriod } from '@/shared/lib/solar-calendar';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 
 const WarehouseChart = lazy(() =>
-  import('@/shared/components/charts/WarehouseChart').then((module) => ({
+  import('@/shared/components/organisms/WarehouseChart').then((module) => ({
     default: module.WarehouseChart,
   })),
 );

@@ -13,9 +13,6 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { useAssistantPage } from '@/features/assistant/lib/context';
-import { AnalyticsWidgetCard } from '@/features/dashboards/components/AnalyticsWidgetCard';
-import { DashboardChat } from '@/features/dashboards/components/DashboardChat';
-import { DashboardPane } from '@/features/dashboards/components/DashboardPane';
 import {
   loadSampleAnalytics,
   readSampleDashboard,
@@ -23,6 +20,9 @@ import {
   saveSampleDashboard,
   type SampleDashboard,
 } from '@/features/dashboards/lib/dashboard-demo';
+import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
+import { AnalyticsWidgetCard } from '@/features/dashboards/organisms/AnalyticsWidgetCard';
+import { DashboardChat } from '@/features/dashboards/organisms/DashboardChat';
 import {
   defaultAnalyticsFilters,
   metricId,
@@ -31,11 +31,11 @@ import {
   type AnalyticsMetadata,
   type AnalyticsResult,
 } from '@/features/datasets/api/analytics';
-import { AppDialog } from '@/shared/components/ui/app-dialog';
-import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { IconTooltip } from '@/shared/components/ui/icon-tooltip';
-import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import { Button, buttonVariants } from '@/shared/components/atoms/button';
+import { Input } from '@/shared/components/atoms/input';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { AppDialog } from '@/shared/components/molecules/app-dialog';
+import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 
 import type {
   DashboardSheet,

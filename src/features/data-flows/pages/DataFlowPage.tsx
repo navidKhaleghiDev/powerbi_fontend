@@ -22,7 +22,7 @@ import {
   type DatabaseType,
   type SuggestedColumn,
 } from '@/features/data-flows/api/data-flow-api';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/atoms/button';
 
 type Step = 'source' | 'connection' | 'tables' | 'columns' | 'connector' | 'complete';
 const steps: Exclude<Step, 'complete'>[] = [

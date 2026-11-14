@@ -4,8 +4,8 @@ import { Database, Globe2, LayoutDashboard, LogOut, Menu, X } from 'lucide-react
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { AppDialog } from '@/shared/components/ui/app-dialog';
-import { IconTooltip } from '@/shared/components/ui/icon-tooltip';
+import { AppDialog } from '@/shared/components/molecules/app-dialog';
+import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 import { toast } from '@/shared/lib/toast';
 import { clearAuthTokens } from '@/shared/network/api';
 

@@ -4,10 +4,10 @@ import { useTranslations } from 'use-intl';
 
 import { useAssistant } from '@/features/assistant/lib/context';
 import { MAX_QUESTION, SUPPORTED_MODELS } from '@/features/assistant/lib/core';
-import { DashboardPane } from '@/features/dashboards/components/DashboardPane';
-import { Button } from '@/shared/components/ui/button';
-import { NativeSelect } from '@/shared/components/ui/native-select';
-import { Textarea } from '@/shared/components/ui/textarea';
+import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
+import { Button } from '@/shared/components/atoms/button';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { Textarea } from '@/shared/components/atoms/textarea';
 
 // React text rendering escapes HTML. Fences are rendered as inert LTR code, never HTML.
 const Answer = ({ text }: { text: string }) => (
@@ -94,6 +94,7 @@ export const DashboardChat = () => {
           </Button>
         )}
         <form
+          className="ui-border-trail"
           onSubmit={(event) => {
             event.preventDefault();
             if (!draft.trim() || !apiKey.trim() || pending) return;

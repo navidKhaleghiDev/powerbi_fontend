@@ -1,15 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  LoaderCircle,
-  Plus,
-  PlusCircle,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, Plus, Trash2, X } from 'lucide-react';
 import {
   createContext,
   useContext,
@@ -30,14 +21,10 @@ import {
   type DatabaseCredentials,
   type SuggestedColumn,
 } from '@/features/data-flows/api/data-flow-api';
-import { AppDialog } from '@/shared/components/ui/app-dialog';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
-
-interface Props {
-  connectorName: string;
-}
+import { Button } from '@/shared/components/atoms/button';
+import { Input } from '@/shared/components/atoms/input';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { AppDialog } from '@/shared/components/molecules/app-dialog';
 
 interface EditableMapping extends ConsumerColumnMapping {
   id: string;
@@ -400,22 +387,6 @@ const ConsumerTableEditor = ({
         </div>
       )}
     </section>
-  );
-};
-
-export const CreateConsumerAction = ({ connectorName }: Props) => {
-  const locale = useLocale();
-  const t = useTranslations('cdcConnections.consumer');
-  return (
-    <Link
-      to="/$locale/cdc-connections/$connectorName/consumer"
-      params={{ locale, connectorName }}
-      aria-label={t('open')}
-      title={t('open')}
-      className="inline-flex size-8 items-center justify-center rounded-md bg-white text-slate-900 hover:bg-teal-50"
-    >
-      <PlusCircle aria-hidden="true" className="size-4" />
-    </Link>
   );
 };
 

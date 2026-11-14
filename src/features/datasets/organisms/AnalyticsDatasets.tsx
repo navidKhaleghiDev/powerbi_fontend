@@ -22,10 +22,10 @@ import {
   type Metric,
   type Source,
 } from '@/features/datasets/api/analytics';
-import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { IconTooltip } from '@/shared/components/ui/icon-tooltip';
-import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import { Button, buttonVariants } from '@/shared/components/atoms/button';
+import { Input } from '@/shared/components/atoms/input';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 
 type Field = { id: string; name: string; column: string; type: 'date' | 'number' | 'string' };
 export const AnalyticsDatasets = ({

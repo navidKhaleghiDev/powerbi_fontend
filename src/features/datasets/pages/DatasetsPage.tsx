@@ -4,9 +4,9 @@ import { LayoutDashboard } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { analyticsRequest, type AnalyticsMetadata } from '@/features/datasets/api/analytics';
-import { AnalyticsDatasets } from '@/features/datasets/components/AnalyticsDatasets';
-import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { IconTooltip } from '@/shared/components/ui/icon-tooltip';
+import { AnalyticsDatasets } from '@/features/datasets/organisms/AnalyticsDatasets';
+import { Button, buttonVariants } from '@/shared/components/atoms/button';
+import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 
 const DatasetWorkspace = ({
   mode,

@@ -2,14 +2,14 @@ import { Search } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { DashboardPane } from '@/features/dashboards/components/DashboardPane';
 import {
   demoDimensions,
   demoMeasures,
   supportsDemoDimension,
 } from '@/features/dashboards/lib/sales-demo';
-import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
+import { Input } from '@/shared/components/atoms/input';
+import { NativeSelect } from '@/shared/components/atoms/native-select';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 import type { Query } from '@cubejs-client/core';

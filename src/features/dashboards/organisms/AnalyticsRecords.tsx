@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { loadSampleAnalytics } from '@/features/dashboards/lib/dashboard-demo';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/atoms/button';
 
 import type { AnalyticsFilters, Dataset, Metric } from '@/features/datasets/api/analytics';
 

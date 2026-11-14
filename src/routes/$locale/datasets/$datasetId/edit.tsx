@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { EditDatasetPage } from '@/features/datasets/components/DatasetsPage';
+import { EditDatasetPage } from '@/features/datasets/pages/DatasetsPage';
 import { hasAccessToken } from '@/shared/network/api';
 
 export const Route = createFileRoute('/$locale/datasets/$datasetId/edit')({

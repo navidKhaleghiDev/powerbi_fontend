@@ -24,22 +24,22 @@ import {
 } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { AnalyticsRecords } from '@/features/dashboards/components/AnalyticsRecords';
 import { loadSampleAnalytics } from '@/features/dashboards/lib/dashboard-demo';
+import { AnalyticsRecords } from '@/features/dashboards/organisms/AnalyticsRecords';
 import {
   resolveMetric,
   type AnalyticsFilters,
   type Dataset,
 } from '@/features/datasets/api/analytics';
-import { AppDialog } from '@/shared/components/ui/app-dialog';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/atoms/button';
+import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
 import { formatSolarPeriod } from '@/shared/lib/solar-calendar';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 
 const WarehouseChart = lazy(() =>
-  import('@/shared/components/charts/WarehouseChart').then((module) => ({
+  import('@/shared/components/organisms/WarehouseChart').then((module) => ({
     default: module.WarehouseChart,
   })),
 );
