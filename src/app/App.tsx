@@ -26,7 +26,7 @@ export const LocaleWorkspace = () => {
       <WorkspaceProviders>
         <a
           href="#workspace-content"
-          className="sr-only rounded-xl bg-surface-default px-4 py-3 text-text-info shadow-lg focus:not-sr-only focus:fixed focus:inset-s-4 focus:top-4 focus:z-50"
+          className="sr-only rounded-xl bg-white px-4 py-3 text-blue-700 shadow-lg focus:not-sr-only focus:fixed focus:inset-s-4 focus:top-4 focus:z-50"
         >
           {messages.studio.skipToContent}
         </a>

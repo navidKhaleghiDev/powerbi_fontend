@@ -33,7 +33,7 @@ export const WorkspaceHeader = () => {
           queryClient.clear();
           toast.success();
         }}
-        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border-default px-4 py-2 text-sm hover:bg-surface-raised"
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
       >
         <LogOut size={16} aria-hidden="true" />
         {t('logout')}

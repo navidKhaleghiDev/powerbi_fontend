@@ -59,13 +59,13 @@ export const DataFlowsPage = () => {
     >
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-surface-info-subtle p-3 text-text-info">
+          <span className="rounded-xl bg-blue-50 p-3 text-blue-700">
             <Database size={22} aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-medium text-text-info">{t('eyebrow')}</p>
-            <h1 className="mt-1 text-lg font-semibold text-text-primary">{t('title')}</h1>
-            <p className="mt-2 max-w-3xl text-sm text-text-secondary">{t('description')}</p>
+            <p className="text-sm font-medium text-blue-700">{t('eyebrow')}</p>
+            <h1 className="mt-1 text-lg font-semibold text-slate-900">{t('title')}</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-600">{t('description')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export const DataFlowsPage = () => {
           <Link
             to="/$locale/cdc-connections/new"
             params={{ locale }}
-            className="hover:bg-action-brand-hover inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
           >
             <Plus size={16} aria-hidden="true" />
             {t('create')}
@@ -90,26 +90,26 @@ export const DataFlowsPage = () => {
       </header>
 
       {connectionsQuery.isPending ? (
-        <div className="rounded-2xl border border-border-default bg-surface-default/80 p-8 text-center text-sm text-text-secondary">
+        <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 text-center text-sm text-slate-600">
           {t('loading')}
         </div>
       ) : connectionsQuery.isError ? (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border-danger bg-surface-default/80 p-6">
-          <p className="text-sm text-text-danger">{t('error')}</p>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-red-300 bg-white/80 p-6">
+          <p className="text-sm text-red-700">{t('error')}</p>
           <Button type="button" variant="outline" onClick={() => void connectionsQuery.refetch()}>
             <RefreshCw size={16} aria-hidden="true" />
             {t('retry')}
           </Button>
         </div>
       ) : connectionsQuery.data.length === 0 ? (
-        <div className="rounded-2xl border border-border-default bg-surface-default/80 px-6 py-14 text-center">
-          <Database className="mx-auto text-text-secondary" size={34} aria-hidden="true" />
-          <h2 className="mt-4 text-lg font-semibold text-text-primary">{t('emptyTitle')}</h2>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-text-secondary">{t('emptyHelp')}</p>
+        <div className="rounded-2xl border border-slate-200 bg-white/80 px-6 py-14 text-center">
+          <Database className="mx-auto text-slate-600" size={34} aria-hidden="true" />
+          <h2 className="mt-4 text-lg font-semibold text-slate-900">{t('emptyTitle')}</h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">{t('emptyHelp')}</p>
           <Link
             to="/$locale/cdc-connections/new"
             params={{ locale }}
-            className="hover:bg-action-brand-hover mt-5 inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
           >
             {t('create')}
             {isPersian ? <ArrowRight className="rotate-180" size={16} /> : <ArrowRight size={16} />}
@@ -117,7 +117,7 @@ export const DataFlowsPage = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-3 text-sm text-text-secondary">
+          <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
             <p>{t('count', { count: connectionsQuery.data.length })}</p>
             <IconTooltip label={t('refresh')}>
               <Button
@@ -135,9 +135,9 @@ export const DataFlowsPage = () => {
               </Button>
             </IconTooltip>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-border-default bg-surface-default/80 shadow-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
             <table className="w-full min-w-[52rem] text-start text-sm">
-              <thead className="bg-surface-raised text-text-secondary">
+              <thead className="bg-slate-50 text-slate-600">
                 <tr>
                   <th className="px-5 py-3 font-medium">{t('table.name')}</th>
                   <th className="px-5 py-3 font-medium">{t('table.details')}</th>
@@ -153,13 +153,13 @@ export const DataFlowsPage = () => {
 
                   return (
                     <Fragment key={values.join('|')}>
-                      <tr className="border-t border-border-default align-top">
+                      <tr className="border-t border-slate-200 align-top">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <span className="rounded-lg bg-surface-info-subtle p-2 text-text-info">
+                            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
                               <Database size={18} aria-hidden="true" />
                             </span>
-                            <span className="font-semibold text-text-primary">
+                            <span className="font-semibold text-slate-900">
                               {name || t('connectionNumber', { number: index + 1 })}
                             </span>
                           </div>
@@ -170,14 +170,14 @@ export const DataFlowsPage = () => {
                               {values.slice(1).map((value) => (
                                 <span
                                   key={value}
-                                  className="max-w-full rounded-md bg-surface-raised px-2.5 py-1 break-all text-text-primary"
+                                  className="max-w-full rounded-md bg-slate-50 px-2.5 py-1 break-all text-slate-900"
                                 >
                                   {value}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <span className="text-text-secondary">{t('noAdditionalDetails')}</span>
+                            <span className="text-slate-600">{t('noAdditionalDetails')}</span>
                           )}
                         </td>
                         <td className="px-5 py-4">
@@ -212,14 +212,14 @@ export const DataFlowsPage = () => {
                               </IconTooltip>
                             </div>
                           ) : (
-                            <span className="text-text-secondary">—</span>
+                            <span className="text-slate-600">—</span>
                           )}
                         </td>
                       </tr>
                       {name && hasConfig ? (
-                        <tr key={`${name}-config`} className="border-t border-border-default">
+                        <tr key={`${name}-config`} className="border-t border-slate-200">
                           <td colSpan={3} className="px-5 py-4">
-                            <pre className="max-h-72 overflow-auto rounded-lg bg-surface-raised p-3 text-xs text-text-primary">
+                            <pre className="max-h-72 overflow-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-900">
                               {JSON.stringify(configs[name], null, 2)}
                             </pre>
                           </td>

@@ -44,7 +44,7 @@ export const LoginPage = () => {
               </Typography>
               <p>{t('introduction')}</p>
             </header>
-            <p className="mb-4 text-sm text-text-secondary">{t('frontendOnlyNotice')}</p>
+            <p className="mb-4 text-sm text-slate-600">{t('frontendOnlyNotice')}</p>
             <form
               className="login-form"
               onSubmit={async (event) => {

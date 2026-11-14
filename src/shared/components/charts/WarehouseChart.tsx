@@ -328,7 +328,7 @@ export const WarehouseChart = ({
         ) : (
           <p
             role="status"
-            className="flex h-full items-center justify-center rounded-xl bg-surface-raised p-6 text-center text-sm leading-7 text-text-secondary"
+            className="flex h-full items-center justify-center rounded-xl bg-slate-50 p-6 text-center text-sm leading-7 text-slate-600"
           >
             {t('charts.noDistribution')}
           </p>
@@ -342,17 +342,17 @@ export const WarehouseChart = ({
           {rows.map((row, index) => (
             <li
               key={JSON.stringify([row.label])}
-              className="flex min-w-0 items-start gap-2 rounded-lg bg-surface-raised px-3 py-2 text-xs leading-6"
+              className="flex min-w-0 items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-6"
             >
               <span
                 aria-hidden="true"
                 className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: colors[index % colors.length] }}
               />
-              <span className="min-w-0 flex-1 break-words text-text-secondary" dir="auto">
+              <span className="min-w-0 flex-1 break-words text-slate-600" dir="auto">
                 {labels[index]}
               </span>
-              <span className="shrink-0 font-medium text-text-primary tabular-nums" dir="auto">
+              <span className="shrink-0 font-medium text-slate-900 tabular-nums" dir="auto">
                 {formatExactValue(row.value, locale)}
               </span>
             </li>
@@ -360,8 +360,8 @@ export const WarehouseChart = ({
         </ul>
       )}
       {showValues && (
-        <details className="rounded-xl border border-border-default bg-surface-raised p-3 text-sm">
-          <summary className="cursor-pointer font-medium text-text-secondary">
+        <details className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-slate-600">
             {t('charts.viewValues')}
           </summary>
           <div className="mt-3 max-h-80 overflow-auto">
@@ -379,7 +379,7 @@ export const WarehouseChart = ({
               </thead>
               <tbody>
                 {rows.map((row, index) => (
-                  <tr key={JSON.stringify([row.label])} className="border-t border-border-default">
+                  <tr key={JSON.stringify([row.label])} className="border-t border-slate-200">
                     <th scope="row" className="p-3 text-start font-normal" dir="auto">
                       {labels[index]}
                     </th>

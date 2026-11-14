@@ -118,14 +118,14 @@ export const CubeQueryPanel = ({
       <h3 id={`${id}-title`} className="font-bold">
         {d('title')}
       </h3>
-      <p className="text-sm text-muted-foreground">{d('description')}</p>
+      <p className="text-sm text-slate-500">{d('description')}</p>
       <div className="grid min-h-[65vh] gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="space-y-3 rounded-lg border bg-muted/20 p-3">
+        <aside className="space-y-3 rounded-lg border bg-slate-100/20 p-3">
           <h4 className="font-semibold">{d('cubes')}</h4>
           <label className="block text-sm">
             {d('source')}
             <select
-              className="mt-1 w-full rounded-md border bg-background p-2"
+              className="mt-1 w-full rounded-md border bg-white p-2"
               value={cube}
               onChange={(event) => {
                 setCube(event.target.value);
@@ -174,17 +174,17 @@ export const CubeQueryPanel = ({
                 return (
                   <details key={cubeName} open>
                     <summary
-                      className="cursor-pointer rounded-md bg-primary/10 p-2 font-medium text-primary"
+                      className="cursor-pointer rounded-md bg-teal-700/10 p-2 font-medium text-teal-700"
                       dir="ltr"
                     >
                       {cubeName}
                     </summary>
                     <fieldset className="mt-2 space-y-1">
-                      <legend className="text-xs text-muted-foreground">{t('measure')}</legend>
+                      <legend className="text-xs text-slate-500">{t('measure')}</legend>
                       {cubeMeasures.map((item) => (
                         <label
                           key={item.name}
-                          className={`flex items-start gap-2 rounded-md p-2 text-sm ${measure === item.name ? 'bg-primary/10' : ''}`}
+                          className={`flex items-start gap-2 rounded-md p-2 text-sm ${measure === item.name ? 'bg-teal-700/10' : ''}`}
                         >
                           <input
                             type="radio"
@@ -194,20 +194,20 @@ export const CubeQueryPanel = ({
                           />
                           <span className="min-w-0 break-all" dir="ltr">
                             # {item.title}
-                            <small className="block text-muted-foreground">{item.name}</small>
+                            <small className="block text-slate-500">{item.name}</small>
                           </span>
                         </label>
                       ))}
                     </fieldset>
                     <fieldset className="mt-3 space-y-1">
-                      <legend className="text-xs text-muted-foreground">{t('dimension')}</legend>
+                      <legend className="text-xs text-slate-500">{t('dimension')}</legend>
                       {cubeDimensions.map((item) => {
                         const isTime = item.type === 'time';
                         const checked = (isTime ? time : dimension) === item.name;
                         return (
                           <label
                             key={item.name}
-                            className={`flex items-start gap-2 rounded-md p-2 text-sm ${checked ? 'bg-primary/10' : ''}`}
+                            className={`flex items-start gap-2 rounded-md p-2 text-sm ${checked ? 'bg-teal-700/10' : ''}`}
                           >
                             <input
                               type="checkbox"
@@ -222,7 +222,7 @@ export const CubeQueryPanel = ({
                             />
                             <span className="min-w-0 break-all" dir="ltr">
                               {isTime ? '◷' : '◇'} {item.title}
-                              <small className="block text-muted-foreground">{item.name}</small>
+                              <small className="block text-slate-500">{item.name}</small>
                             </span>
                           </label>
                         );
@@ -277,7 +277,7 @@ export const CubeQueryPanel = ({
             <label className="rounded-lg border p-3 text-sm">
               <span className="mb-2 block font-semibold">{d('columns')}</span>
               <select
-                className="w-full rounded-md border bg-background p-2"
+                className="w-full rounded-md border bg-white p-2"
                 value={dimension}
                 onChange={(event) => {
                   setDimension(event.target.value);
@@ -299,7 +299,7 @@ export const CubeQueryPanel = ({
             <label className="rounded-lg border p-3 text-sm">
               <span className="mb-2 block font-semibold">{d('rows')}</span>
               <select
-                className="w-full rounded-md border bg-background p-2"
+                className="w-full rounded-md border bg-white p-2"
                 value={measure}
                 onChange={(event) => setMeasure(event.target.value)}
               >
@@ -329,7 +329,7 @@ export const CubeQueryPanel = ({
             </section>
             <section className="space-y-2 rounded-lg border p-3 text-sm">
               <h4 className="font-semibold">{d('suggestions')}</h4>
-              <p className="text-muted-foreground">
+              <p className="text-slate-500">
                 {d(time ? 'timeHint' : dimension ? 'categoryHint' : 'tableHint')}
               </p>
               <Button
@@ -349,7 +349,7 @@ export const CubeQueryPanel = ({
             <summary className="cursor-pointer font-medium">{t('filtersTitle')}</summary>
             <form
               id={`${id}-query-form`}
-              className="grid gap-3 rounded-lg border bg-muted/10 p-3 sm:grid-cols-2"
+              className="grid gap-3 rounded-lg border bg-slate-100/10 p-3 sm:grid-cols-2"
               onSubmit={(event) => {
                 event.preventDefault();
                 if (!client || !measure) return;
@@ -402,7 +402,7 @@ export const CubeQueryPanel = ({
               <label>
                 {t('timeDimension')}
                 <select
-                  className="block w-full rounded-md border bg-background p-2"
+                  className="block w-full rounded-md border bg-white p-2"
                   value={time}
                   onChange={(event) => setTime(event.target.value)}
                 >
@@ -422,7 +422,7 @@ export const CubeQueryPanel = ({
                 {t('granularity')}
                 <select
                   disabled={!time}
-                  className="block w-full rounded-md border bg-background p-2"
+                  className="block w-full rounded-md border bg-white p-2"
                   value={granularity}
                   onChange={(event) => setGranularity(event.target.value)}
                 >
@@ -457,7 +457,7 @@ export const CubeQueryPanel = ({
               </label>
             </form>
           </details>
-          <p className="text-sm text-muted-foreground">{t('note')}</p>
+          <p className="text-sm text-slate-500">{t('note')}</p>
           {submitted && (
             <details>
               <summary>{t('json')}</summary>
@@ -469,7 +469,7 @@ export const CubeQueryPanel = ({
           {query.isFetching && <p role="status">{t('loading')}</p>}
           {query.isError && <p role="alert">{t('error', { message: query.error.message })}</p>}
           {!submitted && !onApply && (
-            <p className="flex min-h-80 items-center justify-center rounded-lg border bg-muted/20 p-16 text-center text-muted-foreground">
+            <p className="flex min-h-80 items-center justify-center rounded-lg border bg-slate-100/20 p-16 text-center text-slate-500">
               {t('start')}
             </p>
           )}

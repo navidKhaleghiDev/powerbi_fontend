@@ -29,7 +29,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
   return (
     <fieldset className="space-y-3">
       <legend className="font-medium">{t('title')}</legend>
-      <p className="text-sm text-muted-foreground">{t('help')}</p>
+      <p className="text-sm text-slate-500">{t('help')}</p>
       {value.map((item) => {
         const target = tables.find((table) => `${table.schema}.${table.name}` === item.table);
         return (
@@ -37,7 +37,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
             <label>
               {t('table')}
               <select
-                className="block w-full rounded-md border bg-background p-2"
+                className="block w-full rounded-md border bg-white p-2"
                 value={item.table}
                 onChange={(event) => {
                   const table = tables.find(
@@ -72,7 +72,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
             <label>
               {t('source')}
               <select
-                className="block w-full rounded-md border bg-background p-2"
+                className="block w-full rounded-md border bg-white p-2"
                 value={item.source}
                 onChange={(event) => update(item.id, { source: event.target.value })}
               >
@@ -87,7 +87,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
             <label>
               {t('target')}
               <select
-                className="block w-full rounded-md border bg-background p-2"
+                className="block w-full rounded-md border bg-white p-2"
                 value={item.target}
                 onChange={(event) => update(item.id, { target: event.target.value })}
               >
@@ -102,7 +102,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
             <label>
               {t('relationship')}
               <select
-                className="block w-full rounded-md border bg-background p-2"
+                className="block w-full rounded-md border bg-white p-2"
                 value={item.relationship}
                 onChange={(event) => update(item.id, { relationship: event.target.value })}
               >

@@ -177,7 +177,7 @@ export const DataFlowPage = () => {
   };
 
   const inputClass =
-    'w-full rounded-lg border border-border-default bg-surface-default px-3 py-2 text-sm text-text-primary';
+    'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900';
   const currentTableNames = selectedTables
     .map((table) => `${table.schema_name}.${table.table_name}`)
     .join(', ');
@@ -189,17 +189,17 @@ export const DataFlowPage = () => {
     >
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-surface-info-subtle p-3 text-text-info">
+          <span className="rounded-xl bg-blue-50 p-3 text-blue-700">
             <Workflow size={22} aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-medium text-text-info">{t('eyebrow')}</p>
-            <h1 className="mt-1 text-2xl font-semibold text-text-primary">{t('title')}</h1>
-            <p className="mt-2 max-w-3xl text-sm text-text-secondary">{t('description')}</p>
+            <p className="text-sm font-medium text-blue-700">{t('eyebrow')}</p>
+            <h1 className="mt-1 text-2xl font-semibold text-slate-900">{t('title')}</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-600">{t('description')}</p>
           </div>
         </div>
         {source ? (
-          <span className="inline-flex items-center gap-2 rounded-full border border-border-info px-3 py-1.5 text-sm text-text-info">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 px-3 py-1.5 text-sm text-blue-700">
             <Database size={15} aria-hidden="true" />
             {t('sourceDatabase', { type: source.db_type })}
           </span>
@@ -212,10 +212,10 @@ export const DataFlowPage = () => {
             key={item}
             className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm ${
               index === activeIndex
-                ? 'border-border-brand bg-surface-info-subtle text-text-info'
+                ? 'border-teal-500 bg-blue-50 text-blue-700'
                 : index < activeIndex
-                  ? 'border-border-success bg-surface-default text-text-success'
-                  : 'border-border-default bg-surface-default text-text-secondary'
+                  ? 'border-green-300 bg-white text-green-700'
+                  : 'border-slate-200 bg-white text-slate-600'
             }`}
             aria-current={index === activeIndex ? 'step' : undefined}
           >
@@ -227,12 +227,12 @@ export const DataFlowPage = () => {
         ))}
       </ol>
 
-      <div className="rounded-2xl border border-border-default bg-surface-default/80 p-5 shadow-sm md:p-7">
+      <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm md:p-7">
         {step === 'source' ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">{t('sourceTitle')}</h2>
-              <p className="mt-1 text-sm text-text-secondary">{t('sourceHelp')}</p>
+              <h2 className="text-xl font-semibold text-slate-900">{t('sourceTitle')}</h2>
+              <p className="mt-1 text-sm text-slate-600">{t('sourceHelp')}</p>
             </div>
             <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
               <label className="sr-only" htmlFor="database-type-search">
@@ -282,20 +282,20 @@ export const DataFlowPage = () => {
               </select>
             </div>
             {typesQuery.isPending ? (
-              <div className="flex items-center gap-2 py-12 text-sm text-text-secondary">
+              <div className="flex items-center gap-2 py-12 text-sm text-slate-600">
                 <LoaderCircle className="animate-spin" size={18} aria-hidden="true" />
                 {t('loadingTypes')}
               </div>
             ) : typesQuery.isError ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-danger p-4">
-                <p className="text-sm text-text-danger">{t('loadTypesError')}</p>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-300 p-4">
+                <p className="text-sm text-red-700">{t('loadTypesError')}</p>
                 <Button type="button" variant="outline" onClick={() => void typesQuery.refetch()}>
                   <RefreshCw size={15} aria-hidden="true" />
                   {t('retry')}
                 </Button>
               </div>
             ) : typesQuery.data.results.length === 0 ? (
-              <p className="rounded-xl border border-border-default p-6 text-center text-sm text-text-secondary">
+              <p className="rounded-xl border border-slate-200 p-6 text-center text-sm text-slate-600">
                 {t('noTypes')}
               </p>
             ) : (
@@ -306,7 +306,7 @@ export const DataFlowPage = () => {
                       type="button"
                       key={databaseType.id}
                       onClick={() => selectSource(databaseType)}
-                      className="flex min-h-28 items-center gap-4 rounded-xl border border-border-default bg-surface-default p-4 text-start transition hover:border-border-brand hover:bg-surface-info-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-brand-default"
+                      className="flex min-h-28 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 text-start transition hover:border-teal-500 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                     >
                       {databaseType.image ? (
                         <img
@@ -316,23 +316,23 @@ export const DataFlowPage = () => {
                           loading="lazy"
                         />
                       ) : (
-                        <Database className="size-10 shrink-0 text-text-info" aria-hidden="true" />
+                        <Database className="size-10 shrink-0 text-blue-700" aria-hidden="true" />
                       )}
                       <span className="min-w-0">
-                        <strong className="block truncate text-base text-text-primary">
+                        <strong className="block truncate text-base text-slate-900">
                           {databaseType.db_type}
                         </strong>
-                        <span className="mt-1 block text-xs text-text-secondary">
+                        <span className="mt-1 block text-xs text-slate-600">
                           {databaseType.category}
                         </span>
-                        <span className="mt-2 inline-block rounded-full border border-border-info px-2 py-0.5 text-xs text-text-info">
+                        <span className="mt-2 inline-block rounded-full border border-blue-200 px-2 py-0.5 text-xs text-blue-700">
                           {t('sourceLabel')}
                         </span>
                       </span>
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center justify-between gap-3 border-t border-border-default pt-4 text-sm text-text-secondary">
+                <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-600">
                   <span>{t('typeCount', { count: typesQuery.data.count })}</span>
                   <div className="flex gap-2">
                     <Button
@@ -373,14 +373,14 @@ export const DataFlowPage = () => {
         {step === 'connection' ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">{t('connectionTitle')}</h2>
-              <p className="mt-1 text-sm text-text-secondary">
+              <h2 className="text-xl font-semibold text-slate-900">{t('connectionTitle')}</h2>
+              <p className="mt-1 text-sm text-slate-600">
                 {t('connectionHelp', { type: source?.db_type ?? '' })}
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {(['host', 'port', 'database', 'username', 'password'] as const).map((field) => (
-                <label key={field} className="space-y-1.5 text-sm font-medium text-text-primary">
+                <label key={field} className="space-y-1.5 text-sm font-medium text-slate-900">
                   <span>{inputLabels[field]}</span>
                   <input
                     className={inputClass}
@@ -395,7 +395,7 @@ export const DataFlowPage = () => {
                 </label>
               ))}
             </div>
-            <div className="flex flex-wrap justify-between gap-3 border-t border-border-default pt-5">
+            <div className="flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-5">
               <Button type="button" variant="outline" onClick={() => setStep('source')}>
                 {isPersian ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
                 {t('back')}
@@ -434,7 +434,7 @@ export const DataFlowPage = () => {
               </div>
             </div>
             {!connectionIsTested ? (
-              <p className="text-xs text-text-secondary">{t('testBeforeContinue')}</p>
+              <p className="text-xs text-slate-600">{t('testBeforeContinue')}</p>
             ) : null}
           </div>
         ) : null}
@@ -442,8 +442,8 @@ export const DataFlowPage = () => {
         {step === 'tables' ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">{t('tablesTitle')}</h2>
-              <p className="mt-1 text-sm text-text-secondary">
+              <h2 className="text-xl font-semibold text-slate-900">{t('tablesTitle')}</h2>
+              <p className="mt-1 text-sm text-slate-600">
                 {t('tablesHelp', { database: connection.database })}
               </p>
             </div>
@@ -460,11 +460,11 @@ export const DataFlowPage = () => {
                         `${item.schema_name}.${item.table_name}` ===
                         `${table.schema_name}.${table.table_name}`,
                     )}
-                    className={`flex items-center justify-between gap-3 rounded-xl border p-4 text-start hover:border-border-brand hover:bg-surface-info-subtle disabled:opacity-60 ${selectedTables.some((item) => `${item.schema_name}.${item.table_name}` === `${table.schema_name}.${table.table_name}`) ? 'border-border-brand bg-surface-info-subtle' : 'border-border-default'}`}
+                    className={`flex items-center justify-between gap-3 rounded-xl border p-4 text-start hover:border-teal-500 hover:bg-blue-50 disabled:opacity-60 ${selectedTables.some((item) => `${item.schema_name}.${item.table_name}` === `${table.schema_name}.${table.table_name}`) ? 'border-teal-500 bg-blue-50' : 'border-slate-200'}`}
                   >
                     <span>
-                      <strong className="block text-text-primary">{table.table_name}</strong>
-                      <span className="text-xs text-text-secondary">
+                      <strong className="block text-slate-900">{table.table_name}</strong>
+                      <span className="text-xs text-slate-600">
                         {t('schemaLabel', { schema: table.schema_name })}
                       </span>
                     </span>
@@ -473,23 +473,23 @@ export const DataFlowPage = () => {
                         `${item.schema_name}.${item.table_name}` ===
                         `${table.schema_name}.${table.table_name}`,
                     ) ? (
-                      <Check className="text-text-info" size={18} aria-hidden="true" />
+                      <Check className="text-blue-700" size={18} aria-hidden="true" />
                     ) : null}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="rounded-xl border border-border-default p-5 text-sm text-text-secondary">
+              <p className="rounded-xl border border-slate-200 p-5 text-sm text-slate-600">
                 {t('noTables')}
               </p>
             )}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-default pt-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
               <Button type="button" variant="outline" onClick={() => setStep('connection')}>
                 {isPersian ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
                 {t('back')}
               </Button>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-text-secondary">
+                <span className="text-sm text-slate-600">
                   {t('selectedCount', { count: selectedTables.length })}
                 </span>
                 <Button
@@ -511,8 +511,8 @@ export const DataFlowPage = () => {
         {step === 'columns' ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">{t('columnsTitle')}</h2>
-              <p className="mt-1 text-sm text-text-secondary">
+              <h2 className="text-xl font-semibold text-slate-900">{t('columnsTitle')}</h2>
+              <p className="mt-1 text-sm text-slate-600">
                 {t('columnsHelp', { table: currentTableNames })}
               </p>
             </div>
@@ -522,10 +522,10 @@ export const DataFlowPage = () => {
                 const tableColumns = columnsByTable[qualifiedName] ?? [];
                 return (
                   <section key={qualifiedName} className="space-y-3">
-                    <h3 className="font-semibold text-text-primary">{qualifiedName}</h3>
-                    <div className="overflow-x-auto rounded-xl border border-border-default">
+                    <h3 className="font-semibold text-slate-900">{qualifiedName}</h3>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
                       <table className="w-full min-w-[34rem] text-start text-sm">
-                        <thead className="bg-surface-raised text-text-secondary">
+                        <thead className="bg-slate-50 text-slate-600">
                           <tr>
                             <th className="px-4 py-3">{t('columnName')}</th>
                             <th className="px-4 py-3">{t('sourceType')}</th>
@@ -535,22 +535,15 @@ export const DataFlowPage = () => {
                         <tbody>
                           {tableColumns.length ? (
                             tableColumns.map((column) => (
-                              <tr
-                                key={column.column_name}
-                                className="border-t border-border-default"
-                              >
-                                <td className="px-4 py-3 font-medium text-text-primary">
+                              <tr key={column.column_name} className="border-t border-slate-200">
+                                <td className="px-4 py-3 font-medium text-slate-900">
                                   {column.column_name}
                                 </td>
-                                <td className="px-4 py-3 text-text-secondary">
-                                  {column.data_type}
-                                </td>
+                                <td className="px-4 py-3 text-slate-600">{column.data_type}</td>
                                 <td className="px-4 py-3">
                                   <span
                                     className={
-                                      column.consumer_type
-                                        ? 'text-text-primary'
-                                        : 'text-text-warning'
+                                      column.consumer_type ? 'text-slate-900' : 'text-amber-700'
                                     }
                                   >
                                     {column.consumer_type
@@ -562,7 +555,7 @@ export const DataFlowPage = () => {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={3} className="px-4 py-6 text-center text-text-secondary">
+                              <td colSpan={3} className="px-4 py-6 text-center text-slate-600">
                                 {t('noColumns')}
                               </td>
                             </tr>
@@ -574,7 +567,7 @@ export const DataFlowPage = () => {
                 );
               })}
             </div>
-            <div className="flex justify-between gap-3 border-t border-border-default pt-5">
+            <div className="flex justify-between gap-3 border-t border-slate-200 pt-5">
               <Button type="button" variant="outline" onClick={() => setStep('tables')}>
                 {isPersian ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
                 {t('back')}
@@ -590,8 +583,8 @@ export const DataFlowPage = () => {
         {step === 'connector' ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">{t('connectorTitle')}</h2>
-              <p className="mt-1 text-sm text-text-secondary">
+              <h2 className="text-xl font-semibold text-slate-900">{t('connectorTitle')}</h2>
+              <p className="mt-1 text-sm text-slate-600">
                 {t('connectorHelp', { table: currentTableNames })}
               </p>
             </div>
@@ -604,7 +597,7 @@ export const DataFlowPage = () => {
                   ['publicationName', publicationName, setPublicationName],
                 ] as const
               ).map(([field, value, setValue]) => (
-                <label key={field} className="space-y-1.5 text-sm font-medium text-text-primary">
+                <label key={field} className="space-y-1.5 text-sm font-medium text-slate-900">
                   <span>{inputLabels[field]}</span>
                   <input
                     className={inputClass}
@@ -615,19 +608,19 @@ export const DataFlowPage = () => {
                 </label>
               ))}
             </div>
-            <div className="rounded-xl bg-surface-raised p-4 text-sm text-text-secondary">
+            <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
               <p>
-                <strong className="text-text-primary">{t('selectedSource')}:</strong>{' '}
-                {source?.db_type} · {connection.host}:{connection.port}/{connection.database}
+                <strong className="text-slate-900">{t('selectedSource')}:</strong> {source?.db_type}{' '}
+                · {connection.host}:{connection.port}/{connection.database}
               </p>
               <p className="mt-1">
-                <strong className="text-text-primary">{t('selectedTables')}:</strong>{' '}
+                <strong className="text-slate-900">{t('selectedTables')}:</strong>{' '}
                 {currentTableNames}
               </p>
               <p className="mt-1 text-xs break-all">table.include.list: {currentTableNames}</p>
               <p className="mt-3 text-xs">{t('connectorCredentialNotice')}</p>
             </div>
-            <div className="flex justify-between gap-3 border-t border-border-default pt-5">
+            <div className="flex justify-between gap-3 border-t border-slate-200 pt-5">
               <Button type="button" variant="outline" onClick={() => setStep('columns')}>
                 {isPersian ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
                 {t('back')}
@@ -650,11 +643,11 @@ export const DataFlowPage = () => {
 
         {step === 'complete' ? (
           <div className="mx-auto max-w-xl space-y-4 py-10 text-center">
-            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-surface-success-subtle text-text-success">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-green-50 text-green-700">
               <Check size={28} aria-hidden="true" />
             </span>
-            <h2 className="text-2xl font-semibold text-text-primary">{t('completeTitle')}</h2>
-            <p className="text-sm text-text-secondary">
+            <h2 className="text-2xl font-semibold text-slate-900">{t('completeTitle')}</h2>
+            <p className="text-sm text-slate-600">
               {t('completeDescription', { name: connectorName, table: currentTableNames })}
             </p>
             <Button
@@ -674,7 +667,7 @@ export const DataFlowPage = () => {
           </div>
         ) : null}
       </div>
-      <p className="text-xs text-text-secondary">{t('secureCredentials')}</p>
+      <p className="text-xs text-slate-600">{t('secureCredentials')}</p>
     </section>
   );
 };

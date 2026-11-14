@@ -19,21 +19,21 @@ export const ToastViewport = () => {
           <div
             key={item.id}
             role={isError ? 'alert' : 'status'}
-            className={`flex items-start gap-3 rounded-xl border bg-surface-default p-4 text-sm text-text-primary shadow-lg ${
-              isError ? 'border-border-danger' : 'border-border-success'
+            className={`flex items-start gap-3 rounded-xl border bg-white p-4 text-sm text-slate-900 shadow-lg ${
+              isError ? 'border-red-300' : 'border-green-300'
             }`}
           >
             <Icon
               size={18}
               aria-hidden="true"
-              className={isError ? 'text-text-danger' : 'text-text-success'}
+              className={isError ? 'text-red-700' : 'text-green-700'}
             />
             <p className="min-w-0 flex-1 break-words">
               {item.message || t(isError ? 'requestFailed' : 'actionSucceeded')}
             </p>
             <button
               type="button"
-              className="rounded p-0.5 text-text-secondary hover:bg-surface-raised"
+              className="rounded p-0.5 text-slate-600 hover:bg-slate-50"
               aria-label={t('dismiss')}
               onClick={() => toast.dismiss(item.id)}
             >

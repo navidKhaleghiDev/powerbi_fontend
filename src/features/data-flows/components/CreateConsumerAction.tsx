@@ -412,7 +412,7 @@ export const CreateConsumerAction = ({ connectorName }: Props) => {
       params={{ locale, connectorName }}
       aria-label={t('open')}
       title={t('open')}
-      className="inline-flex size-8 items-center justify-center rounded-md bg-background text-foreground hover:bg-accent"
+      className="inline-flex size-8 items-center justify-center rounded-md bg-white text-slate-900 hover:bg-teal-50"
     >
       <PlusCircle aria-hidden="true" className="size-4" />
     </Link>
@@ -479,7 +479,7 @@ export const CreateConsumerPage = () => {
         <Link
           to="/$locale/cdc-connections"
           params={{ locale }}
-          className="inline-flex size-9 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-raised"
+          className="inline-flex size-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-50"
           aria-label={t('back')}
         >
           {isPersian ? (
@@ -489,11 +489,9 @@ export const CreateConsumerPage = () => {
           )}
         </Link>
         <div>
-          <p className="text-sm font-medium text-text-info">{t('pageEyebrow')}</p>
-          <h1 className="mt-1 text-2xl font-semibold text-text-primary">{t('title')}</h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            {t('description', { name: connectorName })}
-          </p>
+          <p className="text-sm font-medium text-blue-700">{t('pageEyebrow')}</p>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">{t('title')}</h1>
+          <p className="mt-2 text-sm text-slate-600">{t('description', { name: connectorName })}</p>
         </div>
       </header>
       {configQuery.isPending ? (

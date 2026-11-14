@@ -48,7 +48,7 @@ export const CubeDataCard = ({
 
   return (
     <section
-      className="overflow-hidden rounded-xl border bg-background shadow-sm"
+      className="overflow-hidden rounded-xl border bg-white shadow-sm"
       aria-label={t('workspaceTabs')}
     >
       <div className="space-y-4 p-4 lg:p-5">
