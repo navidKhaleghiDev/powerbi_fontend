@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   login: '/api/login/',
   refreshToken: '/api/token/refresh/',
   databaseTypes: '/api/database-types/',
+  dataTypes: '/api/data-types/',
   connectionTest: '/api/database/connection-test/',
   databaseTables: '/api/database/tables/',
   databaseColumns: '/api/database/columns/',
@@ -11,6 +12,12 @@ export const API_ENDPOINTS = {
   connector: (name: string) => `/api/connect/${encodeURIComponent(name)}/`,
   connectorConfig: (source: string) => `/api/connect/${encodeURIComponent(source)}/config/`,
   consumer: '/api/consumer/',
+  kpiAvailableTables: '/api/kpis/available-tables/',
+  kpiQuery: '/api/kpis/query/',
+  kpiChartQuery: '/api/kpis/chart-query/',
+  kpiCreateDashboard: '/api/kpis/create-dashboard/',
+  kpiDashboards: '/api/kpis/dashboards/',
+  kpiDashboard: (id: number) => `/api/kpis/dashboards/${id}/`,
 } as const;
 
 const API_BASE_URL = appEnv.apiBaseUrl;

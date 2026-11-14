@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, LoaderCircle, Plus, Trash2, X } from 'luc
 import {
   createContext,
   useContext,
+  useId,
   useMemo,
   useState,
   type FormEvent,
@@ -13,6 +14,7 @@ import { useLocale, useTranslations } from 'use-intl';
 
 import {
   createConsumer,
+  getDataTypes,
   getConnectorConfig,
   getDatabaseColumns,
   type ConsumerColumnMapping,
@@ -207,7 +209,13 @@ const ConsumerTableEditor = ({
   onRemove: () => void;
 }) => {
   const t = useTranslations('cdcConnections.consumer');
+  const typeListId = useId();
   const { credentials, revision, requestCredentials } = useColumnCredentials();
+  const dataTypes = useQuery({
+    queryKey: ['database-data-types', 'clickhouse'],
+    queryFn: () => getDataTypes('clickhouse'),
+    staleTime: 300_000,
+  });
   const columnsQuery = useQuery({
     queryKey: ['consumer-source-columns', connectorName, table.source_table, revision],
     queryFn: () => {
@@ -328,6 +336,7 @@ const ConsumerTableEditor = ({
               <Input
                 aria-label={t('columnType')}
                 value={column.type}
+                list={typeListId}
                 onChange={(event) => updateColumn(index, { type: event.target.value })}
                 placeholder={t('columnTypePlaceholder')}
               />
@@ -353,6 +362,11 @@ const ConsumerTableEditor = ({
               </Button>
             </div>
           ))}
+          <datalist id={typeListId}>
+            {dataTypes.data?.map((type) => (
+              <option key={type.value} value={type.value} label={type.name} />
+            ))}
+          </datalist>
           <Button
             type="button"
             variant="outline"

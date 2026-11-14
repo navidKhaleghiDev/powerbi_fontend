@@ -31,6 +31,7 @@ import {
   type AnalyticsMetadata,
   type AnalyticsResult,
 } from '@/features/datasets/api/analytics';
+import { LiveKpiOverview } from '@/features/kpis/organisms/LiveKpiOverview';
 import { Button, buttonVariants } from '@/shared/components/atoms/button';
 import { Input } from '@/shared/components/atoms/input';
 import { NativeSelect } from '@/shared/components/atoms/native-select';
@@ -272,6 +273,7 @@ const LiveDashboard = ({
           </Button>
         </p>
       )}
+      <LiveKpiOverview />
       <div className="bi-board-layout">
         <div className="bi-canvas-area">
           {!metadata.datasets.length ? (
@@ -514,7 +516,7 @@ const WidgetEditor = ({
   const [dimension, setDimension] = useState(widget.query?.dimensions?.[0] ?? '');
   const [visual, setVisual] = useState<WidgetVisual>(widget.visual);
   const [title, setTitle] = useState(widget.title);
-  const [color, setColor] = useState(widget.chartColor ?? '#0d9488');
+  const [color, setColor] = useState(widget.chartColor ?? '#d4d4d8');
   const [showValues, setShowValues] = useState(widget.showValues ?? false);
   const selected = resolveMetric(metadata.datasets, measure);
   return (

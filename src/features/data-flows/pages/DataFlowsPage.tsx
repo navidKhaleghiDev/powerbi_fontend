@@ -81,7 +81,7 @@ export const DataFlowsPage = () => {
           <Link
             to="/$locale/cdc-connections/new"
             params={{ locale }}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-600"
           >
             <Plus size={16} aria-hidden="true" />
             {t('create')}
@@ -109,7 +109,7 @@ export const DataFlowsPage = () => {
           <Link
             to="/$locale/cdc-connections/new"
             params={{ locale }}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-600"
           >
             {t('create')}
             {isPersian ? <ArrowRight className="rotate-180" size={16} /> : <ArrowRight size={16} />}

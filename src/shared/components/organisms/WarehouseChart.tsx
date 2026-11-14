@@ -32,7 +32,7 @@ ChartJS.register(
   Tooltip,
 );
 
-const chartColors = ['#0d9488', '#6366f1', '#f59e0b', '#e11d48', '#8b5cf6', '#0284c7'];
+const chartColors = ['#d4d4d8', '#b7b7bd', '#9c9ca3', '#808087', '#e4e4e7', '#68686f'];
 const glowFrames = new WeakMap<ChartJS, number>();
 const lineGlow: Plugin<'line'> = {
   id: 'dashboardLineGlow',
@@ -55,7 +55,7 @@ const lineGlow: Plugin<'line'> = {
     const ctx = chart.ctx;
     ctx.save();
     const color = chart.data.datasets[0]?.borderColor;
-    ctx.shadowColor = typeof color === 'string' ? color : '#0d9488';
+    ctx.shadowColor = typeof color === 'string' ? color : '#d4d4d8';
     ctx.shadowBlur = 3 + 5 * (0.5 + 0.5 * Math.sin(performance.now() / 550));
     line.draw(ctx, chart.chartArea);
     ctx.restore();
@@ -101,12 +101,12 @@ export const WarehouseChart = ({
 
   const defaultColor =
     kind === 'bar' || kind === 'horizontalBar'
-      ? '#6366f1'
+      ? '#d4d4d8'
       : kind === 'radar'
-        ? '#8b5cf6'
+        ? '#b7b7bd'
         : kind === 'heatmap'
-          ? '#0284c7'
-          : '#0d9488';
+          ? '#9c9ca3'
+          : '#d4d4d8';
   const primary = chartColor ?? defaultColor;
   const colors = categoryColors ?? chartColors;
   const rtl = locale === 'fa';
@@ -130,7 +130,7 @@ export const WarehouseChart = ({
         position: 'bottom' as const,
         rtl,
         textDirection: rtl ? 'rtl' : 'ltr',
-        labels: { color: '#475569', padding: 20, usePointStyle: true, boxWidth: 10, font },
+        labels: { color: '#b6b6ba', padding: 20, usePointStyle: true, boxWidth: 10, font },
       },
       tooltip: {
         rtl,
@@ -156,7 +156,7 @@ export const WarehouseChart = ({
         grid: { display: false },
         border: { display: false },
         ticks: {
-          color: '#64748b',
+          color: '#b6b6ba',
           font,
           maxRotation: 0,
           autoSkip: true,
@@ -170,10 +170,10 @@ export const WarehouseChart = ({
       y: {
         beginAtZero: true,
         position: rtl ? ('right' as const) : ('left' as const),
-        grid: { color: '#f1f5f9' },
+        grid: { color: '#3d3d42' },
         border: { display: false },
         ticks: {
-          color: '#64748b',
+          color: '#b6b6ba',
           font,
           maxTicksLimit: 7,
           padding: 10,
@@ -209,7 +209,7 @@ export const WarehouseChart = ({
                   style={{
                     backgroundColor:
                       value == null
-                        ? '#f1f5f3'
+                        ? '#202023'
                         : `${primary}${Math.round((0.12 + intensity * 0.55) * 255)
                             .toString(16)
                             .padStart(2, '0')}`,
@@ -231,9 +231,9 @@ export const WarehouseChart = ({
                 r: {
                   beginAtZero: true,
                   ticks: { display: false },
-                  grid: { color: '#d6e7e3' },
-                  angleLines: { color: '#d6e7e3' },
-                  pointLabels: { color: '#526a63', font },
+                  grid: { color: '#3d3d42' },
+                  angleLines: { color: '#3d3d42' },
+                  pointLabels: { color: '#b6b6ba', font },
                 },
               },
             }}
@@ -298,7 +298,7 @@ export const WarehouseChart = ({
                   tension: 0.35,
                   borderWidth: 2,
                   pointRadius: values.length > 60 ? 0 : dashboard ? 3 : 2.5,
-                  pointBackgroundColor: '#ffffff',
+                  pointBackgroundColor: '#171719',
                   pointBorderWidth: 2,
                   pointHoverRadius: 6,
                   pointHitRadius: 12,
@@ -318,7 +318,7 @@ export const WarehouseChart = ({
                   label: title,
                   data: values.map((value) => value ?? 0),
                   backgroundColor: labels.map((_, index) => colors[index % colors.length]),
-                  borderColor: '#ffffff',
+                  borderColor: '#171719',
                   borderWidth: 2,
                   hoverOffset: 8,
                 },

@@ -174,7 +174,7 @@ export const CubeQueryPanel = ({
                 return (
                   <details key={cubeName} open>
                     <summary
-                      className="cursor-pointer rounded-md bg-teal-700/10 p-2 font-medium text-teal-700"
+                      className="cursor-pointer rounded-md bg-zinc-300/10 p-2 font-medium text-zinc-300"
                       dir="ltr"
                     >
                       {cubeName}
@@ -184,7 +184,7 @@ export const CubeQueryPanel = ({
                       {cubeMeasures.map((item) => (
                         <label
                           key={item.name}
-                          className={`flex items-start gap-2 rounded-md p-2 text-sm ${measure === item.name ? 'bg-teal-700/10' : ''}`}
+                          className={`flex items-start gap-2 rounded-md p-2 text-sm ${measure === item.name ? 'bg-zinc-300/10' : ''}`}
                         >
                           <input
                             type="radio"
@@ -207,7 +207,7 @@ export const CubeQueryPanel = ({
                         return (
                           <label
                             key={item.name}
-                            className={`flex items-start gap-2 rounded-md p-2 text-sm ${checked ? 'bg-teal-700/10' : ''}`}
+                            className={`flex items-start gap-2 rounded-md p-2 text-sm ${checked ? 'bg-zinc-300/10' : ''}`}
                           >
                             <input
                               type="checkbox"

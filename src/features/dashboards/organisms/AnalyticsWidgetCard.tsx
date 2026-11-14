@@ -236,7 +236,7 @@ export const AnalyticsWidgetCard = ({
       className={`bi-widget analytics-widget bi-widget-${widget.size} bi-widget-visual-${widget.visual}`}
       style={
         {
-          '--widget-accent': widget.chartColor ?? '#0d9488',
+          '--widget-accent': widget.chartColor ?? '#d4d4d8',
           ...(transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : {}),
         } as CSSProperties
       }

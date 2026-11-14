@@ -16,6 +16,28 @@ export interface PaginatedDatabaseTypes {
   results: DatabaseType[];
 }
 
+export interface DatabaseDataType {
+  name: string;
+  value: string;
+}
+
+export const getDataTypes = async (dbType: string): Promise<DatabaseDataType[]> => {
+  const response = await apiRequest(
+    `${API_ENDPOINTS.dataTypes}?${new URLSearchParams({ db_type: dbType }).toString()}`,
+  );
+  const payload: unknown = await response.json();
+  if (!Array.isArray(payload)) throw new Error('The data types response has an unexpected format');
+  return (payload as unknown[]).filter(
+    (item): item is DatabaseDataType =>
+      typeof item === 'object' &&
+      item !== null &&
+      'name' in item &&
+      'value' in item &&
+      typeof item.name === 'string' &&
+      typeof item.value === 'string',
+  );
+};
+
 export interface DatabaseCredentials {
   db_type: string;
   host: string;

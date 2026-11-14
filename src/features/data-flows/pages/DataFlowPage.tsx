@@ -212,7 +212,7 @@ export const DataFlowPage = () => {
             key={item}
             className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm ${
               index === activeIndex
-                ? 'border-teal-500 bg-blue-50 text-blue-700'
+                ? 'border-zinc-400 bg-blue-50 text-blue-700'
                 : index < activeIndex
                   ? 'border-green-300 bg-white text-green-700'
                   : 'border-slate-200 bg-white text-slate-600'
@@ -306,7 +306,7 @@ export const DataFlowPage = () => {
                       type="button"
                       key={databaseType.id}
                       onClick={() => selectSource(databaseType)}
-                      className="flex min-h-28 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 text-start transition hover:border-teal-500 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                      className="flex min-h-28 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 text-start transition hover:border-zinc-400 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-300"
                     >
                       {databaseType.image ? (
                         <img
@@ -460,7 +460,7 @@ export const DataFlowPage = () => {
                         `${item.schema_name}.${item.table_name}` ===
                         `${table.schema_name}.${table.table_name}`,
                     )}
-                    className={`flex items-center justify-between gap-3 rounded-xl border p-4 text-start hover:border-teal-500 hover:bg-blue-50 disabled:opacity-60 ${selectedTables.some((item) => `${item.schema_name}.${item.table_name}` === `${table.schema_name}.${table.table_name}`) ? 'border-teal-500 bg-blue-50' : 'border-slate-200'}`}
+                    className={`flex items-center justify-between gap-3 rounded-xl border p-4 text-start hover:border-zinc-400 hover:bg-blue-50 disabled:opacity-60 ${selectedTables.some((item) => `${item.schema_name}.${item.table_name}` === `${table.schema_name}.${table.table_name}`) ? 'border-zinc-400 bg-blue-50' : 'border-slate-200'}`}
                   >
                     <span>
                       <strong className="block text-slate-900">{table.table_name}</strong>

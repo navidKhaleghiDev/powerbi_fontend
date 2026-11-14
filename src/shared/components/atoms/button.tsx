@@ -4,18 +4,18 @@ import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-all focus-visible:border-teal-500 focus-visible:ring-[3px] focus-visible:ring-teal-500/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-red-700 aria-invalid:ring-red-700/20 dark:aria-invalid:ring-red-700/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-all focus-visible:border-zinc-400 focus-visible:ring-[3px] focus-visible:ring-zinc-400/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-red-700 aria-invalid:ring-red-700/20 dark:aria-invalid:ring-red-700/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: 'bg-teal-700 text-white hover:bg-teal-700/90',
+        default: 'bg-zinc-700 text-white hover:bg-zinc-600',
         destructive:
           'bg-red-700 text-white hover:bg-red-700/90 focus-visible:ring-red-700/20 dark:bg-red-700/60 dark:focus-visible:ring-red-700/40',
         outline:
-          'border bg-white shadow-xs hover:bg-teal-50 hover:text-slate-900 dark:border-slate-300 dark:bg-slate-300/30 dark:hover:bg-slate-300/50',
+          'border bg-white shadow-xs hover:bg-zinc-800 hover:text-zinc-100 dark:border-slate-300 dark:bg-slate-300/30 dark:hover:bg-slate-300/50',
         secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-100/80',
-        ghost: 'hover:bg-teal-50 hover:text-slate-900 dark:hover:bg-teal-50/50',
-        link: 'text-teal-700 underline-offset-4 hover:underline',
+        ghost: 'hover:bg-zinc-800 hover:text-zinc-100 dark:hover:bg-zinc-800/50',
+        link: 'text-zinc-300 underline-offset-4 hover:underline',
       },
       size: {
         auto: 'block h-auto whitespace-normal',

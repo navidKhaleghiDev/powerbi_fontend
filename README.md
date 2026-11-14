@@ -1,4 +1,4 @@
-# BI Control Center — React frontend
+# NETBI — React frontend
 
 A frontend-only React application built with Vite and strict TypeScript, TanStack Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
 
