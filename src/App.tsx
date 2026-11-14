@@ -47,18 +47,14 @@ export const LocaleWorkspace = () => {
   const { locale } = useParams({ from: '/$locale' });
   const { pathname } = useLocation();
   const login = pathname.replace(/\/$/, '').endsWith('/login');
-  const valid = locale === 'en' || locale === 'fa';
   const messages = locale === 'en' ? en : fa;
 
   useEffect(() => {
-    if (!valid) return;
     document.documentElement.lang = locale;
     document.documentElement.dir = locale === 'fa' ? 'rtl' : 'ltr';
     document.title = messages.workspace.title;
     document.body.className = `workspace-canvas ${locale === 'fa' ? 'font-kalameh' : 'font-sans'}`;
-  }, [locale, valid, messages]);
-
-  if (!valid) return <NotFound />;
+  }, [locale, messages]);
 
   return (
     <IntlProvider locale={locale} messages={messages} timeZone="Asia/Tehran">

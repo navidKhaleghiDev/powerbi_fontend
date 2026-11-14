@@ -16,13 +16,13 @@ export const IconTooltip = ({ label, children }: Props) => {
     top: number;
     side: 'left' | 'right';
   } | null>(null);
-  const side = locale === 'fa' ? 'left' : 'right';
   const show = () => {
     const rect = anchorRef.current?.getBoundingClientRect();
     if (!rect) return;
+    const side = window.innerWidth - rect.right >= 270 || rect.left < 270 ? 'right' : 'left';
     setPosition({
       left: side === 'right' ? rect.right + 10 : rect.left - 10,
-      top: rect.top + rect.height / 2,
+      top: Math.max(24, Math.min(window.innerHeight - 24, rect.top + rect.height / 2)),
       side,
     });
   };

@@ -1,16 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Database, Plus, RefreshCw, Settings2, Trash2 } from 'lucide-react';
+import {
+  ArrowRight,
+  Database,
+  LayoutDashboard,
+  Plus,
+  RefreshCw,
+  Settings2,
+  Trash2,
+} from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { deleteConnector, getCdcConnections, getConnectorConfig } from '@/lib/data-flow-api';
 
 import { CreateConsumerAction } from './CreateConsumerAction';
 
 export const DataFlowsPage = () => {
   const t = useTranslations('cdcConnections');
+  const analytics = useTranslations('analytics');
   const locale = useLocale();
   const isPersian = locale === 'fa';
   const queryClient = useQueryClient();
@@ -41,7 +51,7 @@ export const DataFlowsPage = () => {
 
   return (
     <section
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-5 md:p-8"
+      className="cdc-connections-page flex w-full flex-col gap-5 p-5 md:p-8"
       dir={isPersian ? 'rtl' : 'ltr'}
     >
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -51,18 +61,29 @@ export const DataFlowsPage = () => {
           </span>
           <div>
             <p className="text-sm font-medium text-text-info">{t('eyebrow')}</p>
-            <h1 className="mt-1 text-2xl font-semibold text-text-primary">{t('title')}</h1>
+            <h1 className="mt-1 text-lg font-semibold text-text-primary">{t('title')}</h1>
             <p className="mt-2 max-w-3xl text-sm text-text-secondary">{t('description')}</p>
           </div>
         </div>
-        <Link
-          to="/$locale/cdc-connections/new"
-          params={{ locale }}
-          className="hover:bg-action-brand-hover inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
-        >
-          <Plus size={16} aria-hidden="true" />
-          {t('create')}
-        </Link>
+        <div className="flex items-center gap-2">
+          <IconTooltip label={analytics('titleDashboard')}>
+            <Link
+              to="/$locale/dashboard"
+              params={{ locale }}
+              className={buttonVariants({ variant: 'outline', size: 'icon' })}
+            >
+              <LayoutDashboard aria-hidden="true" />
+            </Link>
+          </IconTooltip>
+          <Link
+            to="/$locale/cdc-connections/new"
+            params={{ locale }}
+            className="hover:bg-action-brand-hover inline-flex items-center gap-2 rounded-lg bg-action-brand-default px-4 py-2 text-sm font-medium text-white"
+          >
+            <Plus size={16} aria-hidden="true" />
+            {t('create')}
+          </Link>
+        </div>
       </header>
 
       {connectionsQuery.isPending ? (
@@ -95,20 +116,21 @@ export const DataFlowsPage = () => {
         <>
           <div className="flex items-center justify-between gap-3 text-sm text-text-secondary">
             <p>{t('count', { count: connectionsQuery.data.length })}</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={connectionsQuery.isFetching}
-              onClick={() => void connectionsQuery.refetch()}
-            >
-              <RefreshCw
-                size={15}
-                aria-hidden="true"
-                className={connectionsQuery.isFetching ? 'animate-spin' : ''}
-              />
-              {t('refresh')}
-            </Button>
+            <IconTooltip label={t('refresh')}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={connectionsQuery.isFetching}
+                onClick={() => void connectionsQuery.refetch()}
+              >
+                <RefreshCw
+                  size={15}
+                  aria-hidden="true"
+                  className={connectionsQuery.isFetching ? 'animate-spin' : ''}
+                />
+              </Button>
+            </IconTooltip>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-border-default bg-surface-default/80 shadow-sm">
             <table className="w-full min-w-[52rem] text-start text-sm">
@@ -159,26 +181,32 @@ export const DataFlowsPage = () => {
                           {name ? (
                             <div className="flex flex-wrap items-center gap-2">
                               <CreateConsumerAction connectorName={name} />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={configMutation.isPending}
-                                onClick={() => void retrieveConfig(name).catch(() => undefined)}
+                              <IconTooltip
+                                label={
+                                  configMutation.isPending ? t('retrieving') : t('retrieveConfig')
+                                }
                               >
-                                <Settings2 size={15} aria-hidden="true" />
-                                {configMutation.isPending ? t('retrieving') : t('retrieveConfig')}
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                disabled={deleteMutation.isPending}
-                                onClick={() => removeConnection(name)}
-                              >
-                                <Trash2 size={15} aria-hidden="true" />
-                                {t('delete')}
-                              </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  disabled={configMutation.isPending}
+                                  onClick={() => void retrieveConfig(name).catch(() => undefined)}
+                                >
+                                  <Settings2 size={15} aria-hidden="true" />
+                                </Button>
+                              </IconTooltip>
+                              <IconTooltip label={t('delete')}>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  disabled={deleteMutation.isPending}
+                                  onClick={() => removeConnection(name)}
+                                >
+                                  <Trash2 size={15} aria-hidden="true" />
+                                </Button>
+                              </IconTooltip>
                             </div>
                           ) : (
                             <span className="text-text-secondary">—</span>

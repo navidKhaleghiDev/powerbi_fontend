@@ -1,8 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useTranslations } from 'use-intl';
+import { Link, useNavigate } from '@tanstack/react-router';
+import {
+  CheckCircle2,
+  CircleStop,
+  Copy,
+  Database,
+  Eye,
+  FilePenLine,
+  History,
+  Layers3,
+  Plus,
+  Rocket,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocale, useTranslations } from 'use-intl';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import {
@@ -14,8 +28,18 @@ import {
 } from '@/lib/analytics';
 
 type Field = { id: string; name: string; column: string; type: 'date' | 'number' | 'string' };
-export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
+export const AnalyticsDatasets = ({
+  templates,
+  mode = 'list',
+  datasetId,
+}: {
+  templates: Metric[];
+  mode?: 'list' | 'create' | 'edit' | 'clone';
+  datasetId?: number;
+}) => {
   const t = useTranslations('analytics');
+  const locale = useLocale();
+  const navigate = useNavigate();
   const client = useQueryClient();
   const sources = useQuery({
     queryKey: ['analytics-sources'],
@@ -55,6 +79,7 @@ export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
   const [customField, setCustomField] = useState('amount');
   const [fixedFilters, setFixedFilters] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<AnalyticsResult | null>(null);
+  const loadedDataset = useRef<number | null>(null);
   const columns = sources.data?.tables.find((table) => table.name === source)?.columns ?? [];
   const refresh = async () => {
     await Promise.all([
@@ -139,6 +164,7 @@ export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
       setTitle('');
       setSlug('');
       setEditingDataset(null);
+      await navigate({ to: '/$locale/datasets', params: { locale } });
     },
   });
   const action = useMutation({
@@ -200,6 +226,21 @@ export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
       setCustomField(first.field);
     }
   };
+  const loadDraftRef = useRef(loadDraft);
+  useEffect(() => {
+    loadDraftRef.current = loadDraft;
+  });
+  useEffect(() => {
+    if ((mode !== 'edit' && mode !== 'clone') || !datasetId || loadedDataset.current === datasetId)
+      return;
+    const dataset = datasets.data?.find((item) => item.id === datasetId);
+    if (!dataset) return;
+    loadedDataset.current = datasetId;
+    const frame = window.requestAnimationFrame(() =>
+      loadDraftRef.current(dataset, mode === 'clone'),
+    );
+    return () => window.cancelAnimationFrame(frame);
+  }, [datasetId, datasets.data, mode]);
   const columnSelect = (
     label: string,
     value: string,
@@ -219,8 +260,37 @@ export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
     </label>
   );
   return (
-    <div className="analytics-management">
-      <p>{t('mappingHelp')}</p>
+    <div className="analytics-management analytics-datasets-page">
+      {mode === 'list' && (
+        <header className="analytics-datasets-hero">
+          <div className="analytics-datasets-hero-icon" aria-hidden="true">
+            <Layers3 />
+          </div>
+          <div>
+            <p className="analytics-datasets-eyebrow">ClickHouse · Semantic layer</p>
+            <h1>{t('manageDatasets')}</h1>
+            <p>{t('mappingHelp')}</p>
+          </div>
+          <div className="analytics-datasets-summary" aria-label={t('manageDatasets')}>
+            <span>
+              <strong>{datasets.data?.length ?? 0}</strong>
+              {t('total')}
+            </span>
+            <span>
+              <strong>
+                {datasets.data?.filter((dataset) => dataset.status === 'published').length ?? 0}
+              </strong>
+              {t('published')}
+            </span>
+            <span>
+              <strong>
+                {datasets.data?.filter((dataset) => dataset.status !== 'published').length ?? 0}
+              </strong>
+              {t('draft')}
+            </span>
+          </div>
+        </header>
+      )}
       {(sources.isError || datasets.isError) && (
         <p role="alert">
           {sources.error?.message ?? datasets.error?.message}
@@ -234,353 +304,478 @@ export const AnalyticsDatasets = ({ templates }: { templates: Metric[] }) => {
           </Button>
         </p>
       )}
-      <div className="analytics-dataset-list">
-        {datasets.data?.map((dataset) => (
-          <div key={dataset.id} className="analytics-dataset-row">
+      {mode === 'list' && (
+        <section className="analytics-dataset-registry" aria-labelledby="dataset-registry-title">
+          <div className="analytics-section-heading">
             <div>
-              <strong>{dataset.title}</strong>
-              <small>
-                {dataset.slug} · {t(dataset.status === 'published' ? 'published' : 'draft')}
-              </small>
+              <span>
+                <Database aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="dataset-registry-title">{t('manageDatasets')}</h2>
+                <p>{t('approvalHelp')}</p>
+              </div>
             </div>
-            <div>
-              {dataset.status === 'draft' && !dataset.published_at && !dataset.history_table && (
-                <Button variant="outline" onClick={() => loadDraft(dataset)}>
-                  {t('edit')}
-                </Button>
-              )}
-              <Button variant="outline" onClick={() => loadDraft(dataset, true)}>
-                {t('newVersion')}
-              </Button>
-              {dataset.status === 'draft' &&
-                !dataset.published_at &&
-                !dataset.history_table &&
-                !!dataset.version_column && (
-                  <Button
-                    variant="outline"
-                    disabled={action.isPending}
-                    onClick={() => action.mutate({ id: dataset.id, operation: 'enable-history' })}
-                  >
-                    {t('enableHistory')}
-                  </Button>
-                )}
-              <Button
-                variant="outline"
-                disabled={action.isPending}
-                onClick={() => action.mutate({ id: dataset.id, operation: 'preview' })}
-              >
-                {t('preview')}
-              </Button>
-              <Button
-                disabled={action.isPending}
-                onClick={() =>
-                  action.mutate({
-                    id: dataset.id,
-                    operation: dataset.status === 'published' ? 'unpublish' : 'publish',
-                  })
-                }
-              >
-                {t(dataset.status === 'published' ? 'unpublish' : 'approvePublish')}
-              </Button>
-            </div>
+            <Link
+              to="/$locale/datasets/new"
+              params={{ locale }}
+              className={buttonVariants({ variant: 'default' })}
+            >
+              <Plus aria-hidden="true" />
+              {t('newDataset')}
+            </Link>
           </div>
-        ))}
-      </div>
+          <div className="analytics-dataset-table-wrap">
+            <table className="analytics-dataset-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t('title')}</th>
+                  <th scope="col">{t('source')}</th>
+                  <th scope="col">
+                    {t('published')} / {t('draft')}
+                  </th>
+                  <th scope="col">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datasets.data?.map((dataset) => (
+                  <tr key={dataset.id}>
+                    <td>
+                      <div className="analytics-dataset-identity">
+                        <span className="analytics-dataset-icon" aria-hidden="true">
+                          {dataset.status === 'published' ? <CheckCircle2 /> : <FilePenLine />}
+                        </span>
+                        <div>
+                          <strong>{dataset.title}</strong>
+                          <small>{dataset.slug}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label={t('source')}>
+                      <span className="analytics-table-code">{dataset.source_table}</span>
+                    </td>
+                    <td data-label={`${t('published')} / ${t('draft')}`}>
+                      <span className={`analytics-status-badge is-${dataset.status ?? 'draft'}`}>
+                        {t(dataset.status === 'published' ? 'published' : 'draft')}
+                      </span>
+                      <small>v{dataset.revision}</small>
+                    </td>
+                    <td data-label={t('actions')}>
+                      <div className="analytics-dataset-actions">
+                        {dataset.status === 'draft' &&
+                          !dataset.published_at &&
+                          !dataset.history_table && (
+                            <IconTooltip label={t('edit')}>
+                              <Link
+                                to="/$locale/datasets/$datasetId/edit"
+                                params={{ locale, datasetId: String(dataset.id) }}
+                                className={buttonVariants({ variant: 'outline', size: 'icon' })}
+                              >
+                                <FilePenLine aria-hidden="true" />
+                              </Link>
+                            </IconTooltip>
+                          )}
+                        <IconTooltip label={t('newVersion')}>
+                          <Link
+                            to="/$locale/datasets/$datasetId/clone"
+                            params={{ locale, datasetId: String(dataset.id) }}
+                            className={buttonVariants({ variant: 'outline', size: 'icon' })}
+                          >
+                            <Copy aria-hidden="true" />
+                          </Link>
+                        </IconTooltip>
+                        {dataset.status === 'draft' &&
+                          !dataset.published_at &&
+                          !dataset.history_table &&
+                          !!dataset.version_column && (
+                            <IconTooltip label={t('enableHistory')}>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                disabled={action.isPending}
+                                onClick={() =>
+                                  action.mutate({ id: dataset.id, operation: 'enable-history' })
+                                }
+                              >
+                                <History aria-hidden="true" />
+                              </Button>
+                            </IconTooltip>
+                          )}
+                        <IconTooltip label={t('preview')}>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            disabled={action.isPending}
+                            onClick={() => action.mutate({ id: dataset.id, operation: 'preview' })}
+                          >
+                            <Eye aria-hidden="true" />
+                          </Button>
+                        </IconTooltip>
+                        <IconTooltip
+                          label={t(dataset.status === 'published' ? 'unpublish' : 'approvePublish')}
+                        >
+                          <Button
+                            size="icon"
+                            variant={dataset.status === 'published' ? 'outline' : 'default'}
+                            disabled={action.isPending}
+                            onClick={() =>
+                              action.mutate({
+                                id: dataset.id,
+                                operation: dataset.status === 'published' ? 'unpublish' : 'publish',
+                              })
+                            }
+                          >
+                            {dataset.status === 'published' ? (
+                              <CircleStop aria-hidden="true" />
+                            ) : (
+                              <Rocket aria-hidden="true" />
+                            )}
+                          </Button>
+                        </IconTooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!datasets.isLoading && !datasets.data?.length && (
+              <div className="analytics-dataset-empty">
+                <Database aria-hidden="true" />
+                <strong>{t('noDatasets')}</strong>
+                <p>{t('noDatasetsAdmin')}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
       {preview && (
-        <div role="status">
+        <div className="analytics-preview-result" role="status">
           <h3>{t('previewResult')}</h3>
           <pre>{JSON.stringify(preview, null, 2)}</pre>
         </div>
       )}
       {action.isError && <p role="alert">{action.error.message}</p>}
-      <form
-        className="analytics-form"
-        onSubmit={(event) => {
-          event.preventDefault();
-          save.mutate();
-        }}
-      >
-        <h3>{t(editingDataset ? 'editDataset' : 'newDataset')}</h3>
-        <p>{t('approvalHelp')}</p>
-        <div className="analytics-form-grid">
-          <label>
-            {t('title')}
-            <Input
-              value={title}
-              required
-              maxLength={160}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </label>
-          <label>
-            {t('slug')}
-            <Input
-              value={slug}
-              required
-              pattern="[a-zA-Z0-9_-]+"
-              maxLength={50}
-              onChange={(e) => setSlug(e.target.value)}
-            />
-          </label>
-          <label>
-            {t('grain')}
-            <Input
-              value={grain}
-              required
-              maxLength={255}
-              onChange={(e) => setGrain(e.target.value)}
-            />
-          </label>
-          <label>
-            {t('description')}
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} />
-          </label>
-          <label>
-            {t('source')}
-            <NativeSelect
-              value={source}
-              required
-              onChange={(e) => {
-                setSource(e.target.value);
-                setPrimaryKey('');
-                setVersion('');
-                setDeleted('');
-                setFields((items) => items.map((f) => ({ ...f, column: '' })));
-              }}
-            >
-              <option value="">{t('selectSource')}</option>
-              {sources.data?.tables.map((table) => (
-                <option key={table.name} value={table.name}>
-                  {table.name} ({table.engine})
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
-          {columnSelect(t('primaryKey'), primaryKey, setPrimaryKey, true)}
-          {columnSelect(t('versionColumn'), version, setVersion)}
-          {columnSelect(t('deletedColumn'), deleted, setDeleted)}
-          <label>
-            {t('unit')}
-            <Input value={unit} required maxLength={24} onChange={(e) => setUnit(e.target.value)} />
-          </label>
-          <label>
-            {t('timezone')}
-            <Input value={timezone} required onChange={(e) => setTimezone(e.target.value)} />
-          </label>
-        </div>
-        <h4>{t('mapping')}</h4>
-        <p>{t('mappingTypes')}</p>
-        {fields.map((field, index) => (
-          <div className="analytics-mapping-row" key={field.id}>
-            <Input
-              aria-label={t('logicalField')}
-              value={field.name}
-              required
-              disabled={index === 0}
-              pattern="[A-Za-z_][A-Za-z0-9_]*"
-              onChange={(e) =>
-                setFields((items) =>
-                  items.map((f, i) => (i === index ? { ...f, name: e.target.value } : f)),
-                )
-              }
-            />
-            <NativeSelect
-              aria-label={t('type')}
-              value={field.type}
-              disabled={index === 0}
-              onChange={(e) =>
-                setFields((items) =>
-                  items.map((f, i) =>
-                    i === index ? { ...f, type: e.target.value as Field['type'] } : f,
-                  ),
-                )
-              }
-            >
-              <option value="date">{t('date')}</option>
-              <option value="number">{t('number')}</option>
-              <option value="string">{t('string')}</option>
-            </NativeSelect>
-            <NativeSelect
-              aria-label={t('sourceColumn')}
-              value={field.column}
-              required
-              onChange={(e) =>
-                setFields((items) =>
-                  items.map((f, i) => (i === index ? { ...f, column: e.target.value } : f)),
-                )
-              }
-            >
-              <option value="">{t('selectColumn')}</option>
-              {columns.map((c) => (
-                <option key={c.name} value={c.name}>
-                  {c.name} ({c.type})
-                </option>
-              ))}
-            </NativeSelect>
-            {index > 0 && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setFields((items) => items.filter((_, i) => i !== index))}
-              >
-                {t('remove')}
-              </Button>
-            )}
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            setFields((items) => [
-              ...items,
-              { id: crypto.randomUUID(), name: '', column: '', type: 'string' },
-            ])
-          }
+      {mode !== 'list' && (
+        <form
+          id="dataset-editor"
+          className="analytics-form analytics-dataset-editor"
+          onSubmit={(event) => {
+            event.preventDefault();
+            save.mutate();
+          }}
         >
-          {t('addField')}
-        </Button>
-        <details>
-          <summary>{t('historyConfiguration')}</summary>
-          <p>{t('historyHelp')}</p>
-          <div className="analytics-form-grid">
-            <label>
-              {t('historyTable')}
-              <NativeSelect value={history} onChange={(e) => setHistory(e.target.value)}>
-                <option value="">{t('disabled')}</option>
-                {sources.data?.tables
-                  .filter((table) => table.engine === 'MergeTree')
-                  .map((table) => (
-                    <option key={table.name} value={table.name}>
-                      {table.name}
-                    </option>
-                  ))}
-              </NativeSelect>
-            </label>
-            <label>
-              {t('recordedAt')}
-              <NativeSelect value={recordedAt} onChange={(e) => setRecordedAt(e.target.value)}>
-                <option value="">{t('selectColumn')}</option>
-                {sources.data?.tables
-                  .find((table) => table.name === history)
-                  ?.columns.map((c) => (
-                    <option key={c.name} value={c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-              </NativeSelect>
-            </label>
-            <label>
-              {t('historyStart')}
-              <Input
-                type="datetime-local"
-                value={historyStart}
-                onChange={(e) => setHistoryStart(e.target.value)}
-              />
-            </label>
+          <div className="analytics-editor-heading">
+            <span aria-hidden="true">
+              <FilePenLine />
+            </span>
+            <div>
+              <p className="analytics-datasets-eyebrow">
+                {editingDataset
+                  ? `${editingDataset.slug} · v${editingDataset.revision}`
+                  : t('draft')}
+              </p>
+              <h2>{t(editingDataset ? 'editDataset' : 'newDataset')}</h2>
+              <p>{t('approvalHelp')}</p>
+            </div>
+            <Link
+              to="/$locale/datasets"
+              params={{ locale }}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              {t('manageDatasets')}
+            </Link>
           </div>
-        </details>
-        <h4>{t('inclusionRules')}</h4>
-        <p>{t('inclusionHelp')}</p>
-        <div className="analytics-form-grid">
-          {fields
-            .filter((field) => field.type === 'string' && field.name)
-            .map((field) => (
-              <label key={field.id}>
-                {field.name}
-                <Input
-                  value={fixedFilters[field.name] ?? ''}
-                  placeholder={t('inclusionPlaceholder')}
-                  onChange={(event) =>
-                    setFixedFilters((current) => ({ ...current, [field.name]: event.target.value }))
-                  }
-                />
-              </label>
-            ))}
-        </div>
-        <h4>{t('metrics')}</h4>
-        <label>
-          <input type="checkbox" checked={custom} onChange={(e) => setCustom(e.target.checked)} />{' '}
-          {t('customMetric')}
-        </label>
-        {custom ? (
           <div className="analytics-form-grid">
-            <label>
-              {t('metricKey')}
-              <Input required value={customKey} onChange={(e) => setCustomKey(e.target.value)} />
-            </label>
             <label>
               {t('title')}
               <Input
+                value={title}
                 required
-                value={customTitle}
-                onChange={(e) => setCustomTitle(e.target.value)}
+                maxLength={160}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </label>
             <label>
-              {t('definition')}
+              {t('slug')}
               <Input
+                value={slug}
                 required
-                value={customDescription}
-                onChange={(e) => setCustomDescription(e.target.value)}
+                pattern="[a-zA-Z0-9_-]+"
+                maxLength={50}
+                onChange={(e) => setSlug(e.target.value)}
               />
             </label>
             <label>
-              {t('aggregation')}
+              {t('grain')}
+              <Input
+                value={grain}
+                required
+                maxLength={255}
+                onChange={(e) => setGrain(e.target.value)}
+              />
+            </label>
+            <label>
+              {t('description')}
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+            </label>
+            <label>
+              {t('source')}
               <NativeSelect
-                value={aggregation}
-                onChange={(e) => setAggregation(e.target.value as Metric['aggregation'])}
+                value={source}
+                required
+                onChange={(e) => {
+                  setSource(e.target.value);
+                  setPrimaryKey('');
+                  setVersion('');
+                  setDeleted('');
+                  setFields((items) => items.map((f) => ({ ...f, column: '' })));
+                }}
               >
-                {(['sum', 'count', 'avg', 'min', 'max'] as const).map((a) => (
-                  <option value={a} key={a}>
-                    {t(a)}
+                <option value="">{t('selectSource')}</option>
+                {sources.data?.tables.map((table) => (
+                  <option key={table.name} value={table.name}>
+                    {table.name} ({table.engine})
                   </option>
                 ))}
               </NativeSelect>
             </label>
-            {aggregation !== 'count' && (
+            {columnSelect(t('primaryKey'), primaryKey, setPrimaryKey, true)}
+            {columnSelect(t('versionColumn'), version, setVersion)}
+            {columnSelect(t('deletedColumn'), deleted, setDeleted)}
+            <label>
+              {t('unit')}
+              <Input
+                value={unit}
+                required
+                maxLength={24}
+                onChange={(e) => setUnit(e.target.value)}
+              />
+            </label>
+            <label>
+              {t('timezone')}
+              <Input value={timezone} required onChange={(e) => setTimezone(e.target.value)} />
+            </label>
+          </div>
+          <h4>{t('mapping')}</h4>
+          <p>{t('mappingTypes')}</p>
+          {fields.map((field, index) => (
+            <div className="analytics-mapping-row" key={field.id}>
+              <Input
+                aria-label={t('logicalField')}
+                value={field.name}
+                required
+                disabled={index === 0}
+                pattern="[A-Za-z_][A-Za-z0-9_]*"
+                onChange={(e) =>
+                  setFields((items) =>
+                    items.map((f, i) => (i === index ? { ...f, name: e.target.value } : f)),
+                  )
+                }
+              />
+              <NativeSelect
+                aria-label={t('type')}
+                value={field.type}
+                disabled={index === 0}
+                onChange={(e) =>
+                  setFields((items) =>
+                    items.map((f, i) =>
+                      i === index ? { ...f, type: e.target.value as Field['type'] } : f,
+                    ),
+                  )
+                }
+              >
+                <option value="date">{t('date')}</option>
+                <option value="number">{t('number')}</option>
+                <option value="string">{t('string')}</option>
+              </NativeSelect>
+              <NativeSelect
+                aria-label={t('sourceColumn')}
+                value={field.column}
+                required
+                onChange={(e) =>
+                  setFields((items) =>
+                    items.map((f, i) => (i === index ? { ...f, column: e.target.value } : f)),
+                  )
+                }
+              >
+                <option value="">{t('selectColumn')}</option>
+                {columns.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name} ({c.type})
+                  </option>
+                ))}
+              </NativeSelect>
+              {index > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setFields((items) => items.filter((_, i) => i !== index))}
+                >
+                  {t('remove')}
+                </Button>
+              )}
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              setFields((items) => [
+                ...items,
+                { id: crypto.randomUUID(), name: '', column: '', type: 'string' },
+              ])
+            }
+          >
+            {t('addField')}
+          </Button>
+          <details>
+            <summary>{t('historyConfiguration')}</summary>
+            <p>{t('historyHelp')}</p>
+            <div className="analytics-form-grid">
               <label>
-                {t('logicalField')}
-                <NativeSelect value={customField} onChange={(e) => setCustomField(e.target.value)}>
-                  {fields
-                    .filter((f) => f.type === 'number')
-                    .map((f) => (
-                      <option value={f.name} key={f.name}>
-                        {f.name}
+                {t('historyTable')}
+                <NativeSelect value={history} onChange={(e) => setHistory(e.target.value)}>
+                  <option value="">{t('disabled')}</option>
+                  {sources.data?.tables
+                    .filter((table) => table.engine === 'MergeTree')
+                    .map((table) => (
+                      <option key={table.name} value={table.name}>
+                        {table.name}
                       </option>
                     ))}
                 </NativeSelect>
               </label>
-            )}
-          </div>
-        ) : (
-          <div className="analytics-template-list">
-            {templates.map((metric) => (
-              <label key={metric.key}>
-                <input
-                  type="checkbox"
-                  checked={keys.includes(metric.key)}
-                  onChange={(e) =>
-                    setKeys((items) =>
-                      e.target.checked
-                        ? [...items, metric.key]
-                        : items.filter((key) => key !== metric.key),
-                    )
-                  }
-                />
-                <span>
-                  {metric.title}
-                  <small>{metric.description}</small>
-                </span>
+              <label>
+                {t('recordedAt')}
+                <NativeSelect value={recordedAt} onChange={(e) => setRecordedAt(e.target.value)}>
+                  <option value="">{t('selectColumn')}</option>
+                  {sources.data?.tables
+                    .find((table) => table.name === history)
+                    ?.columns.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                </NativeSelect>
               </label>
-            ))}
+              <label>
+                {t('historyStart')}
+                <Input
+                  type="datetime-local"
+                  value={historyStart}
+                  onChange={(e) => setHistoryStart(e.target.value)}
+                />
+              </label>
+            </div>
+          </details>
+          <h4>{t('inclusionRules')}</h4>
+          <p>{t('inclusionHelp')}</p>
+          <div className="analytics-form-grid">
+            {fields
+              .filter((field) => field.type === 'string' && field.name)
+              .map((field) => (
+                <label key={field.id}>
+                  {field.name}
+                  <Input
+                    value={fixedFilters[field.name] ?? ''}
+                    placeholder={t('inclusionPlaceholder')}
+                    onChange={(event) =>
+                      setFixedFilters((current) => ({
+                        ...current,
+                        [field.name]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              ))}
           </div>
-        )}
-        {save.isError && <p role="alert">{save.error.message}</p>}
-        <Button disabled={save.isPending || (!custom && !keys.length)}>
-          {t(save.isPending ? 'saving' : 'saveDraft')}
-        </Button>
-      </form>
+          <h4>{t('metrics')}</h4>
+          <label>
+            <input type="checkbox" checked={custom} onChange={(e) => setCustom(e.target.checked)} />{' '}
+            {t('customMetric')}
+          </label>
+          {custom ? (
+            <div className="analytics-form-grid">
+              <label>
+                {t('metricKey')}
+                <Input required value={customKey} onChange={(e) => setCustomKey(e.target.value)} />
+              </label>
+              <label>
+                {t('title')}
+                <Input
+                  required
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                />
+              </label>
+              <label>
+                {t('definition')}
+                <Input
+                  required
+                  value={customDescription}
+                  onChange={(e) => setCustomDescription(e.target.value)}
+                />
+              </label>
+              <label>
+                {t('aggregation')}
+                <NativeSelect
+                  value={aggregation}
+                  onChange={(e) => setAggregation(e.target.value as Metric['aggregation'])}
+                >
+                  {(['sum', 'count', 'avg', 'min', 'max'] as const).map((a) => (
+                    <option value={a} key={a}>
+                      {t(a)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+              {aggregation !== 'count' && (
+                <label>
+                  {t('logicalField')}
+                  <NativeSelect
+                    value={customField}
+                    onChange={(e) => setCustomField(e.target.value)}
+                  >
+                    {fields
+                      .filter((f) => f.type === 'number')
+                      .map((f) => (
+                        <option value={f.name} key={f.name}>
+                          {f.name}
+                        </option>
+                      ))}
+                  </NativeSelect>
+                </label>
+              )}
+            </div>
+          ) : (
+            <div className="analytics-template-list">
+              {templates.map((metric) => (
+                <label key={metric.key}>
+                  <input
+                    type="checkbox"
+                    checked={keys.includes(metric.key)}
+                    onChange={(e) =>
+                      setKeys((items) =>
+                        e.target.checked
+                          ? [...items, metric.key]
+                          : items.filter((key) => key !== metric.key),
+                      )
+                    }
+                  />
+                  <span>
+                    {metric.title}
+                    <small>{metric.description}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+          {save.isError && <p role="alert">{save.error.message}</p>}
+          <Button disabled={save.isPending || (!custom && !keys.length)}>
+            {t(save.isPending ? 'saving' : 'saveDraft')}
+          </Button>
+        </form>
+      )}
     </div>
   );
 };

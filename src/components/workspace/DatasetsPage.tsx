@@ -1,13 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, Navigate } from '@tanstack/react-router';
+import { Link, Navigate, useParams } from '@tanstack/react-router';
+import { LayoutDashboard } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { Button, buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { analyticsRequest, type AnalyticsMetadata } from '@/lib/analytics';
 
 import { AnalyticsDatasets } from './AnalyticsDatasets';
 
-export const DatasetsPage = () => {
+const DatasetWorkspace = ({
+  mode,
+  datasetId,
+}: {
+  mode: 'list' | 'create' | 'edit' | 'clone';
+  datasetId?: number;
+}) => {
   const t = useTranslations('analytics');
   const locale = useLocale();
   const metadata = useQuery({
@@ -21,16 +29,17 @@ export const DatasetsPage = () => {
     return <Navigate to="/$locale/dashboard" params={{ locale }} replace />;
 
   return (
-    <section className="analytics-management">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1>{t('manageDatasets')}</h1>
-        <Link
-          to="/$locale/dashboard"
-          params={{ locale }}
-          className={buttonVariants({ variant: 'outline' })}
-        >
-          {t('titleDashboard')}
-        </Link>
+    <section className="analytics-management dataset-workspace">
+      <header className="flex justify-end">
+        <IconTooltip label={t('titleDashboard')}>
+          <Link
+            to="/$locale/dashboard"
+            params={{ locale }}
+            className={buttonVariants({ variant: 'outline', size: 'icon' })}
+          >
+            <LayoutDashboard aria-hidden="true" />
+          </Link>
+        </IconTooltip>
       </header>
       {metadata.isError ? (
         <div role="alert">
@@ -38,10 +47,21 @@ export const DatasetsPage = () => {
           <Button onClick={() => void metadata.refetch()}>{t('retry')}</Button>
         </div>
       ) : metadata.data ? (
-        <AnalyticsDatasets templates={metadata.data.templates} />
+        <AnalyticsDatasets templates={metadata.data.templates} mode={mode} datasetId={datasetId} />
       ) : (
         <p role="status">{t('loading')}</p>
       )}
     </section>
   );
+};
+
+export const DatasetsPage = () => <DatasetWorkspace mode="list" />;
+export const CreateDatasetPage = () => <DatasetWorkspace mode="create" />;
+export const EditDatasetPage = () => {
+  const { datasetId } = useParams({ strict: false });
+  return <DatasetWorkspace mode="edit" datasetId={Number(datasetId)} />;
+};
+export const CloneDatasetPage = () => {
+  const { datasetId } = useParams({ strict: false });
+  return <DatasetWorkspace mode="clone" datasetId={Number(datasetId)} />;
 };

@@ -184,7 +184,7 @@ export const DataFlowPage = () => {
 
   return (
     <section
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-5 md:p-8"
+      className="cdc-setup-page flex w-full flex-col gap-6 p-5 md:p-8"
       dir={isPersian ? 'rtl' : 'ltr'}
     >
       <header className="flex flex-wrap items-start justify-between gap-4">

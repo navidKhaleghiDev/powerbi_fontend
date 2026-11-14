@@ -8,17 +8,19 @@ import {
 } from '@dnd-kit/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Database, Plus, RefreshCw, Save } from 'lucide-react';
+import { Database, Plus, RefreshCw, Save, Trash2, Workflow } from 'lucide-react';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { AppDialog } from '@/components/ui/app-dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '@/components/ui/icon-tooltip';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import {
   analyticsRequest,
   defaultAnalyticsFilters,
+  loadAnalytics,
   metricId,
   resolveMetric,
   type AnalyticsFilters,
@@ -95,6 +97,7 @@ const LiveDashboard = ({
 }) => {
   const t = useTranslations('analytics');
   const d = useTranslations('dashboard');
+  const studio = useTranslations('studio');
   const locale = useLocale();
   const queryClient = useQueryClient();
   const sensors = useSensors(
@@ -141,7 +144,18 @@ const LiveDashboard = ({
       firstWidget?.query?.dimensions ?? [],
       appliedFilters,
     ],
+    queryFn: ({ signal }) => {
+      if (!firstMetric || !firstWidget) throw new Error(t('unavailable'));
+      return loadAnalytics(
+        firstMetric.dataset,
+        firstMetric.metric,
+        firstWidget.query?.dimensions ?? [],
+        appliedFilters,
+        signal,
+      );
+    },
     enabled: false,
+    retry: false,
   });
   useAssistantPage({
     page: 'dashboard',
@@ -199,33 +213,51 @@ const LiveDashboard = ({
       <nav className="bi-toolbar" aria-label={t('titleDashboard')}>
         <div className="bi-toolbar-title">
           <strong>{t('titleDashboard')}</strong>
-          <span className="analytics-live-badge">{t('live')}</span>
         </div>
         <div className="bi-toolbar-actions">
-          <Button variant="outline" onClick={newWidget} disabled={!metadata.datasets.length}>
-            <Plus aria-hidden="true" />
-            {t('addWidget')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => void queryClient.invalidateQueries({ queryKey: ['dashboard-widget'] })}
-          >
-            <RefreshCw aria-hidden="true" />
-            {t('refresh')}
-          </Button>
-          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
-            <Save aria-hidden="true" />
-            {t(save.isPending ? 'saving' : 'saveDashboard')}
-          </Button>
-          {metadata.can_manage && (
+          <IconTooltip label={studio('cdcConnections')}>
             <Link
-              to="/$locale/datasets"
+              to="/$locale/cdc-connections"
               params={{ locale }}
-              className={buttonVariants({ variant: 'outline' })}
+              className={buttonVariants({ variant: 'outline', size: 'icon' })}
             >
-              <Database aria-hidden="true" />
-              {t('manageDatasets')}
+              <Workflow aria-hidden="true" />
             </Link>
+          </IconTooltip>
+          <IconTooltip label={t('addWidget')}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={newWidget}
+              disabled={!metadata.datasets.length}
+            >
+              <Plus aria-hidden="true" />
+            </Button>
+          </IconTooltip>
+          <IconTooltip label={t('refresh')}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => void queryClient.invalidateQueries({ queryKey: ['dashboard-widget'] })}
+            >
+              <RefreshCw aria-hidden="true" />
+            </Button>
+          </IconTooltip>
+          <IconTooltip label={t(save.isPending ? 'saving' : 'saveDashboard')}>
+            <Button size="icon" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+              <Save aria-hidden="true" />
+            </Button>
+          </IconTooltip>
+          {metadata.can_manage && (
+            <IconTooltip label={t('manageDatasets')}>
+              <Link
+                to="/$locale/datasets"
+                params={{ locale }}
+                className={buttonVariants({ variant: 'outline', size: 'icon' })}
+              >
+                <Database aria-hidden="true" />
+              </Link>
+            </IconTooltip>
           )}
         </div>
       </nav>
@@ -315,36 +347,47 @@ const LiveDashboard = ({
                 </Button>
               ))}
             </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const sheet = {
-                  id: crypto.randomUUID(),
-                  name: `${t('defaultSheet')} ${sheets.length + 1}`,
-                  widgets: [],
-                };
-                setSheets((items) => [...items, sheet]);
-                setActive(sheet.id);
-              }}
-              disabled={sheets.length >= 20}
-            >
-              {t('addSheet')}
-            </Button>
-            <Input
-              aria-label={t('sheetName')}
-              value={sheets.find((sheet) => sheet.id === active)?.name ?? ''}
-              onChange={(e) =>
-                setSheets((items) =>
-                  items.map((sheet) =>
-                    sheet.id === active ? { ...sheet, name: e.target.value } : sheet,
-                  ),
-                )
-              }
-            />
+            <IconTooltip label={t('addSheet')}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const sheet = {
+                    id: crypto.randomUUID(),
+                    name: `${t('defaultSheet')} ${sheets.length + 1}`,
+                    widgets: [],
+                  };
+                  setSheets((items) => [...items, sheet]);
+                  setActive(sheet.id);
+                }}
+                disabled={sheets.length >= 20}
+              >
+                <Plus aria-hidden="true" />
+              </Button>
+            </IconTooltip>
+            <IconTooltip label={t('deleteSheet')}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bi-delete-sheet"
+                disabled={sheets.length <= 1}
+                onClick={() => {
+                  const current = sheets.find((sheet) => sheet.id === active);
+                  if (!current || sheets.length <= 1) return;
+                  // eslint-disable-next-line no-alert
+                  if (!window.confirm(t('confirmDeleteSheet', { name: current.name }))) return;
+                  const remaining = sheets.filter((sheet) => sheet.id !== active);
+                  setSheets(remaining);
+                  setActive(remaining[0].id);
+                }}
+              >
+                <Trash2 aria-hidden="true" />
+              </Button>
+            </IconTooltip>
             <small>{t(dirty ? 'unsaved' : 'saved')}</small>
           </footer>
         </div>
-        <DashboardPane title={d('filtersTitle')} className="analytics-filter-pane">
+        <DashboardPane title={d('filtersTitle')} className="analytics-filter-pane" defaultCollapsed>
           <form
             className="analytics-filters"
             onSubmit={(event) => {
@@ -415,12 +458,12 @@ const LiveDashboard = ({
                 />
               </label>
             ))}
+            <p className="analytics-help">
+              {t('timeHelp')}
+              {filters.mode === 'historical' ? ` ${t('historicalHelp')}` : ''} {t('dateInputHelp')}
+            </p>
             <Button type="submit">{t('applyFilters')}</Button>
           </form>
-          <p className="analytics-help">
-            {t('timeHelp')}
-            {filters.mode === 'historical' ? ` ${t('historicalHelp')}` : ''} {t('dateInputHelp')}
-          </p>
         </DashboardPane>
         <DashboardChat />
       </div>

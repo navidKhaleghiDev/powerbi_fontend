@@ -6,12 +6,22 @@ import {
   Copy,
   Download,
   FileText,
+  GripVertical,
   MoreVertical,
   Pencil,
   RefreshCw,
   Trash2,
 } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { AppDialog } from '@/components/ui/app-dialog';
@@ -49,6 +59,7 @@ export const AnalyticsWidgetCard = ({
   last: boolean;
 }) => {
   const t = useTranslations('analytics');
+  const trendGradientId = useId();
   const locale = useLocale();
   const [records, setRecords] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
@@ -107,6 +118,27 @@ export const AnalyticsWidgetCard = ({
     retry: false,
     staleTime: 60_000,
   });
+  const trendDimension = ['month', 'day', 'year'].find((field) =>
+    selected?.metric.dimensions.includes(field),
+  );
+  const trend = useQuery({
+    queryKey: [
+      'dashboard-widget',
+      'live',
+      selected?.dataset.slug,
+      selected?.dataset.revision,
+      selected?.metric.key,
+      [trendDimension],
+      filters,
+    ],
+    queryFn: ({ signal }) => {
+      if (!selected || !trendDimension) throw new Error(t('unavailable'));
+      return loadAnalytics(selected.dataset, selected.metric, [trendDimension], filters, signal);
+    },
+    enabled: widget.visual === 'card' && !!selected && !!trendDimension,
+    retry: false,
+    staleTime: 60_000,
+  });
   const data = result.data;
   const measure = widget.query?.measures?.[0] ?? '';
   const format = (value: string | number | null | undefined, key?: string) => {
@@ -125,6 +157,47 @@ export const AnalyticsWidgetCard = ({
       value: Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER ? value : null,
     };
   });
+  const trendRows = (trend.data?.rows ?? []).map((row) => {
+    const value = row[measure] == null ? NaN : Number(row[measure]);
+    return {
+      period: trendDimension ? format(row[trendDimension], trendDimension) : '',
+      value: Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER ? value : null,
+    };
+  });
+  const trendValues = trendRows.flatMap((row) => (row.value === null ? [] : [row.value]));
+  const trendMin = Math.min(...trendValues);
+  const trendMax = Math.max(...trendValues);
+  const trendPoints = trendRows.map((row, index) => ({
+    ...row,
+    x: trendRows.length === 1 ? 90 : 8 + (index / (trendRows.length - 1)) * 164,
+    y:
+      row.value === null || trendMax === trendMin
+        ? 40
+        : 70 - ((row.value - trendMin) / (trendMax - trendMin)) * 60,
+  }));
+  const trendSegments: (typeof trendPoints)[] = [];
+  for (const point of trendPoints) {
+    if (point.value === null) {
+      if (trendSegments.at(-1)?.length) trendSegments.push([]);
+    } else {
+      if (!trendSegments.length) trendSegments.push([]);
+      trendSegments.at(-1)?.push(point);
+    }
+  }
+  const trendPath = trendSegments
+    .map((segment) =>
+      segment.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' '),
+    )
+    .join(' ');
+  const trendArea = trendSegments
+    .filter((segment) => segment.length > 1)
+    .map((segment) => {
+      const firstPoint = segment[0];
+      const lastPoint = segment.at(-1);
+      return `M ${firstPoint?.x} 78 ${segment.map((point) => `L ${point.x} ${point.y}`).join(' ')} L ${lastPoint?.x} 78 Z`;
+    })
+    .join(' ');
+  const lastTrendPoint = trendPoints.findLast((point) => point.value !== null);
   const download = () => {
     if (!data) return;
     const cell = (value: string | number | null | undefined) => {
@@ -148,9 +221,12 @@ export const AnalyticsWidgetCard = ({
       data-dragging={isDragging || undefined}
       data-drop-target={(isOver && !isDragging) || undefined}
       data-table-width={widget.tableWidth ?? 'full'}
-      className={`bi-widget bi-widget-${widget.size} bi-widget-visual-${widget.visual}`}
+      className={`bi-widget analytics-widget bi-widget-${widget.size} bi-widget-visual-${widget.visual}`}
       style={
-        transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined
+        {
+          '--widget-accent': widget.chartColor ?? '#0d9488',
+          ...(transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : {}),
+        } as CSSProperties
       }
     >
       <header className="bi-widget-heading">
@@ -158,17 +234,14 @@ export const AnalyticsWidgetCard = ({
           {...attributes}
           {...listeners}
           variant="ghost"
-          size="sm"
+          size="icon-xs"
+          className="analytics-widget-drag"
           aria-label={t('dragWidget')}
         >
-          ⠿
+          <GripVertical aria-hidden="true" />
         </Button>
-        <div>
+        <div className="analytics-widget-heading-text">
           <h2>{widget.title || selected?.metric.title}</h2>
-          <small>
-            {selected?.dataset.title} ·{' '}
-            {selected?.metric.aggregation === 'count' ? '' : selected?.dataset.unit}
-          </small>
         </div>
         <div className="bi-widget-actions">
           <details ref={menuRef} className="bi-widget-menu">
@@ -206,7 +279,12 @@ export const AnalyticsWidgetCard = ({
                 variant="ghost"
                 size="sm"
                 disabled={!selected}
-                onClick={() => runMenuAction(() => void result.refetch())}
+                onClick={() =>
+                  runMenuAction(() => {
+                    void result.refetch();
+                    if (widget.visual === 'card' && trendDimension) void trend.refetch();
+                  })
+                }
               >
                 <RefreshCw aria-hidden="true" />
                 {t('refresh')}
@@ -253,8 +331,86 @@ export const AnalyticsWidgetCard = ({
         ) : !data?.rows.length ? (
           <p>{t('empty')}</p>
         ) : widget.visual === 'card' ? (
-          <div className="bi-kpi">
-            <strong>{format(data.rows[0]?.[measure])}</strong>
+          <div className="analytics-kpi-layout">
+            <div className="bi-kpi">
+              <strong>{format(data.rows[0]?.[measure])}</strong>
+              {selected.metric.aggregation !== 'count' && selected.dataset.unit && (
+                <span className="analytics-kpi-unit">{selected.dataset.unit}</span>
+              )}
+            </div>
+            <div className="analytics-kpi-trend">
+              {trendDimension && !trend.isError && trendValues.length > 0 ? (
+                <>
+                  <svg
+                    viewBox="0 0 180 80"
+                    role="img"
+                    aria-label={t('trendLabel', { period: t(trendDimension) })}
+                  >
+                    <title>{t('trendLabel', { period: t(trendDimension) })}</title>
+                    <defs>
+                      <linearGradient id={trendGradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="currentColor" stopOpacity="0.24" />
+                        <stop offset="100%" stopColor="currentColor" stopOpacity="0.015" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M 8 24 H 172 M 8 49 H 172 M 8 74 H 172"
+                      className="analytics-kpi-trend-baseline"
+                    />
+                    <path d={trendArea} fill={`url(#${trendGradientId})`} />
+                    <path
+                      d={trendPath}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {trendPoints
+                      .filter((point) => point.value !== null)
+                      .map((point) => (
+                        <circle
+                          key={point.period}
+                          cx={point.x}
+                          cy={point.y}
+                          r="4"
+                          className="analytics-kpi-trend-point"
+                          fill="currentColor"
+                        >
+                          <title>
+                            {point.period}: {format(point.value)}
+                          </title>
+                        </circle>
+                      ))}
+                    {lastTrendPoint && (
+                      <g aria-hidden="true">
+                        <circle
+                          cx={lastTrendPoint.x}
+                          cy={lastTrendPoint.y}
+                          r="8"
+                          fill="currentColor"
+                          opacity="0.12"
+                        />
+                        <circle
+                          cx={lastTrendPoint.x}
+                          cy={lastTrendPoint.y}
+                          r="3.5"
+                          fill="currentColor"
+                          stroke="white"
+                          strokeWidth="2"
+                        />
+                      </g>
+                    )}
+                  </svg>
+                  <small>{t('trendLabel', { period: t(trendDimension) })}</small>
+                  {trend.data?.meta.truncated && <small>{t('truncated')}</small>}
+                </>
+              ) : (
+                <small role="status">
+                  {trendDimension && trend.isPending ? t('loading') : t('trendUnavailable')}
+                </small>
+              )}
+            </div>
           </div>
         ) : widget.visual === 'table' ? (
           <div className="bi-table-scroll">
@@ -295,15 +451,8 @@ export const AnalyticsWidgetCard = ({
         ) : (
           <p>{t('precision')}</p>
         )}
+        {data?.meta.truncated && <p role="status">{t('truncated')}</p>}
       </div>
-      {data && (
-        <footer className="analytics-widget-footer">
-          <small>
-            {t('queriedAt', { time: new Date(data.meta.queried_at).toLocaleString(locale) })}
-            {data.meta.truncated ? ` · ${t('truncated')}` : ''}
-          </small>
-        </footer>
-      )}
       <AppDialog
         open={records}
         className="bi-edit-dialog analytics-dialog"

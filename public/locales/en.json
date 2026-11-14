@@ -1212,6 +1212,8 @@
     "sheets": "Dashboard sheets",
     "defaultSheet": "Overview",
     "addSheet": "Add sheet",
+    "deleteSheet": "Delete current sheet",
+    "confirmDeleteSheet": "Delete sheet \"{name}\" and its widgets? Save the dashboard to apply this change.",
     "sheetName": "Sheet name",
     "saved": "Saved",
     "unsaved": "Unsaved changes",
@@ -1291,6 +1293,8 @@
     "chartColor": "Chart color",
     "showValues": "Show values",
     "duplicateFields": "Logical field names must be unique.",
-    "saveDraft": "Save draft mapping"
+    "saveDraft": "Save draft mapping",
+    "trendLabel": "Trend by {period}",
+    "trendUnavailable": "Trend unavailable"
   }
 }
