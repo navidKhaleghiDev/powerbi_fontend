@@ -9,16 +9,12 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Database, Plus, RefreshCw, Save, Trash2, Workflow } from 'lucide-react';
+import { PanelsTopLeft, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { useAssistantPage } from '@/features/assistant/lib/context';
-import {
-  createAnalyticsFilterSchema,
-  type AnalyticsFilterValues,
-} from '@/features/dashboards/lib/analytics-filter-schema';
 import {
   loadSampleAnalytics,
   readSampleDashboard,
@@ -30,9 +26,10 @@ import {
   createWidgetFormSchema,
   type WidgetFormValues,
 } from '@/features/dashboards/lib/widget-form-schema';
-import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
+import { WidgetEditorActions } from '@/features/dashboards/molecules/WidgetEditorActions';
 import { AnalyticsWidgetCard } from '@/features/dashboards/organisms/AnalyticsWidgetCard';
 import { DashboardChat } from '@/features/dashboards/organisms/DashboardChat';
+import { KpiWidgetEditor } from '@/features/dashboards/organisms/KpiWidgetEditor';
 import {
   defaultAnalyticsFilters,
   metricId,
@@ -41,19 +38,27 @@ import {
   type AnalyticsMetadata,
   type AnalyticsResult,
 } from '@/features/datasets/api/analytics';
-import { LiveKpiOverview } from '@/features/kpis/organisms/LiveKpiOverview';
+import { createKpiSheet } from '@/features/kpis/api/kpi-api';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
 import { Checkbox } from '@/shared/ui/atoms/checkbox/checkbox';
 import { Input } from '@/shared/ui/atoms/input/input';
 import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
+import { Textarea } from '@/shared/ui/atoms/textarea/textarea';
+import { DialogAction } from '@/shared/ui/molecules/dialog/dialog-action';
 
 import type {
   DashboardSheet,
   DashboardWidget,
   WidgetVisual,
 } from '@/features/dashboards/lib/dashboard';
+
+const widgetDrawerVariants = {
+  initial: { opacity: 0, transform: 'translateX(-100%)' },
+  animate: { opacity: 1, transform: 'translateX(0)' },
+  exit: { opacity: 0, transform: 'translateX(-100%)' },
+};
 
 const visuals: WidgetVisual[] = [
   'card',
@@ -111,7 +116,6 @@ const LiveDashboard = ({
 }) => {
   const t = useTranslations('analytics');
   const d = useTranslations('dashboard');
-  const studio = useTranslations('studio');
   const locale = useLocale();
   const queryClient = useQueryClient();
   const sensors = useSensors(
@@ -123,21 +127,36 @@ const LiveDashboard = ({
       ? saved.sheets
       : [{ id: crypto.randomUUID(), name: t('defaultSheet'), widgets: [] }],
   );
+  const [sheetDialogOpen, setSheetDialogOpen] = useState(false);
+  const [sheetTitle, setSheetTitle] = useState('');
+  const [sheetDescription, setSheetDescription] = useState('');
+  const createSheet = useMutation({
+    mutationFn: createKpiSheet,
+    retry: false,
+    onSuccess: (created) => {
+      const sheet: DashboardSheet = {
+        id: `server-sheet-${created.id}`,
+        serverId: created.id,
+        name: created.title,
+        description: created.description ?? '',
+        widgets: [],
+      };
+      setSheets((items) => [...items, sheet]);
+      setActive(sheet.id);
+      setSheetDialogOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ['kpi-sheets'] });
+    },
+  });
   const [active, setActive] = useState(sheets[0]?.id ?? '');
   const [revision, setRevision] = useState(saved.revision);
   const [savedContent, setSavedContent] = useState(JSON.stringify(saved.sheets));
-  const {
-    control: filterControl,
-    setValue: setFilterValue,
-    handleSubmit: handleFiltersSubmit,
-    formState: { errors: filterErrors },
-  } = useForm<AnalyticsFilterValues>({
-    resolver: zodResolver(createAnalyticsFilterSchema(t('required'))),
-    defaultValues: defaultAnalyticsFilters(),
-  });
-  const filters = useWatch({ control: filterControl }) as AnalyticsFilters;
-  const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
+  const [appliedFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
   const [editing, setEditing] = useState<DashboardWidget | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const editWidget = (widget: DashboardWidget) => {
+    setEditing(widget);
+    setEditorOpen(true);
+  };
   const widgets = sheets.find((sheet) => sheet.id === active)?.widgets ?? [];
   const updateWidgets = (transform: (current: DashboardWidget[]) => DashboardWidget[]) =>
     setSheets((items) =>
@@ -145,15 +164,6 @@ const LiveDashboard = ({
         sheet.id === active ? { ...sheet, widgets: transform(sheet.widgets) } : sheet,
       ),
     );
-  const changeFilter = (
-    key: keyof AnalyticsFilters,
-    value: string | AnalyticsFilters['values'],
-  ) => {
-    if (key === 'values') setFilterValue('values', value as AnalyticsFilters['values']);
-    else if (key === 'calendar') setFilterValue('calendar', value as AnalyticsFilters['calendar']);
-    else if (key === 'mode') setFilterValue('mode', value as AnalyticsFilters['mode']);
-    else setFilterValue(key, value as string, { shouldValidate: true });
-  };
   const save = useMutation({
     mutationFn: () => Promise.resolve(saveSampleDashboard(sheets, revision)),
     onSuccess: (value) => {
@@ -226,44 +236,18 @@ const LiveDashboard = ({
   });
   const dirty = JSON.stringify(sheets) !== savedContent;
   const newWidget = () =>
-    setEditing({ id: crypto.randomUUID(), title: '', visual: 'card', size: 'small', query: null });
-  const used = widgets.flatMap((widget) => {
-    const selected = resolveMetric(metadata.datasets, widget.query?.measures?.[0] ?? '');
-    return selected ? [selected] : [];
-  });
-  const categoricalFields = [
-    ...new Set(
-      used.flatMap(({ dataset, metric }) =>
-        metric.dimensions.filter((field) => dataset.mapping[field]?.type === 'string'),
-      ),
-    ),
-  ];
+    editWidget({ id: crypto.randomUUID(), title: '', visual: 'card', size: 'small', query: null });
   return (
     <section className="bi-dashboard">
       <nav className="bi-toolbar" aria-label={t('titleDashboard')}>
         <div className="bi-toolbar-title">
           <strong>{t('titleDashboard')}</strong>
-          <span className="bi-sample-badge">{d('sampleBadge')}</span>
         </div>
         <div className="bi-toolbar-actions">
-          <IconTooltip label={studio('cdcConnections')}>
-            <Link
-              to="/$locale/cdc-connections"
-              params={{ locale }}
-              className={buttonVariants({ variant: 'outline', size: 'icon' })}
-            >
-              <Workflow aria-hidden="true" />
-            </Link>
-          </IconTooltip>
           <IconTooltip label={t('addWidget')}>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={newWidget}
-              disabled={!metadata.datasets.length}
-            >
+            <DialogAction variant="outline" size="icon" onOpen={newWidget}>
               <Plus aria-hidden="true" />
-            </Button>
+            </DialogAction>
           </IconTooltip>
           <IconTooltip label={t('refresh')}>
             <Button
@@ -279,17 +263,6 @@ const LiveDashboard = ({
               <Save aria-hidden="true" />
             </Button>
           </IconTooltip>
-          {metadata.can_manage && (
-            <IconTooltip label={t('manageDatasets')}>
-              <Link
-                to="/$locale/datasets"
-                params={{ locale }}
-                className={buttonVariants({ variant: 'outline', size: 'icon' })}
-              >
-                <Database aria-hidden="true" />
-              </Link>
-            </IconTooltip>
-          )}
         </div>
       </nav>
       {save.isError && (
@@ -300,7 +273,6 @@ const LiveDashboard = ({
           </Button>
         </p>
       )}
-      <LiveKpiOverview />
       <div className="bi-board-layout">
         <div className="bi-canvas-area">
           {!metadata.datasets.length ? (
@@ -316,7 +288,7 @@ const LiveDashboard = ({
           ) : !widgets.length ? (
             <div className="bi-empty-board">
               <h2>{t('noWidgets')}</h2>
-              <Button onClick={newWidget}>{t('addWidget')}</Button>
+              <DialogAction onOpen={newWidget}>{t('addWidget')}</DialogAction>
             </div>
           ) : (
             <DndContext
@@ -356,7 +328,7 @@ const LiveDashboard = ({
                         return next;
                       })
                     }
-                    onEdit={() => setEditing(widget)}
+                    onEdit={() => editWidget(widget)}
                     onRemove={() =>
                       updateWidgets((items) => items.filter((item) => item.id !== widget.id))
                     }
@@ -372,6 +344,8 @@ const LiveDashboard = ({
                   variant="ghost"
                   key={sheet.id}
                   role="tab"
+                  title={sheet.description || undefined}
+                  aria-description={sheet.description || undefined}
                   aria-selected={active === sheet.id}
                   onClick={() => setActive(sheet.id)}
                 >
@@ -384,15 +358,12 @@ const LiveDashboard = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => {
-                  const sheet = {
-                    id: crypto.randomUUID(),
-                    name: `${t('defaultSheet')} ${sheets.length + 1}`,
-                    widgets: [],
-                  };
-                  setSheets((items) => [...items, sheet]);
-                  setActive(sheet.id);
+                  setSheetTitle(`${t('defaultSheet')} ${sheets.length + 1}`);
+                  setSheetDescription('');
+                  createSheet.reset();
+                  setSheetDialogOpen(true);
                 }}
-                disabled={sheets.length >= 20}
+                disabled={sheets.length >= 20 || createSheet.isPending}
               >
                 <Plus aria-hidden="true" />
               </Button>
@@ -419,99 +390,77 @@ const LiveDashboard = ({
             <small>{t(dirty ? 'unsaved' : 'saved')}</small>
           </footer>
         </div>
-        <DashboardPane title={d('filtersTitle')} className="analytics-filter-pane" defaultCollapsed>
-          <form
-            className="analytics-filters"
-            noValidate
-            onSubmit={handleFiltersSubmit(setAppliedFilters)}
-          >
-            <label>
-              {t('from')}
-              <Input
-                type="date"
-                aria-invalid={!!filterErrors.from}
-                value={filters.from}
-                onChange={(e) => changeFilter('from', e.target.value)}
-                required
-              />
-              {filterErrors.from && <span role="alert">{filterErrors.from.message}</span>}
-            </label>
-            <label>
-              {t('toExclusive')}
-              <Input
-                type="date"
-                aria-invalid={!!filterErrors.to}
-                value={filters.to}
-                onChange={(e) => changeFilter('to', e.target.value)}
-                required
-              />
-              {filterErrors.to && <span role="alert">{filterErrors.to.message}</span>}
-            </label>
-            <label>
-              {t('calendar')}
-              <NativeSelect
-                value={filters.calendar}
-                onChange={(e) => changeFilter('calendar', e.target.value)}
-              >
-                <option value="persian">{t('persian')}</option>
-                <option value="gregorian">{t('gregorian')}</option>
-              </NativeSelect>
-            </label>
-            <label>
-              {t('dataView')}
-              <NativeSelect
-                value={filters.mode}
-                onChange={(e) => changeFilter('mode', e.target.value)}
-              >
-                <option value="latest">{t('latest')}</option>
-                <option value="historical">{t('historical')}</option>
-              </NativeSelect>
-            </label>
-            {filters.mode === 'historical' && (
-              <label>
-                {t('knownAt')}
-                <Input
-                  required
-                  type="datetime-local"
-                  aria-invalid={!!filterErrors.knownAt}
-                  value={filters.knownAt}
-                  onChange={(e) => changeFilter('knownAt', e.target.value)}
-                />
-                {filterErrors.knownAt && <span role="alert">{filterErrors.knownAt.message}</span>}
-              </label>
-            )}
-            {categoricalFields.map((field) => (
-              <label key={field}>
-                {field}
-                <Input
-                  value={filters.values[field] ?? ''}
-                  placeholder={t('allValues')}
-                  onChange={(e) =>
-                    changeFilter('values', { ...filters.values, [field]: e.target.value })
-                  }
-                />
-              </label>
-            ))}
-            <p className="analytics-help">
-              {t('timeHelp')}
-              {filters.mode === 'historical' ? ` ${t('historicalHelp')}` : ''} {t('dateInputHelp')}
-            </p>
-            <Button type="submit">{t('applyFilters')}</Button>
-          </form>
-        </DashboardPane>
         <DashboardChat />
       </div>
-      <AppDialog open={!!editing} className="bi-edit-dialog" onClose={() => setEditing(null)}>
+      <AppDialog
+        open={sheetDialogOpen}
+        className="bi-edit-dialog"
+        onClose={() => {
+          if (!createSheet.isPending) setSheetDialogOpen(false);
+        }}
+      >
         <header>
-          <h2>{t('configureWidget')}</h2>
-          <Button variant="ghost" onClick={() => setEditing(null)}>
-            {t('close')}
-          </Button>
+          <h2>{d('createSheet')}</h2>
         </header>
+        <form
+          className="analytics-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!sheetTitle.trim() || createSheet.isPending) return;
+            createSheet.mutate({ title: sheetTitle.trim(), description: sheetDescription.trim() });
+          }}
+          aria-busy={createSheet.isPending}
+        >
+          <Input
+            label={d('sheetName')}
+            value={sheetTitle}
+            maxLength={100}
+            required
+            disabled={createSheet.isPending}
+            onChange={(event) => setSheetTitle(event.target.value)}
+          />
+          <label>
+            {d('sheetDescription')}
+            <Textarea
+              value={sheetDescription}
+              disabled={createSheet.isPending}
+              onChange={(event) => setSheetDescription(event.target.value)}
+            />
+          </label>
+          {createSheet.isError && <p role="alert">{createSheet.error.message}</p>}
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={createSheet.isPending}
+              onClick={() => setSheetDialogOpen(false)}
+            >
+              {d('cancelSheet')}
+            </Button>
+            <Button type="submit" disabled={!sheetTitle.trim() || createSheet.isPending}>
+              {createSheet.isPending ? t('loading') : d('createSheet')}
+            </Button>
+          </div>
+        </form>
+      </AppDialog>
+      <AppDialog
+        open={editorOpen}
+        className="bi-edit-dialog bi-widget-drawer"
+        variants={widgetDrawerVariants}
+        onClose={() => setEditorOpen(false)}
+        onAfterClose={() => setEditing(null)}
+      >
+        <div className="bi-widget-drawer-heading">
+          <span className="bi-widget-drawer-icon" aria-hidden="true">
+            <PanelsTopLeft size={24} />
+          </span>
+          <h2 className="sr-only">{t('configureWidget')}</h2>
+        </div>
         {editing && (
-          <WidgetEditor
+          <DashboardWidgetEditor
             key={editing.id}
             widget={editing}
+            onCancel={() => setEditorOpen(false)}
             metadata={metadata}
             visualLabel={(value) => d(`visuals.${value}`)}
             onApply={(widget) => {
@@ -520,7 +469,7 @@ const LiveDashboard = ({
                   ? items.map((item) => (item.id === widget.id ? widget : item))
                   : [...items, widget],
               );
-              setEditing(null);
+              setEditorOpen(false);
             }}
           />
         )}
@@ -534,11 +483,13 @@ const WidgetEditor = ({
   metadata,
   visualLabel,
   onApply,
+  onCancel,
 }: {
   widget: DashboardWidget;
   metadata: AnalyticsMetadata;
   visualLabel: (value: WidgetVisual) => string;
   onApply: (widget: DashboardWidget) => void;
+  onCancel: () => void;
 }) => {
   const t = useTranslations('analytics');
   const {
@@ -581,65 +532,74 @@ const WidgetEditor = ({
         });
       })}
     >
-      <label>
-        {t('metric')}
-        <NativeSelect
-          aria-invalid={!!errors.measure}
-          {...register('measure', { onChange: () => setValue('dimension', '') })}
-        >
-          <option value="">{t('selectMetric')}</option>
-          {metadata.datasets.map((dataset) => (
-            <optgroup key={dataset.slug} label={dataset.title}>
-              {dataset.metrics.map((metric) => (
-                <option key={metric.key} value={metricId(dataset, metric)}>
-                  {metric.title}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </NativeSelect>
-        {errors.measure && <span role="alert">{errors.measure.message}</span>}
-      </label>
-      <p>{selected?.metric.description}</p>
-      <label>
-        {t('visual')}
-        <NativeSelect {...register('visual')}>
-          {visuals.map((value) => (
-            <option key={value} value={value}>
-              {visualLabel(value)}
-            </option>
-          ))}
-        </NativeSelect>
-      </label>
-      {visual !== 'card' && (
+      <div className="bi-widget-drawer-content">
         <label>
-          {t('groupBy')}
-          <NativeSelect aria-invalid={!!errors.dimension} {...register('dimension')}>
-            <option value="">{t('total')}</option>
-            {selected?.metric.dimensions.map((field) => (
-              <option key={field} value={field}>
-                {['day', 'month', 'year'].includes(field) ? t(field) : field}
+          {t('metric')}
+          <NativeSelect
+            aria-invalid={!!errors.measure}
+            {...register('measure', { onChange: () => setValue('dimension', '') })}
+          >
+            <option value="">{t('selectMetric')}</option>
+            {metadata.datasets.map((dataset) => (
+              <optgroup key={dataset.slug} label={dataset.title}>
+                {dataset.metrics.map((metric) => (
+                  <option key={metric.key} value={metricId(dataset, metric)}>
+                    {metric.title}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </NativeSelect>
+          {errors.measure && <span role="alert">{errors.measure.message}</span>}
+        </label>
+        <p>{selected?.metric.description}</p>
+        <label>
+          {t('visual')}
+          <NativeSelect {...register('visual')}>
+            {visuals.map((value) => (
+              <option key={value} value={value}>
+                {visualLabel(value)}
               </option>
             ))}
           </NativeSelect>
-          {errors.dimension && <span role="alert">{errors.dimension.message}</span>}
         </label>
-      )}
-      <label>
-        {t('title')}
-        <Input maxLength={160} aria-invalid={!!errors.title} {...register('title')} />
-        {errors.title && <span role="alert">{errors.title.message}</span>}
-      </label>
-      <label>
-        {t('chartColor')}
-        <Input type="color" aria-invalid={!!errors.color} {...register('color')} />
-        {errors.color && <span role="alert">{errors.color.message}</span>}
-      </label>
-      <label>
-        <Checkbox {...register('showValues')} />
-        {t('showValues')}
-      </label>
-      <Button disabled={!selected}>{t('apply')}</Button>
+        {visual !== 'card' && (
+          <label>
+            {t('groupBy')}
+            <NativeSelect aria-invalid={!!errors.dimension} {...register('dimension')}>
+              <option value="">{t('total')}</option>
+              {selected?.metric.dimensions.map((field) => (
+                <option key={field} value={field}>
+                  {['day', 'month', 'year'].includes(field) ? t(field) : field}
+                </option>
+              ))}
+            </NativeSelect>
+            {errors.dimension && <span role="alert">{errors.dimension.message}</span>}
+          </label>
+        )}
+        <label>
+          {t('title')}
+          <Input maxLength={160} aria-invalid={!!errors.title} {...register('title')} />
+          {errors.title && <span role="alert">{errors.title.message}</span>}
+        </label>
+        <label>
+          {t('chartColor')}
+          <Input type="color" aria-invalid={!!errors.color} {...register('color')} />
+          {errors.color && <span role="alert">{errors.color.message}</span>}
+        </label>
+        <label>
+          <Checkbox {...register('showValues')} />
+          {t('showValues')}
+        </label>
+      </div>
+      <WidgetEditorActions onCancel={onCancel} disabled={!selected} />
     </form>
   );
 };
+
+const DashboardWidgetEditor = (props: Parameters<typeof WidgetEditor>[0]) =>
+  props.widget.kpiQuery || !props.widget.query ? (
+    <KpiWidgetEditor widget={props.widget} onApply={props.onApply} onCancel={props.onCancel} />
+  ) : (
+    <WidgetEditor {...props} />
+  );

@@ -1,3 +1,5 @@
+import { FloatingNavigation } from '@/app/layouts/FloatingNavigation';
+
 import type { ReactNode } from 'react';
 
 interface Props {
@@ -10,6 +12,7 @@ export const WorkspaceShell = ({ children }: Props) => {
         <main id="workspace-content" tabIndex={-1} className="workspace-page">
           {children}
         </main>
+        <FloatingNavigation />
       </div>
     </div>
   );

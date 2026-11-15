@@ -6,6 +6,7 @@ import {
   Copy,
   Download,
   Pencil,
+  MoreVertical,
   RefreshCw,
   Trash2,
   GripVertical,
@@ -237,8 +238,15 @@ export const DashboardWidgetCard = ({
           <h2>{widget.title}</h2>
         </div>
         <div className="bi-widget-actions">
+          {result.isFetching && (
+            <span className="bi-widget-refresh-status" role="status" aria-label={q('loading')}>
+              <RefreshCw aria-hidden="true" />
+            </span>
+          )}
           <details ref={menuRef} className="bi-widget-menu">
-            <summary aria-label={t('moreActions')}>⋮</summary>
+            <summary aria-label={t('moreActions')} title={t('moreActions')}>
+              <MoreVertical aria-hidden="true" />
+            </summary>
             <div>
               <Button variant="ghost" size="sm" onClick={onEdit}>
                 <Pencil />
@@ -291,7 +299,7 @@ export const DashboardWidgetCard = ({
           </details>
         </div>
       </header>
-      <div className="bi-widget-content">
+      <div className="bi-widget-content" aria-busy={result.isFetching}>
         {!query ? (
           <Button
             variant="ghost"
@@ -305,14 +313,16 @@ export const DashboardWidgetCard = ({
             <span>{demo('editorHint')}</span>
           </Button>
         ) : result.isError ? (
-          <div role="alert">
+          <div className="bi-widget-state" role="alert">
             <p>{q('error', { message: result.error.message })}</p>
             <Button variant="outline" onClick={() => void result.refetch()}>
               {t('retry')}
             </Button>
           </div>
         ) : result.isPending ? (
-          <p role="status">{q('loading')}</p>
+          <p className="bi-widget-state" role="status">
+            {q('loading')}
+          </p>
         ) : !result.data.length ? (
           <p>{demo('unavailable')}</p>
         ) : widget.visual === 'card' ? (
@@ -363,7 +373,13 @@ export const DashboardWidgetCard = ({
             </table>
           </div>
         ) : rows.some((row) => row.value !== null) ? (
-          <Suspense fallback={<p role="status">{q('loading')}</p>}>
+          <Suspense
+            fallback={
+              <p className="bi-widget-state" role="status">
+                {q('loading')}
+              </p>
+            }
+          >
             <WarehouseChart
               dashboard
               showValues={false}

@@ -25,6 +25,7 @@ export function ControlledPasswordInput<T extends FieldValues>({
   const { ref, ...rest } = field;
   return (
     <PasswordInput
+      reserveErrorSpace
       {...props}
       {...rest}
       ref={ref}

@@ -108,7 +108,9 @@ export const WarehouseChart = ({
           ? '#9c9ca3'
           : '#d4d4d8';
   const primary = chartColor ?? defaultColor;
-  const colors = categoryColors ?? chartColors;
+  const colors =
+    categoryColors ??
+    (kind === 'pie' ? ['#8b65ff', '#3267ff', '#5bdab5', '#f5b75c', '#ef7197'] : chartColors);
   const rtl = locale === 'fa';
   const labels = rows.map((row) => String(row.label ?? t('allRows')));
   const values = rows.map((row) => {
@@ -130,7 +132,7 @@ export const WarehouseChart = ({
         position: 'bottom' as const,
         rtl,
         textDirection: rtl ? 'rtl' : 'ltr',
-        labels: { color: '#b6b6ba', padding: 20, usePointStyle: true, boxWidth: 10, font },
+        labels: { color: '#d4d4d8', padding: 20, usePointStyle: true, boxWidth: 10, font },
       },
       tooltip: {
         rtl,
@@ -156,7 +158,7 @@ export const WarehouseChart = ({
         grid: { display: false },
         border: { display: false },
         ticks: {
-          color: '#b6b6ba',
+          color: '#d4d4d8',
           font,
           maxRotation: 0,
           autoSkip: true,
@@ -173,7 +175,7 @@ export const WarehouseChart = ({
         grid: { color: '#3d3d42' },
         border: { display: false },
         ticks: {
-          color: '#b6b6ba',
+          color: '#d4d4d8',
           font,
           maxTicksLimit: 7,
           padding: 10,
@@ -233,7 +235,7 @@ export const WarehouseChart = ({
                   ticks: { display: false },
                   grid: { color: '#3d3d42' },
                   angleLines: { color: '#3d3d42' },
-                  pointLabels: { color: '#b6b6ba', font },
+                  pointLabels: { color: '#d4d4d8', font },
                 },
               },
             }}
@@ -310,7 +312,7 @@ export const WarehouseChart = ({
         ) : canShowDistribution ? (
           <Doughnut
             {...canvasProps}
-            options={{ ...common, cutout: dashboard ? '74%' : '68%' }}
+            options={{ ...common, cutout: '68%' }}
             data={{
               labels,
               datasets: [
@@ -318,9 +320,11 @@ export const WarehouseChart = ({
                   label: title,
                   data: values.map((value) => value ?? 0),
                   backgroundColor: labels.map((_, index) => colors[index % colors.length]),
-                  borderColor: '#171719',
-                  borderWidth: 2,
-                  hoverOffset: 8,
+                  borderColor: 'transparent',
+                  borderWidth: 0,
+                  borderRadius: 7,
+                  spacing: 4,
+                  hoverOffset: 5,
                 },
               ],
             }}
@@ -333,12 +337,17 @@ export const WarehouseChart = ({
             {t('charts.noDistribution')}
           </p>
         )}
+        {kind === 'pie' && canShowDistribution && (
+          <div className="donut-center" aria-live="polite">
+            <strong>
+              {number.format(values.reduce<number>((sum, value) => sum + (value ?? 0), 0))}
+            </strong>
+            <span>{t('allRows')}</span>
+          </div>
+        )}
       </div>
       {kind === 'pie' && canShowDistribution && (
-        <ul
-          aria-label={t('charts.categories')}
-          className="grid max-h-48 gap-2 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3"
-        >
+        <ul aria-label={t('charts.categories')} className="donut-reference-legend">
           {rows.map((row, index) => (
             <li
               key={JSON.stringify([row.label])}

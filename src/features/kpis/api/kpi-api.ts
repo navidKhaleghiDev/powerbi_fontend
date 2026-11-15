@@ -105,3 +105,25 @@ export const listKpiDashboards = async (signal?: AbortSignal): Promise<KpiDashbo
   readJson<KpiDashboard[]>(await apiRequest(API_ENDPOINTS.kpiDashboards, { signal }));
 export const getKpiDashboard = async (id: number, signal?: AbortSignal): Promise<KpiDashboard> =>
   readJson<KpiDashboard>(await apiRequest(API_ENDPOINTS.kpiDashboard(id), { signal }));
+
+/** POST /api/kpis/create-sheet/; creator and timestamps are server-owned. */
+export interface KpiSheetCreate {
+  title: string;
+  description?: string | null;
+}
+export interface KpiCreatedSheet {
+  id: number;
+  title: string;
+  description: string | null;
+}
+export const createKpiSheet = async (sheet: KpiSheetCreate): Promise<KpiCreatedSheet> => {
+  const result = await postJson<KpiCreatedSheet>(API_ENDPOINTS.kpiCreateSheet, sheet);
+  if (
+    !Number.isInteger(result.id) ||
+    typeof result.title !== 'string' ||
+    (result.description !== null && typeof result.description !== 'string')
+  ) {
+    throw new Error('The sheet response has an unexpected format');
+  }
+  return result;
+};

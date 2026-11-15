@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/utils';
 export type InputProps = React.ComponentProps<'input'> & {
   label?: React.ReactNode;
   error?: React.ReactNode;
+  reserveErrorSpace?: boolean;
   endAdornment?: React.ReactNode;
 };
 
@@ -13,6 +14,7 @@ function Input({
   type,
   label,
   error,
+  reserveErrorSpace = Boolean(label),
   endAdornment,
   id,
   'aria-invalid': ariaInvalid,
@@ -41,21 +43,29 @@ function Input({
     />
   );
 
-  if (!label && !error && !endAdornment) return control;
+  if (!label && !error && !endAdornment && !reserveErrorSpace) return control;
 
   return (
-    <div data-slot="input-field" className="grid gap-2">
+    <div
+      data-slot="input-field"
+      className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-2 text-sm"
+    >
       {label ? <label htmlFor={inputId}>{label}</label> : null}
       {endAdornment ? (
-        <div data-slot="input-control" className="relative">
+        <div data-slot="input-control" className="relative min-w-0">
           {control}
           {endAdornment}
         </div>
       ) : (
         control
       )}
-      {error ? (
-        <p id={errorId} role="alert" className="text-start text-sm text-red-400">
+      {error || reserveErrorSpace ? (
+        <p
+          id={errorId}
+          role={error ? 'alert' : undefined}
+          aria-hidden={error ? undefined : true}
+          className="min-h-[1lh] w-full min-w-0 text-start [overflow-wrap:anywhere] text-red-400"
+        >
           {error}
         </p>
       ) : null}

@@ -53,7 +53,7 @@ export const DashboardChat = () => {
     if (element) element.scrollTop = element.scrollHeight;
   }, [turns, pending]);
   return (
-    <DashboardPane className="bi-chat-pane" title={t('title')} defaultCollapsed>
+    <DashboardPane className="bi-chat-pane" title={t('title')}>
       <div className="bi-chat">
         {!apiKey && <p role="alert">{t('missingKey')}</p>}
         <div

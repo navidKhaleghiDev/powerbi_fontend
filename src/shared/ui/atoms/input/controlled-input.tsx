@@ -20,6 +20,7 @@ export function ControlledInput<T extends FieldValues>({
   const { ref, ...rest } = field;
   return (
     <Input
+      reserveErrorSpace
       {...props}
       {...rest}
       ref={ref}

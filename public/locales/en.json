@@ -7,6 +7,8 @@
     "reportsMockNotice": "Development mock data · All orders, reports, approvals, and timestamps are fictional. No live services are connected. Save and publish actions require a backend."
   },
   "notifications": {
+    "successTitle": "Success",
+    "errorTitle": "Something went wrong",
     "actionSucceeded": "Action completed successfully.",
     "requestFailed": "Something went wrong. Please try again.",
     "dismiss": "Dismiss notification"
@@ -923,6 +925,7 @@
     "sheets": "Dashboard sheets",
     "incomeSheet": "Income",
     "addSheet": "Add sheet",
+    "sheetDescription": "Description (shown as the sheet tooltip)",
     "sheetName": "Sheet name",
     "defaultSheetName": "Sheet {count}",
     "newSheetHint": "Choose your data, measures, grouping, and visual for the new sheet.",
@@ -1185,9 +1188,10 @@
     "information": "Chat information"
   },
   "analytics": {
+    "cancel": "Cancel",
     "required": "This field is required.",
     "invalid": "Check this field's format or length.",
-    "titleDashboard": "Business dashboard",
+    "titleDashboard": "Business intelligence dashboard",
     "live": "API data",
     "loading": "Loading…",
     "retry": "Retry",
@@ -1227,6 +1231,7 @@
     "addSheet": "Add sheet",
     "deleteSheet": "Delete current sheet",
     "confirmDeleteSheet": "Delete sheet \"{name}\" and its widgets? Save the dashboard to apply this change.",
+    "sheetDescription": "Description (shown as the sheet tooltip)",
     "sheetName": "Sheet name",
     "saved": "Saved",
     "unsaved": "Unsaved changes",
@@ -1281,6 +1286,14 @@
     "customMetric": "Define a custom approved KPI",
     "metricKey": "KPI identifier",
     "definition": "Business definition and inclusion rules",
+    "aggregations": {
+      "sum": "Sum",
+      "avg": "Average",
+      "min": "Minimum",
+      "max": "Maximum",
+      "count": "Count",
+      "uniqExact": "Distinct count"
+    },
     "aggregation": "Aggregation",
     "sum": "Sum",
     "count": "Count records",
@@ -1311,6 +1324,12 @@
     "trendUnavailable": "Trend unavailable"
   },
   "kpis": {
+    "editorData": "Data and calculation",
+    "editorNoFilters": "No filters added. All rows are included.",
+    "editorPreviewReady": "Preview your result before applying this widget.",
+    "editorCompleteFields": "Complete the title, data source, and calculation fields to preview and apply.",
+    "widgetHelp": "Group a table by a dimension and aggregate a measure. Sum and average require numeric columns; count without a measure counts rows. Filters are combined with AND.",
+    "localWidgetHelp": "Queries use the connected API. This dashboard layout is saved in this browser.",
     "required": "This field is required.",
     "invalid": "Check this field's length.",
     "title": "Live KPI dashboards",

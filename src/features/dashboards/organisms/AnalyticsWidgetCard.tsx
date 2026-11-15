@@ -1,6 +1,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useQuery } from '@tanstack/react-query';
 import {
+  Activity,
   ArrowLeft,
   ArrowRight,
   Copy,
@@ -31,6 +32,8 @@ import {
   type AnalyticsFilters,
   type Dataset,
 } from '@/features/datasets/api/analytics';
+import { queryKpi } from '@/features/kpis/api/kpi-api';
+import { KpiResultView } from '@/features/kpis/organisms/KpiResultView';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
 import { formatSolarPeriod } from '@/shared/lib/solar-calendar';
@@ -68,6 +71,7 @@ export const AnalyticsWidgetCard = ({
   const trendGradientId = useId();
   const locale = useLocale();
   const [records, setRecords] = useState(false);
+  const [recordsOpen, setRecordsOpen] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const PreviousIcon = locale === 'fa' ? ArrowRight : ArrowLeft;
   const NextIcon = locale === 'fa' ? ArrowLeft : ArrowRight;
@@ -151,6 +155,16 @@ export const AnalyticsWidgetCard = ({
     retry: false,
     staleTime: 60_000,
   });
+  const kpi = useQuery({
+    queryKey: ['dashboard-widget', 'kpi', widget.kpiQuery],
+    queryFn: ({ signal }) => {
+      if (!widget.kpiQuery) throw new Error(t('unavailable'));
+      return queryKpi(widget.kpiQuery, signal);
+    },
+    enabled: !!widget.kpiQuery,
+    retry: false,
+    staleTime: 60_000,
+  });
   const data = result.data;
   const measure = widget.query?.measures?.[0] ?? '';
   const format = (value: string | number | null | undefined, key?: string) => {
@@ -227,6 +241,7 @@ export const AnalyticsWidgetCard = ({
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const refreshing = widget.kpiQuery ? kpi.isFetching : result.isFetching || trend.isFetching;
   return (
     <article
       ref={setNodeRef}
@@ -256,6 +271,11 @@ export const AnalyticsWidgetCard = ({
           <h2>{widget.title || selected?.metric.title}</h2>
         </div>
         <div className="bi-widget-actions">
+          {refreshing && (
+            <span className="bi-widget-refresh-status" role="status" aria-label={t('loading')}>
+              <RefreshCw aria-hidden="true" />
+            </span>
+          )}
           <details ref={menuRef} className="bi-widget-menu">
             <summary aria-label={t('actions')} title={t('actions')}>
               <MoreVertical aria-hidden="true" />
@@ -290,9 +310,13 @@ export const AnalyticsWidgetCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={!selected}
+                disabled={refreshing || (!selected && !widget.kpiQuery)}
                 onClick={() =>
                   runMenuAction(() => {
+                    if (widget.kpiQuery) {
+                      void kpi.refetch();
+                      return;
+                    }
                     void result.refetch();
                     if (widget.visual === 'card' && trendDimension) void trend.refetch();
                   })
@@ -306,7 +330,12 @@ export const AnalyticsWidgetCard = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => runMenuAction(() => setRecords(true))}
+                    onClick={() =>
+                      runMenuAction(() => {
+                        setRecords(true);
+                        setRecordsOpen(true);
+                      })
+                    }
                   >
                     <FileText aria-hidden="true" />
                     {t('records')}
@@ -330,21 +359,50 @@ export const AnalyticsWidgetCard = ({
           </details>
         </div>
       </header>
-      <div className="bi-widget-content">
-        {!selected ? (
-          <p>{t('unavailable')}</p>
+      <div className="bi-widget-content" aria-busy={refreshing}>
+        {widget.kpiQuery ? (
+          kpi.isError ? (
+            <div className="bi-widget-state" role="alert">
+              <p>{kpi.error.message}</p>
+              <Button onClick={() => void kpi.refetch()}>{t('retry')}</Button>
+            </div>
+          ) : kpi.isPending ? (
+            <p className="bi-widget-state" role="status">
+              {t('loading')}
+            </p>
+          ) : (
+            <KpiResultView
+              result={kpi.data}
+              title={widget.title}
+              kind={
+                widget.visual === 'card'
+                  ? 'number'
+                  : widget.visual === 'line' || widget.visual === 'pie' || widget.visual === 'table'
+                    ? widget.visual
+                    : 'bar'
+              }
+            />
+          )
+        ) : !selected ? (
+          <p className="bi-widget-state">{t('unavailable')}</p>
         ) : result.isError ? (
-          <div role="alert">
+          <div className="bi-widget-state" role="alert">
             <p>{result.error.message}</p>
             <Button onClick={() => void result.refetch()}>{t('retry')}</Button>
           </div>
         ) : result.isPending ? (
-          <p role="status">{t('loading')}</p>
+          <p className="bi-widget-state" role="status">
+            {t('loading')}
+          </p>
         ) : !data?.rows.length ? (
-          <p>{t('empty')}</p>
+          <p className="bi-widget-state">{t('empty')}</p>
         ) : widget.visual === 'card' ? (
           <div className="analytics-kpi-layout">
+            <div className="kpi-reference-icon" aria-hidden="true">
+              <Activity />
+            </div>
             <div className="bi-kpi">
+              <span className="kpi-reference-title">{widget.title || selected.metric.title}</span>
               <strong>{format(data.rows[0]?.[measure])}</strong>
               {selected.metric.aggregation !== 'count' && selected.dataset.unit && (
                 <span className="analytics-kpi-unit">{selected.dataset.unit}</span>
@@ -466,13 +524,14 @@ export const AnalyticsWidgetCard = ({
         {data?.meta.truncated && <p role="status">{t('truncated')}</p>}
       </div>
       <AppDialog
-        open={records}
+        open={recordsOpen}
         className="bi-edit-dialog analytics-dialog"
-        onClose={() => setRecords(false)}
+        onClose={() => setRecordsOpen(false)}
+        onAfterClose={() => setRecords(false)}
       >
         <header>
           <h2>{t('records')}</h2>
-          <Button variant="ghost" onClick={() => setRecords(false)}>
+          <Button variant="ghost" onClick={() => setRecordsOpen(false)}>
             {t('close')}
           </Button>
         </header>

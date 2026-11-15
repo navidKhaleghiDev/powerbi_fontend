@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, X } from 'lucide-react';
+import { Check, CircleAlert, X } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
 import { toast, useToasts } from '@/shared/lib/toast';
@@ -9,34 +9,46 @@ export const ToastViewport = () => {
   const items = useToasts();
 
   return (
-    <div
-      className="fixed end-4 top-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2"
-      aria-live="polite"
-    >
+    <div className="pointer-events-none fixed top-0 left-1/2 z-[100] flex max-h-dvh w-[min(35rem,100vw)] -translate-x-1/2 flex-col gap-3 overflow-y-auto p-6">
       {items.map((item) => {
         const isError = item.kind === 'error';
-        const Icon = isError ? CircleAlert : CircleCheck;
+        const Icon = isError ? CircleAlert : Check;
         return (
           <div
             key={item.id}
             role={isError ? 'alert' : 'status'}
-            className={`flex items-start gap-3 rounded-xl border bg-white p-4 text-sm text-slate-900 shadow-lg ${
-              isError ? 'border-red-300' : 'border-green-300'
-            }`}
+            aria-atomic="true"
+            data-closing={item.closing || undefined}
+            onMouseEnter={() => toast.pause(item.id, 'hover')}
+            onMouseLeave={() => toast.resume(item.id, 'hover')}
+            onFocusCapture={() => toast.pause(item.id, 'focus')}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget))
+                toast.resume(item.id, 'focus');
+            }}
+            data-kind={item.kind}
+            className="application-toast pointer-events-auto relative flex shrink-0 items-center gap-3 overflow-hidden rounded-xl p-3 text-start text-white shadow-lg"
           >
-            <Icon
-              size={18}
-              aria-hidden="true"
-              className={isError ? 'text-red-700' : 'text-green-700'}
-            />
-            <p className="min-w-0 flex-1 break-words">
-              {item.message || t(isError ? 'requestFailed' : 'actionSucceeded')}
-            </p>
+            <span
+              className={`relative flex size-9 shrink-0 items-center justify-center rounded-lg ${isError ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+            >
+              <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <div className="relative min-w-0 flex-1">
+              <p
+                className={`text-sm leading-snug font-semibold ${isError ? 'text-red-400' : 'text-slate-100'}`}
+              >
+                {t(isError ? 'errorTitle' : 'successTitle')}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed break-words whitespace-pre-wrap text-slate-300">
+                {item.message || t(isError ? 'requestFailed' : 'actionSucceeded')}
+              </p>
+            </div>
             <Button
               variant="ghost"
-              size="icon-xs"
+              size="icon-sm"
               type="button"
-              className="rounded p-0.5 text-slate-600 hover:bg-slate-50"
+              className="relative shrink-0 rounded-md text-slate-400 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
               aria-label={t('dismiss')}
               onClick={() => toast.dismiss(item.id)}
             >

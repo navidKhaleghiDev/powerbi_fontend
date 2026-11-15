@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { IntlProvider } from 'use-intl';
 
 import { WorkspaceShell } from '@/app/layouts/app-layout';
+import { PageTransition } from '@/app/layouts/PageTransition';
 import { WorkspaceProviders } from '@/app/providers/WorkspaceProviders';
 
 import en from '../../public/locales/en.json';
@@ -24,6 +25,7 @@ export const LocaleWorkspace = () => {
   return (
     <IntlProvider locale={locale} messages={messages} timeZone="Asia/Tehran">
       <WorkspaceProviders>
+        <PageTransition />
         <a
           href="#workspace-content"
           className="sr-only rounded-xl bg-white px-4 py-3 text-blue-700 shadow-lg focus:not-sr-only focus:fixed focus:inset-s-4 focus:top-4 focus:z-50"

@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   kpiAvailableTables: '/api/kpis/available-tables/',
   kpiQuery: '/api/kpis/query/',
   kpiChartQuery: '/api/kpis/chart-query/',
+  kpiCreateSheet: '/api/kpis/create-sheet/',
   kpiCreateDashboard: '/api/kpis/create-dashboard/',
   kpiDashboards: '/api/kpis/dashboards/',
   kpiDashboard: (id: number) => `/api/kpis/dashboards/${id}/`,

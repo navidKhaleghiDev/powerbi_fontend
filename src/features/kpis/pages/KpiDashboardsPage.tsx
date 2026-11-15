@@ -64,12 +64,12 @@ export const KpiDashboardsPage = () => {
     },
   });
   return (
-    <main className="mx-auto max-w-6xl space-y-6 p-6">
+    <section className="kpi-management-page mx-auto max-w-6xl space-y-6 p-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <p>{t('description')}</p>
       </header>
-      <section className="space-y-3">
+      <section className="kpi-management-panel space-y-3">
         <h2 className="text-xl font-semibold">{t('savedDashboards')}</h2>
         {dashboards.isPending && <p role="status">{t('loading')}</p>}
         {dashboards.isError && <p role="alert">{dashboards.error.message}</p>}
@@ -80,7 +80,7 @@ export const KpiDashboardsPage = () => {
               key={dashboard.id}
               to="/$locale/kpis/$dashboardId"
               params={{ locale, dashboardId: String(dashboard.id) }}
-              className="rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
+              className="kpi-dashboard-link rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
             >
               <strong>{dashboard.title}</strong>
               <p className="text-sm text-slate-600">{dashboard.description}</p>
@@ -89,7 +89,7 @@ export const KpiDashboardsPage = () => {
         </div>
       </section>
       <form
-        className="space-y-4"
+        className="kpi-management-panel space-y-4"
         noValidate
         onSubmit={handleSubmit((values) => {
           if (charts.length && charts.every(isValidChart)) create.mutate(values);
@@ -119,7 +119,7 @@ export const KpiDashboardsPage = () => {
             onRemove={() => setCharts((items) => items.filter((item) => item.id !== chart.id))}
           />
         ))}
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button
             type="button"
             variant="outline"
@@ -138,6 +138,6 @@ export const KpiDashboardsPage = () => {
         </div>
         {create.isError && <p role="alert">{create.error.message}</p>}
       </form>
-    </main>
+    </section>
   );
 };

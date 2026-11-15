@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Globe2, LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -18,6 +19,7 @@ export const LoginPage = () => {
   const t = useTranslations('login');
   const locale = useLocale();
   const navigate = useNavigate();
+  const loginMutation = useMutation({ mutationFn: login });
   const [rippleCell, setRippleCell] = useState<{ index: number; sequence: number } | null>(null);
   const [rippleGrid, setRippleGrid] = useState({ columns: 27, rows: 12 });
   const rippleRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,6 @@ export const LoginPage = () => {
     control,
     handleSubmit,
     reset,
-    setError,
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
@@ -167,16 +168,14 @@ export const LoginPage = () => {
             noValidate
             onSubmit={handleSubmit(async ({ username, password }) => {
               try {
-                await login({ username, password });
-                reset();
-                toast.success(t('loginSuccess'));
-                await navigate({ to: '/$locale/dashboard', params: { locale } });
-              } catch (error) {
-                setError('password', {
-                  type: 'server',
-                  message: error instanceof Error ? error.message : t('loginFailed'),
-                });
+                await loginMutation.mutateAsync({ username, password });
+              } catch {
+                // The shared mutation cache displays the API error in a toast.
+                return;
               }
+              reset();
+              toast.success(t('loginSuccess'));
+              await navigate({ to: '/$locale/dashboard', params: { locale } });
             })}
           >
             <div className="login-field">
