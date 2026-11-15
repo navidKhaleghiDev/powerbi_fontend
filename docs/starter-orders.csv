@@ -1,4 +1,0 @@
-order_id,customer_id,total_amount,order_date
-ord-101,cust-1,125.50,2026-11-01
-ord-102,cust-1,74.50,2026-11-01
-ord-103,cust-2,200.00,2026-11-02

@@ -14,9 +14,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@uiShare/*": ["./src/ui/components/*"],
-      "@/*": ["./src/*"],
-      "@ui/*": ["./src/components/*"]
+      "@/*": ["./src/*"]
     },
     "types": ["vite/client"]
   },

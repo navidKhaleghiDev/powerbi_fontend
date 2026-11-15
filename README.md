@@ -1,6 +1,8 @@
-# BI Control Center — React frontend
+# NETBI — React frontend
 
 A frontend-only React application built with Vite and strict TypeScript, TanStack Router, English/Persian localization with use-intl, Tailwind/Radix components, and TanStack Query.
+
+See [frontend architecture](docs/frontend-architecture.md) for code ownership and extension rules.
 
 ## Development
 
@@ -30,7 +32,7 @@ ESLint uses one shared Airbnb-inspired flat configuration for all supported Java
 
 The rules cover strict equality (with intentional nullish checks allowed), safe callbacks, parameter mutation, unsafe evaluation, promise handling, type-only imports, and non-null assertions. `eslint-plugin-import-x` checks import resolution, order, cycles, duplicate imports, and undeclared dependencies with the TypeScript path aliases. Application components keep named exports by project convention. The shared configuration recognizes browser and Node.js globals together because it also checks tooling. A single scope permits default exports and Node.js imports across all checked files; the application remains browser-only by project convention. Development dependencies are allowed only in tooling configuration files.
 
-`@eslint-react/eslint-plugin` adds stable-key, component-definition, conditional-rendering, DOM-safety, and resource-cleanup checks. Existing React Hooks/compiler checks and Vite Fast Refresh checks remain enabled. The extracted shared loading skeleton is globally ignored so its source stays untouched. Prettier handles formatting separately; eslint-config-prettier disables conflicting style rules. The Tailwind CSS Prettier plugin sorts utility classes using `src/styles/globals.css`, including class lists passed to `cn` and `cva`.
+`@eslint-react/eslint-plugin` adds stable-key, component-definition, conditional-rendering, DOM-safety, and resource-cleanup checks. Existing React Hooks/compiler checks and Vite Fast Refresh checks remain enabled. The extracted shared loading skeleton is globally ignored so its source stays untouched. Prettier handles formatting separately; eslint-config-prettier disables conflicting style rules. The Tailwind CSS Prettier plugin sorts utility classes using `src/global.css`, including class lists passed to `cn` and `cva`.
 
 - `pnpm run lint` checks source and tooling with no warnings allowed.
 - `pnpm run lint:fix` applies available ESLint fixes.
@@ -47,7 +49,7 @@ Commit `pnpm-lock.yaml` with dependency changes. Use `pnpm add <package>` and `p
 
 ## VS Code integration
 
-Install the workspace-recommended ESLint, Prettier, and Tailwind CSS IntelliSense extensions. Workspace settings enable all configured ESLint rules while typing, automatic ESLint fixes on explicit save, and Prettier formatting with Tailwind class sorting on save. Built-in JavaScript/TypeScript, CSS, and JSON validation is enabled. The workspace TypeScript SDK is configured; select **Use Workspace Version** when prompted. Tailwind validation uses `src/styles/globals.css` and recognizes the `cn` and `cva` helpers. Stylesheets use the Tailwind language mode so its directives are understood. Issues without automatic fixes remain highlighted in the editor and Problems panel. Extension recommendations do not install extensions automatically.
+Install the workspace-recommended ESLint, Prettier, and Tailwind CSS IntelliSense extensions. Workspace settings enable all configured ESLint rules while typing, automatic ESLint fixes on explicit save, and Prettier formatting with Tailwind class sorting on save. Built-in JavaScript/TypeScript, CSS, and JSON validation is enabled. The workspace TypeScript SDK is configured; select **Use Workspace Version** when prompted. Tailwind validation uses `src/global.css` and recognizes the `cn` and `cva` helpers. Stylesheets use the Tailwind language mode so its directives are understood. Issues without automatic fixes remain highlighted in the editor and Problems panel. Extension recommendations do not install extensions automatically.
 
 Use **Tasks: Run Task → Check: all** for full-project lint, formatting, and TypeScript checks. **Build: production** runs the production build and is the default build task. These full-project tasks run on demand; they do not run on each keystroke or save. The pre-commit hook checks staged files, and commitlint checks commit messages through the existing commit-msg hook.
 
@@ -61,45 +63,45 @@ pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-If authentication is required in your environment, keep registry-scoped credentials in your user-level `~/.npmrc`, not the committed project `.npmrc`. Docker builds can receive that file through the optional BuildKit `npmrc` secret:
-
-```bash
-docker build --secret id=npmrc,src="$HOME/.npmrc" -t powerbi-control-center:local .
-```
-
-## Docker frontend
-
-Use Docker Engine with the Buildx/BuildKit plugin.
-
-The Dockerfile installs the pinned pnpm version and frozen dependencies through Nexus, builds the Vite application, and copies `dist/` into an unprivileged Nginx runtime. The runtime uses the image's default Nginx configuration and listens on port 8080. Its health check requests `/`. Git hooks are skipped inside image builds. Base images come from their Docker image registries; Nexus supplies npm packages.
-
-```bash
-# Production frontend at http://localhost:8080
-docker build -t powerbi-control-center:local .
-docker run --rm -p 8080:8080 powerbi-control-center:local
-
-# Development frontend with source updates at http://localhost:3001
-docker build --target development -t powerbi-control-center:dev .
-docker run --rm -it -p 3001:3001 \
-  --mount type=bind,src="$(pwd)/src",dst=/app/src,readonly \
-  --mount type=bind,src="$(pwd)/public",dst=/app/public,readonly \
-  --mount type=bind,src="$(pwd)/index.html",dst=/app/index.html,readonly \
-  --mount type=bind,src="$(pwd)/vite.config.ts",dst=/app/vite.config.ts,readonly \
-  --mount type=bind,src="$(pwd)/postcss.config.mjs",dst=/app/postcss.config.mjs,readonly \
-  --mount type=bind,src="$(pwd)/tsconfig.json",dst=/app/tsconfig.json,readonly \
-  powerbi-control-center:dev
-```
-
-Stop either foreground container with Ctrl+C. Change the host side of `-p` if a port is already in use. Development mounts preserve the container's dependencies; rebuild the development image after dependency or package-manager configuration changes.
-
-If Nexus requires credentials, add `--secret id=npmrc,src="$HOME/.npmrc"` to the appropriate `docker build` command. Keep credentials out of the committed project `.npmrc`.
-
-The default production Nginx configuration serves static files without a TanStack Router fallback. Open `/` and navigate within the app. Direct requests or refreshes on paths such as `/en/analytics/reports` return 404 unless your hosting layer rewrites frontend routes to `/index.html`. Custom asset caching and the former `/healthz` endpoint are not configured.
-
-Local environment files, credentials, Git metadata, dependencies, and generated builds are excluded from the Docker context. Runtime package installation and backend services are not included in the production image.
-
 ## Reports development fixtures
 
 During `pnpm run dev`, the Reports panel automatically loads clearly labeled fictional data: 72 orders across six months, four regions, and three categories; two sample reports; KPI bindings; and paginated dataset rows. Charts, filters, CSV export, and local draft visualization work in the browser. Approval/publication metadata and timestamps are simulated, and all backend mutations still report unavailability. Configuration remains empty.
 
-The fixtures live in `src/lib/mocks/reports.ts` and are loaded through TanStack Query only on Analytics routes. Set `VITE_REPORTS_MOCKS=false` in `.env.local` and restart Vite to return to empty states. Production builds exclude the fixture module and never enable it, even if the environment flag is set. Mock edits are not persisted across reloads.
+The fixtures live in `src/lib/mocks/reports.ts` and are loaded through TanStack Query only on Analytics routes. Set `VITE_REPORTS_MOCKS=false` in `.env` and restart Vite to return to empty states. Production builds exclude the fixture module and never enable it, even if the environment flag is set. Mock edits are not persisted across reloads.
+
+### Sales Mart dashboard demo (no services required)
+
+Run `pnpm dev` and open the dashboard after login. The income and expense sheets use
+local synthetic data based on the [current sales definition](docs/mart-sales-definition-current.fa.pdf).
+No Cube.js, management API, database, token, or environment variable is required.
+The widget editor and searchable field pane also use local sample fields. Income includes independent formal/informal and cash/credit classifications with reconciled totals; see [the income sheet guide](docs/dashboard-income.fa.md).
+The demo is available in development and production builds by explicit request;
+all data is labeled fictional. Widget edits last for the current session only.
+
+The sample contains 36 goods invoices, separate allocated payment events,
+supplier purchases and hypothetical income/expense recognition entries in IRR
+for January–June 2026. The as-of date and customer filter recalculate widgets.
+Settled invoices use issue dates; successful collections use payment dates.
+Unconfirmed purchases are excluded, and purchase totals are never treated as
+recognized expenses. Financial entries have no customer attribution, so those
+widgets show an unavailable state when a customer is selected. No profit is
+calculated. Recognition policy, tax, returns, foreign exchange and salesperson
+mapping remain unapproved or outside this demo. The financial entries illustrate
+presentation only and do not resolve the PDF's open accounting definitions.
+
+Visualizations and Data have collapse/expand buttons inside their own headers;
+field sections can be collapsed individually. Existing Cube tooling is retained
+for future integration but is not mounted by the dashboard.
+
+## Live dashboard data
+
+The dashboard now reads published KPIs through the Django `/api/analytics/` API.
+Set the existing `VITE_API_BASE_URL` to the Django deployment. Staff users can
+open **Datasets & mappings** to create, preview and publish mappings; published
+KPIs populate the widget editor automatically. No mock amounts are used as a
+fallback. Dashboard layouts are saved per account with **Save dashboard**.
+Period filters use Gregorian date inputs with an exclusive end date; reporting
+groups support Persian and Gregorian calendars. Historical mode requires retained
+history and an explicit cutoff. **View records** provides paginated mapped rows.
+The separate Cube client settings are not required for this dashboard.
+Backend setup and contracts: [analytics guide](../backend/docs/analytics.md).
