@@ -1,7 +1,8 @@
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 export interface ModelTable {
   schema: string;
@@ -36,7 +37,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
           <div key={item.id} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
             <label>
               {t('table')}
-              <select
+              <NativeSelect
                 className="block w-full rounded-md border bg-white p-2"
                 value={item.table}
                 onChange={(event) => {
@@ -59,7 +60,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
                     {table.schema}.{table.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label>
               {t('cube')}
@@ -71,7 +72,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
             </label>
             <label>
               {t('source')}
-              <select
+              <NativeSelect
                 className="block w-full rounded-md border bg-white p-2"
                 value={item.source}
                 onChange={(event) => update(item.id, { source: event.target.value })}
@@ -82,11 +83,11 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
                     {column.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label>
               {t('target')}
-              <select
+              <NativeSelect
                 className="block w-full rounded-md border bg-white p-2"
                 value={item.target}
                 onChange={(event) => update(item.id, { target: event.target.value })}
@@ -97,11 +98,11 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
                     {column.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label>
               {t('relationship')}
-              <select
+              <NativeSelect
                 className="block w-full rounded-md border bg-white p-2"
                 value={item.relationship}
                 onChange={(event) => update(item.id, { relationship: event.target.value })}
@@ -111,7 +112,7 @@ export const CubeRelationships = ({ tables, columns, value, onChange }: Props) =
                     {t(type)}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <Button
               type="button"

@@ -1,13 +1,19 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowUp, Info, Sparkles, Square, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslations } from 'use-intl';
 
 import { useAssistant } from '@/features/assistant/lib/context';
 import { MAX_QUESTION, SUPPORTED_MODELS } from '@/features/assistant/lib/core';
+import {
+  createChatFormSchema,
+  type ChatFormValues,
+} from '@/features/dashboards/lib/chat-form-schema';
 import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
-import { Button } from '@/shared/components/atoms/button';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
-import { Textarea } from '@/shared/components/atoms/textarea';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
+import { Textarea } from '@/shared/ui/atoms/textarea/textarea';
 
 // React text rendering escapes HTML. Fences are rendered as inert LTR code, never HTML.
 const Answer = ({ text }: { text: string }) => (
@@ -29,7 +35,17 @@ const Answer = ({ text }: { text: string }) => (
 export const DashboardChat = () => {
   const t = useTranslations('dashboardChat');
   const assistant = useAssistant();
-  const [draft, setDraft] = useState('');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<ChatFormValues>({
+    resolver: zodResolver(createChatFormSchema(t('messageRequired'), t('messageTooLong'))),
+    defaultValues: { message: '' },
+  });
+  const draft = useWatch({ control, name: 'message' });
   const { apiKey, model, turns, pending, error } = assistant;
   const conversationRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -95,11 +111,11 @@ export const DashboardChat = () => {
         )}
         <form
           className="ui-border-trail"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!draft.trim() || !apiKey.trim() || pending) return;
-            if (assistant.send(draft)) setDraft('');
-          }}
+          noValidate
+          onSubmit={handleSubmit(({ message }) => {
+            if (!apiKey.trim() || pending) return;
+            if (assistant.send(message)) reset();
+          })}
         >
           <div className="bi-chat-input-field">
             <Textarea
@@ -119,10 +135,11 @@ export const DashboardChat = () => {
                 event.preventDefault();
                 event.currentTarget.form?.requestSubmit();
               }}
-              value={draft}
               maxLength={MAX_QUESTION}
-              onChange={(event) => setDraft(event.target.value)}
+              aria-invalid={!!errors.message}
+              {...register('message')}
             />
+            {errors.message && <p role="alert">{errors.message.message}</p>}
           </div>
           <div className="bi-chat-actions">
             <div className="bi-chat-secondary-actions">

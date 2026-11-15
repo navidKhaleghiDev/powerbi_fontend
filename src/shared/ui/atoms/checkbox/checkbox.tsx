@@ -8,7 +8,7 @@ function Checkbox({ className, ...props }: Omit<React.ComponentProps<'input'>, '
       type="checkbox"
       data-slot="checkbox"
       className={cn(
-        'size-4 shrink-0 accent-[var(--icon-brand)] disabled:cursor-not-allowed disabled:opacity-50',
+        'size-4 shrink-0 accent-zinc-300 disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       {...props}

@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
@@ -12,7 +13,8 @@ import {
   Plus,
   Rocket,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentProps } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
 import {
@@ -22,10 +24,17 @@ import {
   type Metric,
   type Source,
 } from '@/features/datasets/api/analytics';
-import { Button, buttonVariants } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
+import {
+  createCustomMetricSchema,
+  createDatasetFieldsSchema,
+  createDatasetFormSchema,
+  type DatasetFormValues,
+} from '@/features/datasets/lib/dataset-form-schema';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
+import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
+import { Checkbox } from '@/shared/ui/atoms/checkbox/checkbox';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 type Field = { id: string; name: string; column: string; type: 'date' | 'number' | 'string' };
 export const AnalyticsDatasets = ({
@@ -53,19 +62,33 @@ export const AnalyticsDatasets = ({
     retry: false,
   });
   const [editingDataset, setEditingDataset] = useState<Dataset | null>(null);
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [grain, setGrain] = useState('');
-  const [description, setDescription] = useState('');
-  const [source, setSource] = useState('');
-  const [primaryKey, setPrimaryKey] = useState('');
-  const [version, setVersion] = useState('');
-  const [deleted, setDeleted] = useState('');
-  const [history, setHistory] = useState('');
-  const [recordedAt, setRecordedAt] = useState('');
-  const [historyStart, setHistoryStart] = useState('');
-  const [unit, setUnit] = useState('IRR');
-  const [timezone, setTimezone] = useState('Asia/Tehran');
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<DatasetFormValues>({
+    resolver: zodResolver(createDatasetFormSchema(t('required'), t('invalid'))),
+    defaultValues: {
+      title: '',
+      slug: '',
+      grain: '',
+      description: '',
+      source: '',
+      primaryKey: '',
+      version: '',
+      deleted: '',
+      history: '',
+      recordedAt: '',
+      historyStart: '',
+      unit: 'IRR',
+      timezone: 'Asia/Tehran',
+    },
+  });
+  const source = useWatch({ control, name: 'source' });
+  const history = useWatch({ control, name: 'history' });
   const [fields, setFields] = useState<Field[]>([
     { id: 'date', name: 'date', column: '', type: 'date' },
     { id: 'amount', name: 'amount', column: '', type: 'number' },
@@ -88,7 +111,32 @@ export const AnalyticsDatasets = ({
     ]);
   };
   const save = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({
+      title,
+      slug,
+      grain,
+      description,
+      source,
+      primaryKey,
+      version,
+      deleted,
+      history,
+      recordedAt,
+      historyStart,
+      unit,
+      timezone,
+    }: DatasetFormValues) => {
+      if (!createDatasetFieldsSchema(t('required'), t('invalid')).safeParse(fields).success)
+        throw new Error(t('invalid'));
+      if (
+        custom &&
+        !createCustomMetricSchema(t('required')).safeParse({
+          key: customKey,
+          title: customTitle,
+          description: customDescription,
+        }).success
+      )
+        throw new Error(t('required'));
       if (new Set(fields.map((field) => field.name)).size !== fields.length)
         throw new Error(t('duplicateFields'));
       const mapping = Object.fromEntries(
@@ -161,8 +209,7 @@ export const AnalyticsDatasets = ({
     },
     onSuccess: async () => {
       await refresh();
-      setTitle('');
-      setSlug('');
+      reset();
       setEditingDataset(null);
       await navigate({ to: '/$locale/datasets', params: { locale } });
     },
@@ -183,19 +230,21 @@ export const AnalyticsDatasets = ({
   });
   const loadDraft = (dataset: Dataset, clone = false) => {
     setEditingDataset(clone ? null : dataset);
-    setTitle(dataset.title);
-    setSlug(clone ? `${dataset.slug}-v${dataset.revision + 1}` : dataset.slug);
-    setGrain(dataset.grain);
-    setDescription(dataset.description);
-    setSource(dataset.source_table ?? '');
-    setPrimaryKey(dataset.primary_key ?? '');
-    setVersion(dataset.version_column ?? '');
-    setDeleted(dataset.deleted_column ?? '');
-    setUnit(dataset.unit);
-    setTimezone(dataset.timezone);
-    setHistory('');
-    setRecordedAt('');
-    setHistoryStart('');
+    reset({
+      title: dataset.title,
+      slug: clone ? `${dataset.slug}-v${dataset.revision + 1}` : dataset.slug,
+      grain: dataset.grain,
+      description: dataset.description,
+      source: dataset.source_table ?? '',
+      primaryKey: dataset.primary_key ?? '',
+      version: dataset.version_column ?? '',
+      deleted: dataset.deleted_column ?? '',
+      unit: dataset.unit,
+      timezone: dataset.timezone,
+      history: '',
+      recordedAt: '',
+      historyStart: '',
+    });
     setFields(
       Object.entries(dataset.mapping)
         .map(([name, field]) => ({
@@ -246,10 +295,16 @@ export const AnalyticsDatasets = ({
     value: string,
     change: (value: string) => void,
     required = false,
+    inputProps?: ComponentProps<'select'>,
   ) => (
     <label>
       {label}
-      <NativeSelect value={value} required={required} onChange={(e) => change(e.target.value)}>
+      <NativeSelect
+        {...inputProps}
+        value={value}
+        required={required}
+        onChange={(e) => change(e.target.value)}
+      >
         <option value="">{t('selectColumn')}</option>
         {columns.map((c) => (
           <option key={c.name} value={c.name}>
@@ -459,10 +514,8 @@ export const AnalyticsDatasets = ({
         <form
           id="dataset-editor"
           className="analytics-form analytics-dataset-editor"
-          onSubmit={(event) => {
-            event.preventDefault();
-            save.mutate();
-          }}
+          noValidate
+          onSubmit={handleSubmit((values) => save.mutate(values))}
         >
           <div className="analytics-editor-heading">
             <span aria-hidden="true">
@@ -488,48 +541,40 @@ export const AnalyticsDatasets = ({
           <div className="analytics-form-grid">
             <label>
               {t('title')}
-              <Input
-                value={title}
-                required
-                maxLength={160}
-                onChange={(e) => setTitle(e.target.value)}
-              />
+              <Input maxLength={160} aria-invalid={!!errors.title} {...register('title')} />
+              {errors.title && <span role="alert">{errors.title.message}</span>}
             </label>
             <label>
               {t('slug')}
               <Input
-                value={slug}
-                required
                 pattern="[a-zA-Z0-9_-]+"
                 maxLength={50}
-                onChange={(e) => setSlug(e.target.value)}
+                aria-invalid={!!errors.slug}
+                {...register('slug')}
               />
+              {errors.slug && <span role="alert">{errors.slug.message}</span>}
             </label>
             <label>
               {t('grain')}
-              <Input
-                value={grain}
-                required
-                maxLength={255}
-                onChange={(e) => setGrain(e.target.value)}
-              />
+              <Input maxLength={255} aria-invalid={!!errors.grain} {...register('grain')} />
+              {errors.grain && <span role="alert">{errors.grain.message}</span>}
             </label>
             <label>
               {t('description')}
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+              <Input {...register('description')} />
             </label>
             <label>
               {t('source')}
               <NativeSelect
-                value={source}
-                required
-                onChange={(e) => {
-                  setSource(e.target.value);
-                  setPrimaryKey('');
-                  setVersion('');
-                  setDeleted('');
-                  setFields((items) => items.map((f) => ({ ...f, column: '' })));
-                }}
+                aria-invalid={!!errors.source}
+                {...register('source', {
+                  onChange: () => {
+                    setValue('primaryKey', '');
+                    setValue('version', '');
+                    setValue('deleted', '');
+                    setFields((items) => items.map((f) => ({ ...f, column: '' })));
+                  },
+                })}
               >
                 <option value="">{t('selectSource')}</option>
                 {sources.data?.tables.map((table) => (
@@ -538,22 +583,52 @@ export const AnalyticsDatasets = ({
                   </option>
                 ))}
               </NativeSelect>
+              {errors.source && <span role="alert">{errors.source.message}</span>}
             </label>
-            {columnSelect(t('primaryKey'), primaryKey, setPrimaryKey, true)}
-            {columnSelect(t('versionColumn'), version, setVersion)}
-            {columnSelect(t('deletedColumn'), deleted, setDeleted)}
+            <Controller
+              control={control}
+              name="primaryKey"
+              render={({ field }) =>
+                columnSelect(t('primaryKey'), field.value, field.onChange, true, {
+                  name: field.name,
+                  ref: field.ref,
+                  onBlur: field.onBlur,
+                  'aria-invalid': !!errors.primaryKey,
+                })
+              }
+            />
+            {errors.primaryKey && <span role="alert">{errors.primaryKey.message}</span>}
+            <Controller
+              control={control}
+              name="version"
+              render={({ field }) =>
+                columnSelect(t('versionColumn'), field.value, field.onChange, false, {
+                  name: field.name,
+                  ref: field.ref,
+                  onBlur: field.onBlur,
+                })
+              }
+            />
+            <Controller
+              control={control}
+              name="deleted"
+              render={({ field }) =>
+                columnSelect(t('deletedColumn'), field.value, field.onChange, false, {
+                  name: field.name,
+                  ref: field.ref,
+                  onBlur: field.onBlur,
+                })
+              }
+            />
             <label>
               {t('unit')}
-              <Input
-                value={unit}
-                required
-                maxLength={24}
-                onChange={(e) => setUnit(e.target.value)}
-              />
+              <Input maxLength={24} aria-invalid={!!errors.unit} {...register('unit')} />
+              {errors.unit && <span role="alert">{errors.unit.message}</span>}
             </label>
             <label>
               {t('timezone')}
-              <Input value={timezone} required onChange={(e) => setTimezone(e.target.value)} />
+              <Input aria-invalid={!!errors.timezone} {...register('timezone')} />
+              {errors.timezone && <span role="alert">{errors.timezone.message}</span>}
             </label>
           </div>
           <h4>{t('mapping')}</h4>
@@ -634,7 +709,7 @@ export const AnalyticsDatasets = ({
             <div className="analytics-form-grid">
               <label>
                 {t('historyTable')}
-                <NativeSelect value={history} onChange={(e) => setHistory(e.target.value)}>
+                <NativeSelect {...register('history')}>
                   <option value="">{t('disabled')}</option>
                   {sources.data?.tables
                     .filter((table) => table.engine === 'MergeTree')
@@ -647,7 +722,7 @@ export const AnalyticsDatasets = ({
               </label>
               <label>
                 {t('recordedAt')}
-                <NativeSelect value={recordedAt} onChange={(e) => setRecordedAt(e.target.value)}>
+                <NativeSelect {...register('recordedAt')}>
                   <option value="">{t('selectColumn')}</option>
                   {sources.data?.tables
                     .find((table) => table.name === history)
@@ -660,11 +735,7 @@ export const AnalyticsDatasets = ({
               </label>
               <label>
                 {t('historyStart')}
-                <Input
-                  type="datetime-local"
-                  value={historyStart}
-                  onChange={(e) => setHistoryStart(e.target.value)}
-                />
+                <Input type="datetime-local" {...register('historyStart')} />
               </label>
             </div>
           </details>
@@ -691,7 +762,7 @@ export const AnalyticsDatasets = ({
           </div>
           <h4>{t('metrics')}</h4>
           <label>
-            <input type="checkbox" checked={custom} onChange={(e) => setCustom(e.target.checked)} />{' '}
+            <Checkbox checked={custom} onChange={(e) => setCustom(e.target.checked)} />{' '}
             {t('customMetric')}
           </label>
           {custom ? (
@@ -751,8 +822,7 @@ export const AnalyticsDatasets = ({
             <div className="analytics-template-list">
               {templates.map((metric) => (
                 <label key={metric.key}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={keys.includes(metric.key)}
                     onChange={(e) =>
                       setKeys((items) =>

@@ -6,13 +6,19 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Database, Plus, RefreshCw, Save, Trash2, Workflow } from 'lucide-react';
 import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { useAssistantPage } from '@/features/assistant/lib/context';
+import {
+  createAnalyticsFilterSchema,
+  type AnalyticsFilterValues,
+} from '@/features/dashboards/lib/analytics-filter-schema';
 import {
   loadSampleAnalytics,
   readSampleDashboard,
@@ -20,6 +26,10 @@ import {
   saveSampleDashboard,
   type SampleDashboard,
 } from '@/features/dashboards/lib/dashboard-demo';
+import {
+  createWidgetFormSchema,
+  type WidgetFormValues,
+} from '@/features/dashboards/lib/widget-form-schema';
 import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
 import { AnalyticsWidgetCard } from '@/features/dashboards/organisms/AnalyticsWidgetCard';
 import { DashboardChat } from '@/features/dashboards/organisms/DashboardChat';
@@ -32,11 +42,12 @@ import {
   type AnalyticsResult,
 } from '@/features/datasets/api/analytics';
 import { LiveKpiOverview } from '@/features/kpis/organisms/LiveKpiOverview';
-import { Button, buttonVariants } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
+import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
+import { Checkbox } from '@/shared/ui/atoms/checkbox/checkbox';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 import type {
   DashboardSheet,
@@ -115,7 +126,16 @@ const LiveDashboard = ({
   const [active, setActive] = useState(sheets[0]?.id ?? '');
   const [revision, setRevision] = useState(saved.revision);
   const [savedContent, setSavedContent] = useState(JSON.stringify(saved.sheets));
-  const [filters, setFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
+  const {
+    control: filterControl,
+    setValue: setFilterValue,
+    handleSubmit: handleFiltersSubmit,
+    formState: { errors: filterErrors },
+  } = useForm<AnalyticsFilterValues>({
+    resolver: zodResolver(createAnalyticsFilterSchema(t('required'))),
+    defaultValues: defaultAnalyticsFilters(),
+  });
+  const filters = useWatch({ control: filterControl }) as AnalyticsFilters;
   const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
   const [editing, setEditing] = useState<DashboardWidget | null>(null);
   const widgets = sheets.find((sheet) => sheet.id === active)?.widgets ?? [];
@@ -125,8 +145,15 @@ const LiveDashboard = ({
         sheet.id === active ? { ...sheet, widgets: transform(sheet.widgets) } : sheet,
       ),
     );
-  const changeFilter = <K extends keyof AnalyticsFilters>(key: K, value: AnalyticsFilters[K]) =>
-    setFilters((current) => ({ ...current, [key]: value }));
+  const changeFilter = (
+    key: keyof AnalyticsFilters,
+    value: string | AnalyticsFilters['values'],
+  ) => {
+    if (key === 'values') setFilterValue('values', value as AnalyticsFilters['values']);
+    else if (key === 'calendar') setFilterValue('calendar', value as AnalyticsFilters['calendar']);
+    else if (key === 'mode') setFilterValue('mode', value as AnalyticsFilters['mode']);
+    else setFilterValue(key, value as string, { shouldValidate: true });
+  };
   const save = useMutation({
     mutationFn: () => Promise.resolve(saveSampleDashboard(sheets, revision)),
     onSuccess: (value) => {
@@ -395,36 +422,36 @@ const LiveDashboard = ({
         <DashboardPane title={d('filtersTitle')} className="analytics-filter-pane" defaultCollapsed>
           <form
             className="analytics-filters"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setAppliedFilters(filters);
-            }}
+            noValidate
+            onSubmit={handleFiltersSubmit(setAppliedFilters)}
           >
             <label>
               {t('from')}
               <Input
                 type="date"
+                aria-invalid={!!filterErrors.from}
                 value={filters.from}
                 onChange={(e) => changeFilter('from', e.target.value)}
                 required
               />
+              {filterErrors.from && <span role="alert">{filterErrors.from.message}</span>}
             </label>
             <label>
               {t('toExclusive')}
               <Input
                 type="date"
+                aria-invalid={!!filterErrors.to}
                 value={filters.to}
                 onChange={(e) => changeFilter('to', e.target.value)}
                 required
               />
+              {filterErrors.to && <span role="alert">{filterErrors.to.message}</span>}
             </label>
             <label>
               {t('calendar')}
               <NativeSelect
                 value={filters.calendar}
-                onChange={(e) =>
-                  changeFilter('calendar', e.target.value as AnalyticsFilters['calendar'])
-                }
+                onChange={(e) => changeFilter('calendar', e.target.value)}
               >
                 <option value="persian">{t('persian')}</option>
                 <option value="gregorian">{t('gregorian')}</option>
@@ -434,7 +461,7 @@ const LiveDashboard = ({
               {t('dataView')}
               <NativeSelect
                 value={filters.mode}
-                onChange={(e) => changeFilter('mode', e.target.value as AnalyticsFilters['mode'])}
+                onChange={(e) => changeFilter('mode', e.target.value)}
               >
                 <option value="latest">{t('latest')}</option>
                 <option value="historical">{t('historical')}</option>
@@ -446,9 +473,11 @@ const LiveDashboard = ({
                 <Input
                   required
                   type="datetime-local"
+                  aria-invalid={!!filterErrors.knownAt}
                   value={filters.knownAt}
                   onChange={(e) => changeFilter('knownAt', e.target.value)}
                 />
+                {filterErrors.knownAt && <span role="alert">{filterErrors.knownAt.message}</span>}
               </label>
             )}
             {categoricalFields.map((field) => (
@@ -512,18 +541,31 @@ const WidgetEditor = ({
   onApply: (widget: DashboardWidget) => void;
 }) => {
   const t = useTranslations('analytics');
-  const [measure, setMeasure] = useState(widget.query?.measures?.[0] ?? '');
-  const [dimension, setDimension] = useState(widget.query?.dimensions?.[0] ?? '');
-  const [visual, setVisual] = useState<WidgetVisual>(widget.visual);
-  const [title, setTitle] = useState(widget.title);
-  const [color, setColor] = useState(widget.chartColor ?? '#d4d4d8');
-  const [showValues, setShowValues] = useState(widget.showValues ?? false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<WidgetFormValues>({
+    resolver: zodResolver(createWidgetFormSchema(t('required'), t('invalid'))),
+    defaultValues: {
+      measure: widget.query?.measures?.[0] ?? '',
+      dimension: widget.query?.dimensions?.[0] ?? '',
+      visual: widget.visual,
+      title: widget.title,
+      color: widget.chartColor ?? '#d4d4d8',
+      showValues: widget.showValues ?? false,
+    },
+  });
+  const measure = useWatch({ control, name: 'measure' });
+  const visual = useWatch({ control, name: 'visual' });
   const selected = resolveMetric(metadata.datasets, measure);
   return (
     <form
       className="analytics-form"
-      onSubmit={(event) => {
-        event.preventDefault();
+      noValidate
+      onSubmit={handleSubmit(({ measure, dimension, visual, title, color, showValues }) => {
         if (!selected) return;
         onApply({
           ...widget,
@@ -537,17 +579,13 @@ const WidgetEditor = ({
             dimensions: visual === 'card' || !dimension ? [] : [dimension],
           },
         });
-      }}
+      })}
     >
       <label>
         {t('metric')}
         <NativeSelect
-          value={measure}
-          required
-          onChange={(e) => {
-            setMeasure(e.target.value);
-            setDimension('');
-          }}
+          aria-invalid={!!errors.measure}
+          {...register('measure', { onChange: () => setValue('dimension', '') })}
         >
           <option value="">{t('selectMetric')}</option>
           {metadata.datasets.map((dataset) => (
@@ -560,11 +598,12 @@ const WidgetEditor = ({
             </optgroup>
           ))}
         </NativeSelect>
+        {errors.measure && <span role="alert">{errors.measure.message}</span>}
       </label>
       <p>{selected?.metric.description}</p>
       <label>
         {t('visual')}
-        <NativeSelect value={visual} onChange={(e) => setVisual(e.target.value as WidgetVisual)}>
+        <NativeSelect {...register('visual')}>
           {visuals.map((value) => (
             <option key={value} value={value}>
               {visualLabel(value)}
@@ -575,11 +614,7 @@ const WidgetEditor = ({
       {visual !== 'card' && (
         <label>
           {t('groupBy')}
-          <NativeSelect
-            value={dimension}
-            required={visual !== 'table'}
-            onChange={(e) => setDimension(e.target.value)}
-          >
+          <NativeSelect aria-invalid={!!errors.dimension} {...register('dimension')}>
             <option value="">{t('total')}</option>
             {selected?.metric.dimensions.map((field) => (
               <option key={field} value={field}>
@@ -587,22 +622,21 @@ const WidgetEditor = ({
               </option>
             ))}
           </NativeSelect>
+          {errors.dimension && <span role="alert">{errors.dimension.message}</span>}
         </label>
       )}
       <label>
         {t('title')}
-        <Input value={title} maxLength={160} onChange={(e) => setTitle(e.target.value)} />
+        <Input maxLength={160} aria-invalid={!!errors.title} {...register('title')} />
+        {errors.title && <span role="alert">{errors.title.message}</span>}
       </label>
       <label>
         {t('chartColor')}
-        <Input type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+        <Input type="color" aria-invalid={!!errors.color} {...register('color')} />
+        {errors.color && <span role="alert">{errors.color.message}</span>}
       </label>
       <label>
-        <input
-          type="checkbox"
-          checked={showValues}
-          onChange={(event) => setShowValues(event.target.checked)}
-        />
+        <Checkbox {...register('showValues')} />
         {t('showValues')}
       </label>
       <Button disabled={!selected}>{t('apply')}</Button>

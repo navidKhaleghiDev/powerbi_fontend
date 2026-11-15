@@ -8,8 +8,9 @@ import {
   supportsDemoDimension,
 } from '@/features/dashboards/lib/sales-demo';
 import { DashboardPane } from '@/features/dashboards/molecules/DashboardPane';
-import { Input } from '@/shared/components/atoms/input';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
+import { Radio } from '@/shared/ui/atoms/radio/radio';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 import type { Query } from '@cubejs-client/core';
@@ -76,8 +77,7 @@ export const DashboardDataPane = ({
             <legend className="sr-only">{t('measure')}</legend>
             {demoMeasures.filter(visible).map((key) => (
               <label key={key} className="bi-data-field">
-                <input
-                  type="radio"
+                <Radio
                   name={`${id}-measure`}
                   checked={measure === key}
                   onChange={() => {
@@ -103,8 +103,7 @@ export const DashboardDataPane = ({
           <fieldset disabled={!measure}>
             <legend className="sr-only">{t('groupBy')}</legend>
             <label className="bi-data-field">
-              <input
-                type="radio"
+              <Radio
                 name={`${id}-dimension`}
                 checked={!dimension}
                 onChange={() =>
@@ -123,8 +122,7 @@ export const DashboardDataPane = ({
                     : undefined
                 }
               >
-                <input
-                  type="radio"
+                <Radio
                   name={`${id}-dimension`}
                   checked={dimension === key}
                   disabled={!!measure && !supportsDemoDimension(measure, key)}

@@ -668,6 +668,7 @@
     "username": "Username",
     "usernamePlaceholder": "Demo username",
     "password": "Password",
+    "required": "This field is required.",
     "passwordPlaceholder": "Demo password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
@@ -761,6 +762,7 @@
     "connectionUnavailable": "Cube connection is not configured. Contact your workspace administrator."
   },
   "cubeQuery": {
+    "validationError": "Check the query fields and try again.",
     "title": "Query Cube data",
     "measure": "Measure",
     "dimension": "Group by dimension",
@@ -1149,6 +1151,8 @@
     "thinking": "Thinking…",
     "error": "Could not get a response. Check your key, model, and connection, then try again.",
     "message": "Message",
+    "messageRequired": "Enter a message.",
+    "messageTooLong": "The message is too long.",
     "clear": "Clear",
     "send": "Send",
     "freeModel": "Free model router",
@@ -1181,6 +1185,8 @@
     "information": "Chat information"
   },
   "analytics": {
+    "required": "This field is required.",
+    "invalid": "Check this field's format or length.",
     "titleDashboard": "Business dashboard",
     "live": "API data",
     "loading": "Loading…",
@@ -1305,6 +1311,8 @@
     "trendUnavailable": "Trend unavailable"
   },
   "kpis": {
+    "required": "This field is required.",
+    "invalid": "Check this field's length.",
     "title": "Live KPI dashboards",
     "description": "Dashboards and charts from the connected BI API.",
     "savedDashboards": "Saved dashboards",

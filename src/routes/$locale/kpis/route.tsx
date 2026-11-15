@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { hasAccessToken } from '@/shared/network/api';
+import { hasAccessToken } from '@/features/auth/api/auth-api';
 
 export const Route = createFileRoute('/$locale/kpis')({
   beforeLoad: ({ params }) => {

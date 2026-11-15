@@ -1,6 +1,8 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
 import {
@@ -14,17 +16,29 @@ import {
   toKpiChart,
   type ChartDraft,
 } from '@/features/kpis/lib/chart-draft';
+import {
+  createDashboardFormSchema,
+  type DashboardFormValues,
+} from '@/features/kpis/lib/dashboard-form-schema';
 import { KpiChartEditor } from '@/features/kpis/organisms/KpiChartEditor';
-import { Button } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Input } from '@/shared/ui/atoms/input/input';
 
 export const KpiDashboardsPage = () => {
   const t = useTranslations('kpis');
   const locale = useLocale();
   const navigate = useNavigate();
   const client = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<DashboardFormValues>({
+    resolver: zodResolver(createDashboardFormSchema(t('required'), t('invalid'))),
+    defaultValues: { title: '', description: '' },
+  });
+  const title = useWatch({ control, name: 'title' });
   const [charts, setCharts] = useState<ChartDraft[]>([]);
   const dashboards = useQuery({
     queryKey: ['kpi-dashboards'],
@@ -35,10 +49,10 @@ export const KpiDashboardsPage = () => {
     queryFn: ({ signal }) => getKpiAvailableTables(signal),
   });
   const create = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: DashboardFormValues) =>
       createKpiDashboard({
-        title: title.trim(),
-        description: description.trim(),
+        title: values.title,
+        description: values.description,
         charts: charts.map(toKpiChart),
       }),
     onSuccess: (dashboard) => {
@@ -76,24 +90,20 @@ export const KpiDashboardsPage = () => {
       </section>
       <form
         className="space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (title.trim() && charts.length && charts.every(isValidChart)) create.mutate();
-        }}
+        noValidate
+        onSubmit={handleSubmit((values) => {
+          if (charts.length && charts.every(isValidChart)) create.mutate(values);
+        })}
       >
         <h2 className="text-xl font-semibold">{t('createDashboard')}</h2>
         <label className="grid gap-1 text-sm">
           {t('dashboardTitle')}
-          <Input
-            required
-            maxLength={100}
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
+          <Input maxLength={100} aria-invalid={!!errors.title} {...register('title')} />
+          {errors.title && <span role="alert">{errors.title.message}</span>}
         </label>
         <label className="grid gap-1 text-sm">
           {t('dashboardDescription')}
-          <Input value={description} onChange={(event) => setDescription(event.target.value)} />
+          <Input {...register('description')} />
         </label>
         {tables.isPending && <p role="status">{t('loadingTables')}</p>}
         {tables.isError && <p role="alert">{tables.error.message}</p>}

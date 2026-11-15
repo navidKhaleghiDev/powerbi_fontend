@@ -1,15 +1,9 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, Plus, Trash2, X } from 'lucide-react';
-import {
-  createContext,
-  useContext,
-  useId,
-  useMemo,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useId, useMemo, useState, type ReactNode } from 'react';
+import { useForm } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
 import {
@@ -23,10 +17,20 @@ import {
   type DatabaseCredentials,
   type SuggestedColumn,
 } from '@/features/data-flows/api/data-flow-api';
-import { Button } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
+import {
+  createConsumerFormSchema,
+  createConsumerTablesSchema,
+  type ConsumerFormValues,
+} from '@/features/data-flows/lib/consumer-form-schema';
+import {
+  createCredentialsSchema,
+  type CredentialsValues,
+} from '@/features/data-flows/lib/credentials-schema';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Checkbox } from '@/shared/ui/atoms/checkbox/checkbox';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 interface EditableMapping extends ConsumerColumnMapping {
   id: string;
@@ -102,8 +106,15 @@ const ColumnCredentialsProvider = ({
 }) => {
   const t = useTranslations('cdcConnections.consumer');
   const [open, setOpen] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CredentialsValues>({
+    resolver: zodResolver(createCredentialsSchema(t('validationError'))),
+    defaultValues: { username: '', password: '' },
+  });
   const [credentials, setCredentials] = useState<DatabaseCredentials | null>(null);
   const [revision, setRevision] = useState(0);
   const requestCredentials = () => setOpen(true);
@@ -112,12 +123,11 @@ const ColumnCredentialsProvider = ({
     [credentials, revision],
   );
 
-  const saveCredentials = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!username.trim() || !password) return;
-    setCredentials({ ...connection, username: username.trim(), password });
+  const saveCredentials = ({ username, password }: CredentialsValues) => {
+    setCredentials({ ...connection, username, password });
     setRevision((current) => current + 1);
     setOpen(false);
+    reset();
   };
 
   return (
@@ -144,26 +154,30 @@ const ColumnCredentialsProvider = ({
         <p id="consumer-credentials-description" className="consumer-note">
           {t('credentialsDescription')}
         </p>
-        <form className="consumer-credentials-form" onSubmit={saveCredentials}>
+        <form
+          className="consumer-credentials-form"
+          noValidate
+          onSubmit={handleSubmit(saveCredentials)}
+        >
           <label>
             <span>{t('username')}</span>
             <Input
               autoComplete="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              aria-invalid={!!errors.username}
+              {...register('username')}
               autoFocus
-              required
             />
+            {errors.username && <span role="alert">{errors.username.message}</span>}
           </label>
           <label>
             <span>{t('password')}</span>
             <Input
               type="password"
               autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
+              aria-invalid={!!errors.password}
+              {...register('password')}
             />
+            {errors.password && <span role="alert">{errors.password.message}</span>}
           </label>
           <p className="consumer-note">{t('credentialsMemoryNotice')}</p>
           <div className="consumer-form-actions">
@@ -381,8 +395,7 @@ const ConsumerTableEditor = ({
               <legend>{t('orderBy')}</legend>
               {targets.map((target) => (
                 <label key={target}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={table.order_by.includes(target)}
                     onChange={() =>
                       onChange({
@@ -409,7 +422,14 @@ export const CreateConsumerPage = () => {
   const locale = useLocale();
   const isPersian = locale === 'fa';
   const t = useTranslations('cdcConnections.consumer');
-  const [topicPrefix, setTopicPrefix] = useState('bi');
+  const {
+    register: registerConsumer,
+    handleSubmit: handleConsumerSubmit,
+    formState: { errors: consumerErrors },
+  } = useForm<ConsumerFormValues>({
+    resolver: zodResolver(createConsumerFormSchema(t('validationError'))),
+    defaultValues: { topicPrefix: 'bi' },
+  });
   const [tables, setTables] = useState<EditableTable[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -421,26 +441,17 @@ export const CreateConsumerPage = () => {
   const connectorDetails = useMemo(() => getConnectorDetails(configQuery.data), [configQuery.data]);
   const createMutation = useMutation({ mutationFn: createConsumer });
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submit = async ({ topicPrefix }: ConsumerFormValues) => {
     setError('');
-    const validTables = tables.filter(
-      (table) =>
-        table.source_table &&
-        table.target_table.trim() &&
-        table.columns.length > 0 &&
-        table.columns.every(
-          (column) => column.source && column.target.trim() && column.type.trim(),
-        ),
-    );
-    if (!topicPrefix.trim() || !tables.length || validTables.length !== tables.length) {
+    const parsedTables = createConsumerTablesSchema(t('validationError')).safeParse(tables);
+    if (!parsedTables.success) {
       setError(t('validationError'));
       return;
     }
     const payload: ConsumerConfig = {
       db_type: 'clickhouse',
-      'topic.prefix': topicPrefix.trim(),
-      tables: validTables.map(({ source_table, target_table, columns, order_by }) => ({
+      'topic.prefix': topicPrefix,
+      tables: parsedTables.data.map(({ source_table, target_table, columns, order_by }) => ({
         source_table,
         target_table: target_table.trim(),
         columns: columns.map(({ source, target, type }) => ({ source, target, type })),
@@ -504,7 +515,7 @@ export const CreateConsumerPage = () => {
       ) : (
         <ColumnCredentialsProvider connection={connectorDetails.connection}>
           {({ credentials, requestCredentials }) => (
-            <form className="consumer-form" onSubmit={(event) => void submit(event)}>
+            <form className="consumer-form" noValidate onSubmit={handleConsumerSubmit(submit)}>
               <div className="consumer-fields-grid">
                 <label>
                   <span>{t('database')}</span>
@@ -513,10 +524,12 @@ export const CreateConsumerPage = () => {
                 <label>
                   <span>{t('topicPrefix')}</span>
                   <Input
-                    value={topicPrefix}
-                    onChange={(event) => setTopicPrefix(event.target.value)}
-                    required
+                    aria-invalid={!!consumerErrors.topicPrefix}
+                    {...registerConsumer('topicPrefix')}
                   />
+                  {consumerErrors.topicPrefix && (
+                    <span role="alert">{consumerErrors.topicPrefix.message}</span>
+                  )}
                 </label>
               </div>
               {tables.map((table) => (

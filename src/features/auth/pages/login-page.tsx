@@ -1,10 +1,16 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Eye, EyeOff, Globe2, LoaderCircle } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { Globe2, LoaderCircle } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useForm } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
 
+import { login } from '@/features/auth/api/auth-api';
+import { createLoginSchema, type LoginValues } from '@/features/auth/lib/login-schema';
 import { toast } from '@/shared/lib/toast';
-import { login } from '@/shared/network/api';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { ControlledInput } from '@/shared/ui/atoms/input/controlled-input';
+import { ControlledPasswordInput } from '@/shared/ui/atoms/password-input/controlled-password-input';
 
 const descriptionSteps = ['description', 'loop.dataFlows', 'loop.dashboards', 'loop.kpis'] as const;
 
@@ -12,10 +18,20 @@ export const LoginPage = () => {
   const t = useTranslations('login');
   const locale = useLocale();
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(false);
   const [rippleCell, setRippleCell] = useState<{ index: number; sequence: number } | null>(null);
   const [rippleGrid, setRippleGrid] = useState({ columns: 27, rows: 12 });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const rippleRef = useRef<HTMLDivElement>(null);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(createLoginSchema(t('required'))),
+    defaultValues: { username: '', password: '' },
+  });
   const [descriptionIndex, setDescriptionIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const otherLocale = locale === 'fa' ? 'en' : 'fa';
@@ -57,8 +73,34 @@ export const LoginPage = () => {
   }, [rippleCell, rippleGrid.columns, rippleGrid.rows]);
 
   return (
-    <main id="workspace-content" className="login-stage">
+    <main
+      id="workspace-content"
+      className="login-stage"
+      onClick={(event) => {
+        const target = event.target;
+        if (
+          !(target instanceof Element) ||
+          target.closest('a, button, input, select, textarea, label')
+        ) {
+          return;
+        }
+        const cell = target.closest<HTMLElement>('[data-ripple-index]');
+        const bounds = rippleRef.current?.getBoundingClientRect();
+        if (!bounds) return;
+        const column = Math.max(
+          0,
+          Math.min(rippleGrid.columns - 1, Math.floor((event.clientX - bounds.left) / 56)),
+        );
+        const row = Math.max(
+          0,
+          Math.min(rippleGrid.rows - 1, Math.floor((event.clientY - bounds.top) / 56)),
+        );
+        const index = cell ? Number(cell.dataset.rippleIndex) : row * rippleGrid.columns + column;
+        setRippleCell((current) => ({ index, sequence: (current?.sequence ?? 0) + 1 }));
+      }}
+    >
       <div
+        ref={rippleRef}
         className="login-ripple"
         aria-hidden="true"
         style={
@@ -78,18 +120,15 @@ export const LoginPage = () => {
                   (index % rippleGrid.columns) - (rippleCell.index % rippleGrid.columns),
                 );
           return (
-            <span
-              key={`${rippleCell?.sequence ?? 0}-${index}`}
-              className={`login-ripple-cell${distance === null ? '' : 'login-ripple-cell-active'}`}
-              style={
-                distance === null
-                  ? undefined
-                  : ({ '--delay': `${Math.round(distance * 45)}ms` } as CSSProperties)
-              }
-              onClick={() =>
-                setRippleCell((current) => ({ index, sequence: (current?.sequence ?? 0) + 1 }))
-              }
-            />
+            <span key={index} className="login-ripple-cell" data-ripple-index={index}>
+              {distance !== null && (
+                <span
+                  key={rippleCell?.sequence}
+                  className="login-ripple-flash"
+                  style={{ '--delay': `${Math.round(distance * 45)}ms` } as CSSProperties}
+                />
+              )}
+            </span>
           );
         })}
       </div>
@@ -125,73 +164,54 @@ export const LoginPage = () => {
           <form
             className="login-form"
             aria-busy={isSubmitting}
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const form = event.currentTarget;
-              const formData = new FormData(form);
-              const usernameEntry = formData.get('username');
-              const passwordEntry = formData.get('password');
-              const username = typeof usernameEntry === 'string' ? usernameEntry.trim() : '';
-              const password = typeof passwordEntry === 'string' ? passwordEntry : '';
-              setIsSubmitting(true);
+            noValidate
+            onSubmit={handleSubmit(async ({ username, password }) => {
               try {
                 await login({ username, password });
-                form.reset();
+                reset();
                 toast.success(t('loginSuccess'));
                 await navigate({ to: '/$locale/dashboard', params: { locale } });
               } catch (error) {
-                toast.error(error instanceof Error ? error.message : t('loginFailed'));
-              } finally {
-                setIsSubmitting(false);
+                setError('password', {
+                  type: 'server',
+                  message: error instanceof Error ? error.message : t('loginFailed'),
+                });
               }
-            }}
+            })}
           >
             <div className="login-field">
-              <label htmlFor="login-username">{t('username')}</label>
-              <input
+              <ControlledInput
                 id="login-username"
+                label={t('username')}
+                error={errors.username?.message}
+                control={control}
                 name="username"
                 autoComplete="username"
                 disabled={isSubmitting}
-                required
-                placeholder={t('usernamePlaceholder')}
                 spellCheck={false}
                 autoCapitalize="none"
               />
             </div>
             <div className="login-field">
-              <label htmlFor="login-password">{t('password')}</label>
-              <div className="login-password">
-                <input
-                  id="login-password"
-                  name="password"
-                  type={visible ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  disabled={isSubmitting}
-                  required
-                  placeholder={t('passwordPlaceholder')}
-                />
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => setVisible((value) => !value)}
-                  aria-label={t(visible ? 'hidePassword' : 'showPassword')}
-                  aria-pressed={visible}
-                >
-                  {visible ? (
-                    <EyeOff size={18} aria-hidden="true" />
-                  ) : (
-                    <Eye size={18} aria-hidden="true" />
-                  )}
-                </button>
-              </div>
+              <ControlledPasswordInput
+                id="login-password"
+                label={t('password')}
+                error={errors.password?.message}
+                control={control}
+                name="password"
+                onValueChange={() => clearErrors('password')}
+                autoComplete="current-password"
+                disabled={isSubmitting}
+                showPasswordLabel={t('showPassword')}
+                hidePasswordLabel={t('hidePassword')}
+              />
             </div>
-            <button className="login-submit" type="submit" disabled={isSubmitting}>
+            <Button className="login-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <LoaderCircle className="login-submit-spinner" size={18} aria-hidden="true" />
               )}
               <span>{isSubmitting ? t('submitting') : t('submit')}</span>
-            </button>
+            </Button>
           </form>
         </div>
       </section>

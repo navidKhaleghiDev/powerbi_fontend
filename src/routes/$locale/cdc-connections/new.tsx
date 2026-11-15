@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
+import { hasAccessToken } from '@/features/auth/api/auth-api';
 import { DataFlowPage } from '@/features/data-flows/pages/DataFlowPage';
-import { hasAccessToken } from '@/shared/network/api';
 
 export const Route = createFileRoute('/$locale/cdc-connections/new')({
   beforeLoad: ({ params }) => {

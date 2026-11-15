@@ -5,8 +5,8 @@ import { useLocale, useTranslations } from 'use-intl';
 
 import { analyticsRequest, type AnalyticsMetadata } from '@/features/datasets/api/analytics';
 import { AnalyticsDatasets } from '@/features/datasets/organisms/AnalyticsDatasets';
-import { Button, buttonVariants } from '@/shared/components/atoms/button';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
+import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
 
 const DatasetWorkspace = ({
   mode,

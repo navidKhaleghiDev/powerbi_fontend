@@ -18,8 +18,8 @@ import {
   getConnectorConfig,
 } from '@/features/data-flows/api/data-flow-api';
 import { CreateConsumerAction } from '@/features/data-flows/molecules/CreateConsumerAction';
-import { Button, buttonVariants } from '@/shared/components/atoms/button';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
+import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
 
 export const DataFlowsPage = () => {
   const t = useTranslations('cdcConnections');

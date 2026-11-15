@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useLocale, useTranslations } from 'use-intl';
 
+import { hasAccessToken } from '@/features/auth/api/auth-api';
 import {
   getKpiDashboard,
   listKpiDashboards,
   querySavedKpiChart,
 } from '@/features/kpis/api/kpi-api';
 import { KpiResultView } from '@/features/kpis/organisms/KpiResultView';
-import { hasAccessToken } from '@/shared/network/api';
 
 export const LiveKpiOverview = () => {
   const t = useTranslations('kpis');

@@ -31,10 +31,10 @@ import {
   type AnalyticsFilters,
   type Dataset,
 } from '@/features/datasets/api/analytics';
-import { Button } from '@/shared/components/atoms/button';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
 import { formatSolarPeriod } from '@/shared/lib/solar-calendar';
+import { Button } from '@/shared/ui/atoms/button/button';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 

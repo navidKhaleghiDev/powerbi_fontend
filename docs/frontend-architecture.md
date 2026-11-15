@@ -20,7 +20,7 @@ Routes should import feature pages and shared network guards, but contain little
 
 ## Atomic UI boundaries
 
-- `src/shared/components/atoms` contains business-independent controls such as buttons, inputs, selects, checkboxes, and typography.
+- `src/shared/ui/atoms` contains business-independent controls such as buttons, inputs, selects, checkboxes, and typography.
 - `src/shared/components/molecules` combines small interactions, including dialogs and icon tooltips.
 - `src/shared/components/organisms` contains larger reusable presentation units such as toast notifications and charts.
 - Feature `molecules` and `organisms` compose these shared pieces with feature behavior. Feature `pages` assemble route-level screens.

@@ -5,6 +5,7 @@ node_modules/
 
 .data/
 dist/
+.tanstack/tmp/
 
 # Local registry credentials (the shared .npmrc contains only the registry URL).
 .npmrc.local

@@ -1,9 +1,18 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense, useId, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
+import {
+  createCubeQueryFormSchema,
+  type CubeQueryFormValues,
+} from '@/features/data-platform/lib/cube-query-form-schema';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Checkbox } from '@/shared/ui/atoms/checkbox/checkbox';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
+import { Radio } from '@/shared/ui/atoms/radio/radio';
 
 import type { createCubeClient } from '@/features/data-platform/lib/cube';
 import type { Query } from '@cubejs-client/core';
@@ -50,24 +59,38 @@ export const CubeQueryPanel = ({
   const [usedOnly, setUsedOnly] = useState(false);
   const [measure, setMeasure] = useState(initialQuery?.measures?.[0] ?? '');
   const [dimension, setDimension] = useState(initialQuery?.dimensions?.[0] ?? '');
-  const [filter, setFilter] = useState(
-    initialQuery?.filters?.[0] && 'values' in initialQuery.filters[0]
-      ? (initialQuery.filters[0].values?.[0] ?? '')
-      : '',
-  );
   const initialTime = initialQuery?.timeDimensions?.[0];
   const initialRange =
     initialTime && 'dateRange' in initialTime && Array.isArray(initialTime.dateRange)
       ? initialTime.dateRange
       : [];
-  const [time, setTime] = useState(initialTime?.dimension ?? '');
-  const [granularity, setGranularity] = useState(
-    initialTime && 'granularity' in initialTime ? (initialTime.granularity ?? 'month') : 'month',
-  );
-  const [from, setFrom] = useState(initialRange[0] ?? '');
-  const [to, setTo] = useState(initialRange[1] ?? '');
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors: formErrors },
+  } = useForm<CubeQueryFormValues>({
+    resolver: zodResolver(createCubeQueryFormSchema(t('validationError'))),
+    defaultValues: {
+      filter:
+        initialQuery?.filters?.[0] && 'values' in initialQuery.filters[0]
+          ? (initialQuery.filters[0].values?.[0] ?? '')
+          : '',
+      limit: initialQuery?.limit ?? 100,
+      time: initialTime?.dimension ?? '',
+      granularity:
+        initialTime && 'granularity' in initialTime
+          ? (initialTime.granularity ?? 'month')
+          : 'month',
+      from: initialRange[0] ?? '',
+      to: initialRange[1] ?? '',
+    },
+  });
+  const time = useWatch({ control, name: 'time' });
+  const to = useWatch({ control, name: 'to' });
+  const from = useWatch({ control, name: 'from' });
   const [visual, setVisual] = useState<'table' | 'line' | 'bar'>('table');
-  const [limit, setLimit] = useState(initialQuery?.limit ?? 100);
   const [submitted, setSubmitted] = useState<Query | null>(null);
   const query = useQuery({
     queryKey: ['cube-query', id, submitted],
@@ -124,15 +147,15 @@ export const CubeQueryPanel = ({
           <h4 className="font-semibold">{d('cubes')}</h4>
           <label className="block text-sm">
             {d('source')}
-            <select
+            <NativeSelect
               className="mt-1 w-full rounded-md border bg-white p-2"
               value={cube}
               onChange={(event) => {
                 setCube(event.target.value);
                 setMeasure('');
                 setDimension('');
-                setTime('');
-                setFilter('');
+                setValue('time', '');
+                setValue('filter', '');
                 setSubmitted(null);
               }}
             >
@@ -142,7 +165,7 @@ export const CubeQueryPanel = ({
                   {name}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="block" htmlFor={`${id}-search`}>
             {t('memberSearch')}
@@ -153,11 +176,7 @@ export const CubeQueryPanel = ({
             onChange={(event) => setMemberSearch(event.target.value)}
           />
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={usedOnly}
-              onChange={(event) => setUsedOnly(event.target.checked)}
-            />
+            <Checkbox checked={usedOnly} onChange={(event) => setUsedOnly(event.target.checked)} />
             {t('usedOnly')}
           </label>
           <div className="max-h-[65vh] space-y-3 overflow-auto">
@@ -186,8 +205,7 @@ export const CubeQueryPanel = ({
                           key={item.name}
                           className={`flex items-start gap-2 rounded-md p-2 text-sm ${measure === item.name ? 'bg-zinc-300/10' : ''}`}
                         >
-                          <input
-                            type="radio"
+                          <Radio
                             name={`${id}-measure`}
                             checked={measure === item.name}
                             onChange={() => setMeasure(item.name)}
@@ -209,14 +227,13 @@ export const CubeQueryPanel = ({
                             key={item.name}
                             className={`flex items-start gap-2 rounded-md p-2 text-sm ${checked ? 'bg-zinc-300/10' : ''}`}
                           >
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={checked}
                               onChange={() => {
-                                if (isTime) setTime(checked ? '' : item.name);
+                                if (isTime) setValue('time', checked ? '' : item.name);
                                 else {
                                   setDimension(checked ? '' : item.name);
-                                  setFilter('');
+                                  setValue('filter', '');
                                 }
                               }}
                             />
@@ -249,10 +266,10 @@ export const CubeQueryPanel = ({
               onClick={() => {
                 setMeasure('');
                 setDimension('');
-                setFilter('');
-                setTime('');
-                setFrom('');
-                setTo('');
+                setValue('filter', '');
+                setValue('time', '');
+                setValue('from', '');
+                setValue('to', '');
                 setSubmitted(null);
               }}
             >
@@ -276,12 +293,12 @@ export const CubeQueryPanel = ({
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="rounded-lg border p-3 text-sm">
               <span className="mb-2 block font-semibold">{d('columns')}</span>
-              <select
+              <NativeSelect
                 className="w-full rounded-md border bg-white p-2"
                 value={dimension}
                 onChange={(event) => {
                   setDimension(event.target.value);
-                  setFilter('');
+                  setValue('filter', '');
                 }}
               >
                 <option value="">{t('none')}</option>
@@ -294,11 +311,11 @@ export const CubeQueryPanel = ({
                       {item.title}
                     </option>
                   ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="rounded-lg border p-3 text-sm">
               <span className="mb-2 block font-semibold">{d('rows')}</span>
-              <select
+              <NativeSelect
                 className="w-full rounded-md border bg-white p-2"
                 value={measure}
                 onChange={(event) => setMeasure(event.target.value)}
@@ -311,13 +328,12 @@ export const CubeQueryPanel = ({
                       {item.title}
                     </option>
                   ))}
-              </select>
+              </NativeSelect>
             </label>
             <section className="space-y-2 rounded-lg border p-3 text-sm">
               <h4 className="font-semibold">{d('marks')}</h4>
               <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={showValues}
                   onChange={(event) => {
                     setShowValues(event.target.checked);
@@ -350,8 +366,8 @@ export const CubeQueryPanel = ({
             <form
               id={`${id}-query-form`}
               className="grid gap-3 rounded-lg border bg-slate-100/10 p-3 sm:grid-cols-2"
-              onSubmit={(event) => {
-                event.preventDefault();
+              noValidate
+              onSubmit={handleSubmit(({ filter, limit, time, granularity, from, to }) => {
                 if (!client || !measure) return;
                 const next: Query = {
                   measures: [measure],
@@ -378,15 +394,11 @@ export const CubeQueryPanel = ({
                 }
                 if (JSON.stringify(next) === JSON.stringify(submitted)) void query.refetch();
                 else setSubmitted(next);
-              }}
+              })}
             >
               <label>
                 {t('filter')}
-                <Input
-                  disabled={!dimension}
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value)}
-                />
+                <Input disabled={!dimension} {...register('filter')} />
               </label>
               <label>
                 {t('limit')}
@@ -395,16 +407,16 @@ export const CubeQueryPanel = ({
                   required
                   min={1}
                   max={1000}
-                  value={limit}
-                  onChange={(event) => setLimit(Number(event.target.value))}
+                  aria-invalid={!!formErrors.limit}
+                  {...register('limit', { valueAsNumber: true })}
                 />
+                {formErrors.limit && <span role="alert">{t('validationError')}</span>}
               </label>
               <label>
                 {t('timeDimension')}
-                <select
+                <NativeSelect
                   className="block w-full rounded-md border bg-white p-2"
-                  value={time}
-                  onChange={(event) => setTime(event.target.value)}
+                  {...register('time')}
                 >
                   <option value="">{t('none')}</option>
                   {dimensions
@@ -416,22 +428,21 @@ export const CubeQueryPanel = ({
                         {item.title}
                       </option>
                     ))}
-                </select>
+                </NativeSelect>
               </label>
               <label>
                 {t('granularity')}
-                <select
+                <NativeSelect
                   disabled={!time}
                   className="block w-full rounded-md border bg-white p-2"
-                  value={granularity}
-                  onChange={(event) => setGranularity(event.target.value)}
+                  {...register('granularity')}
                 >
                   {['day', 'week', 'month', 'quarter', 'year'].map((unit) => (
                     <option key={unit} value={unit}>
                       {t(`units.${unit}`)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </label>
               <label>
                 {t('from')}
@@ -440,9 +451,10 @@ export const CubeQueryPanel = ({
                   disabled={!time}
                   required={!!to}
                   max={to || undefined}
-                  value={from}
-                  onChange={(event) => setFrom(event.target.value)}
+                  aria-invalid={!!formErrors.from}
+                  {...register('from')}
                 />
+                {formErrors.from && <span role="alert">{formErrors.from.message}</span>}
               </label>
               <label>
                 {t('to')}
@@ -451,8 +463,7 @@ export const CubeQueryPanel = ({
                   disabled={!time}
                   required={!!from}
                   min={from || undefined}
-                  value={to}
-                  onChange={(event) => setTo(event.target.value)}
+                  {...register('to')}
                 />
               </label>
             </form>

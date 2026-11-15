@@ -14,9 +14,9 @@ import { lazy, Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { loadDemoQuery, type DemoFilters } from '@/features/dashboards/lib/sales-demo';
-import { Button } from '@/shared/components/atoms/button';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
 import { formatSolarPeriod } from '@/shared/lib/solar-calendar';
+import { Button } from '@/shared/ui/atoms/button/button';
 
 import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 

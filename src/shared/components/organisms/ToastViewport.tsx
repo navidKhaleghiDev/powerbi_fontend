@@ -2,6 +2,7 @@ import { CircleAlert, CircleCheck, X } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
 import { toast, useToasts } from '@/shared/lib/toast';
+import { Button } from '@/shared/ui/atoms/button/button';
 
 export const ToastViewport = () => {
   const t = useTranslations('notifications');
@@ -31,14 +32,16 @@ export const ToastViewport = () => {
             <p className="min-w-0 flex-1 break-words">
               {item.message || t(isError ? 'requestFailed' : 'actionSucceeded')}
             </p>
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               type="button"
               className="rounded p-0.5 text-slate-600 hover:bg-slate-50"
               aria-label={t('dismiss')}
               onClick={() => toast.dismiss(item.id)}
             >
               <X size={16} aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         );
       })}

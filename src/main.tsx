@@ -4,7 +4,6 @@ import { createRoot } from 'react-dom/client';
 
 import { router } from '@/app/router';
 import '@/global.css';
-import '@/dark-theme.css';
 
 const root = document.getElementById('root');
 

@@ -22,7 +22,9 @@ import {
   type DatabaseType,
   type SuggestedColumn,
 } from '@/features/data-flows/api/data-flow-api';
-import { Button } from '@/shared/components/atoms/button';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 type Step = 'source' | 'connection' | 'tables' | 'columns' | 'connector' | 'complete';
 const steps: Exclude<Step, 'complete'>[] = [
@@ -238,7 +240,7 @@ export const DataFlowPage = () => {
               <label className="sr-only" htmlFor="database-type-search">
                 {t('search')}
               </label>
-              <input
+              <Input
                 id="database-type-search"
                 className={inputClass}
                 value={search}
@@ -248,7 +250,7 @@ export const DataFlowPage = () => {
                   setPage(1);
                 }}
               />
-              <select
+              <NativeSelect
                 className={inputClass}
                 aria-label={t('category')}
                 value={category}
@@ -263,8 +265,8 @@ export const DataFlowPage = () => {
                     {t(`categoryNames.${value}`)}
                   </option>
                 ))}
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 className={inputClass}
                 aria-label={t('sort')}
                 value={ordering}
@@ -279,7 +281,7 @@ export const DataFlowPage = () => {
                     </option>
                   ),
                 )}
-              </select>
+              </NativeSelect>
             </div>
             {typesQuery.isPending ? (
               <div className="flex items-center gap-2 py-12 text-sm text-slate-600">
@@ -302,7 +304,9 @@ export const DataFlowPage = () => {
               <>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {typesQuery.data.results.map((databaseType) => (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="auto"
                       type="button"
                       key={databaseType.id}
                       onClick={() => selectSource(databaseType)}
@@ -329,7 +333,7 @@ export const DataFlowPage = () => {
                           {t('sourceLabel')}
                         </span>
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-600">
@@ -382,7 +386,7 @@ export const DataFlowPage = () => {
               {(['host', 'port', 'database', 'username', 'password'] as const).map((field) => (
                 <label key={field} className="space-y-1.5 text-sm font-medium text-slate-900">
                   <span>{inputLabels[field]}</span>
-                  <input
+                  <Input
                     className={inputClass}
                     type={field === 'password' ? 'password' : field === 'port' ? 'number' : 'text'}
                     min={field === 'port' ? 1 : undefined}
@@ -450,7 +454,9 @@ export const DataFlowPage = () => {
             {tables.length ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {tables.map((table) => (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="auto"
                     key={`${table.schema_name}.${table.table_name}`}
                     type="button"
                     onClick={() => toggleTable(table)}
@@ -475,7 +481,7 @@ export const DataFlowPage = () => {
                     ) ? (
                       <Check className="text-blue-700" size={18} aria-hidden="true" />
                     ) : null}
-                  </button>
+                  </Button>
                 ))}
               </div>
             ) : (
@@ -599,7 +605,7 @@ export const DataFlowPage = () => {
               ).map(([field, value, setValue]) => (
                 <label key={field} className="space-y-1.5 text-sm font-medium text-slate-900">
                   <span>{inputLabels[field]}</span>
-                  <input
+                  <Input
                     className={inputClass}
                     required
                     value={value}

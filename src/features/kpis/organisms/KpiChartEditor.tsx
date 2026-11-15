@@ -16,9 +16,9 @@ import {
   type FilterDraft,
 } from '@/features/kpis/lib/chart-draft';
 import { KpiResultView } from '@/features/kpis/organisms/KpiResultView';
-import { Button } from '@/shared/components/atoms/button';
-import { Input } from '@/shared/components/atoms/input';
-import { NativeSelect } from '@/shared/components/atoms/native-select';
+import { Button } from '@/shared/ui/atoms/button/button';
+import { Input } from '@/shared/ui/atoms/input/input';
+import { NativeSelect } from '@/shared/ui/atoms/native-select/native-select';
 
 const aggregations: KpiAggregation[] = ['sum', 'avg', 'min', 'max', 'count', 'uniqExact'];
 const chartTypes: KpiChartType[] = ['bar', 'line', 'pie', 'table', 'number'];
