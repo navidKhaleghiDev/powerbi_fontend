@@ -3,9 +3,9 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { LogOut } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 
-import { Typography } from '@/shared/components/atoms/typography';
+import { clearAuthTokens } from '@/features/auth/api/auth-api';
 import { toast } from '@/shared/lib/toast';
-import { clearAuthTokens } from '@/shared/network/api';
+import { Typography } from '@/shared/ui/atoms/typography/typography';
 
 export const WorkspaceHeader = () => {
   const locale = useLocale();

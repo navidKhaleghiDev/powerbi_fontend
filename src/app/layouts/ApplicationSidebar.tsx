@@ -4,10 +4,11 @@ import { Database, Globe2, LayoutDashboard, LogOut, Menu, X } from 'lucide-react
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 
+import { clearAuthTokens } from '@/features/auth/api/auth-api';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 import { toast } from '@/shared/lib/toast';
-import { clearAuthTokens } from '@/shared/network/api';
+import { Button } from '@/shared/ui/atoms/button/button';
 
 export const ApplicationSidebar = () => {
   const t = useTranslations('studio');
@@ -21,7 +22,9 @@ export const ApplicationSidebar = () => {
 
   return (
     <header className="workspace-topbar">
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
         type="button"
         className="workspace-menu-button"
         onClick={() => setOpen(true)}
@@ -29,19 +32,21 @@ export const ApplicationSidebar = () => {
         aria-haspopup="dialog"
       >
         <Menu size={22} />
-      </button>
+      </Button>
       <span className="workspace-topbar-title">{t('design.brand')}</span>
       <AppDialog open={open} onClose={close} className="workspace-drawer">
         <div className="workspace-drawer-heading">
           <h2>{t('workspaceNavigation')}</h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             type="button"
             className="workspace-menu-button"
             onClick={close}
             aria-label={t('sidebar.menu')}
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
         <div className="workspace-drawer-content" onClick={close}>
           <IconTooltip label={t('design.brand')}>

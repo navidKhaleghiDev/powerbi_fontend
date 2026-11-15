@@ -21,7 +21,8 @@ const dismissToast = (id: number) => {
   publish();
 };
 
-const addToast = (kind: ToastKind, message?: string) => {
+const addToast = (kind: ToastKind, message?: string, toastId?: string) => {
+  if (toastId && snapshot.some((item) => item.kind === kind && item.message === toastId)) return;
   const id = ++sequence;
   snapshot = [...snapshot, { id, kind, message }];
   publish();
@@ -30,7 +31,7 @@ const addToast = (kind: ToastKind, message?: string) => {
 
 export const toast = {
   success: (message?: string) => addToast('success', message),
-  error: (message?: string) => addToast('error', message),
+  error: (message?: string, toastId?: string) => addToast('error', message, toastId),
   dismiss: dismissToast,
 };
 
