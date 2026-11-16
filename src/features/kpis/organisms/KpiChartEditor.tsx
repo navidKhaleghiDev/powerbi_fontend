@@ -267,10 +267,7 @@ export const KpiChartEditor = ({
             }
           >
             {aggregations.map((aggregation) => (
-              <option
-                key={t(`aggregations.${aggregation}`)}
-                value={t(`aggregations.${aggregation}`)}
-              >
+              <option key={aggregation} value={aggregation}>
                 {t(`aggregations.${aggregation}`)}
               </option>
             ))}

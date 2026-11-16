@@ -9,7 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { PanelsTopLeft, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { PanelsTopLeft, Plus, RefreshCw, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
@@ -20,8 +20,8 @@ import {
   readSampleDashboard,
   sampleAnalyticsMetadata,
   saveSampleDashboard,
-  type SampleDashboard,
 } from '@/features/dashboards/lib/dashboard-demo';
+import { toDashboardWidget } from '@/features/dashboards/lib/server-sheets';
 import {
   createWidgetFormSchema,
   type WidgetFormValues,
@@ -38,7 +38,7 @@ import {
   type AnalyticsMetadata,
   type AnalyticsResult,
 } from '@/features/datasets/api/analytics';
-import { createKpiSheet } from '@/features/kpis/api/kpi-api';
+import { createKpiSheet, listKpiSheets, type KpiSheet } from '@/features/kpis/api/kpi-api';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { IconTooltip } from '@/shared/components/molecules/icon-tooltip';
 import { Button, buttonVariants } from '@/shared/ui/atoms/button/button';
@@ -79,11 +79,11 @@ export const DashboardPage = () => {
     retry: false,
   });
   const dashboard = useQuery({
-    queryKey: ['analytics-dashboard'],
-    queryFn: () => Promise.resolve(readSampleDashboard()),
+    queryKey: ['kpi-sheets'],
+    queryFn: ({ signal }) => listKpiSheets(signal),
     retry: false,
   });
-  if (metadata.isError || dashboard.isError)
+  if (metadata.isError || (dashboard.isError && !dashboard.data))
     return (
       <section className="analytics-loading" role="alert">
         <h1>{t('titleDashboard')}</h1>
@@ -104,15 +104,26 @@ export const DashboardPage = () => {
         {t('loading')}
       </section>
     );
-  return <LiveDashboard metadata={metadata.data} saved={dashboard.data} />;
+  return (
+    <LiveDashboard
+      metadata={metadata.data}
+      serverSheets={dashboard.data}
+      refreshing={dashboard.isFetching}
+      refreshError={dashboard.error?.message}
+    />
+  );
 };
 
 const LiveDashboard = ({
   metadata,
-  saved,
+  serverSheets,
+  refreshing,
+  refreshError,
 }: {
   metadata: AnalyticsMetadata;
-  saved: SampleDashboard;
+  serverSheets: KpiSheet[];
+  refreshing: boolean;
+  refreshError?: string;
 }) => {
   const t = useTranslations('analytics');
   const d = useTranslations('dashboard');
@@ -122,11 +133,22 @@ const LiveDashboard = ({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor),
   );
-  const [sheets, setSheets] = useState<DashboardSheet[]>(() =>
-    saved.sheets.length
-      ? saved.sheets
-      : [{ id: crypto.randomUUID(), name: t('defaultSheet'), widgets: [] }],
+  const [saved] = useState(readSampleDashboard);
+  const [widgetDrafts, setWidgetDrafts] = useState<Record<string, DashboardWidget[]>>(() =>
+    Object.fromEntries(
+      saved.sheets
+        .filter((sheet) => sheet.serverId !== undefined)
+        .map((sheet) => [`server-sheet-${sheet.serverId}`, sheet.widgets]),
+    ),
   );
+  const sheets: DashboardSheet[] = serverSheets.map((sheet) => ({
+    id: `server-sheet-${sheet.id}`,
+    serverId: sheet.id,
+    name: sheet.title,
+    description: sheet.description ?? '',
+    widgets:
+      widgetDrafts[`server-sheet-${sheet.id}`] ?? (sheet.widgets ?? []).map(toDashboardWidget),
+  }));
   const [sheetDialogOpen, setSheetDialogOpen] = useState(false);
   const [sheetTitle, setSheetTitle] = useState('');
   const [sheetDescription, setSheetDescription] = useState('');
@@ -134,22 +156,19 @@ const LiveDashboard = ({
     mutationFn: createKpiSheet,
     retry: false,
     onSuccess: (created) => {
-      const sheet: DashboardSheet = {
-        id: `server-sheet-${created.id}`,
-        serverId: created.id,
-        name: created.title,
-        description: created.description ?? '',
-        widgets: [],
-      };
-      setSheets((items) => [...items, sheet]);
-      setActive(sheet.id);
+      queryClient.setQueryData<KpiSheet[]>(['kpi-sheets'], (current = []) => [
+        ...current.filter((sheet) => sheet.id !== created.id),
+        created,
+      ]);
+      setActive(`server-sheet-${created.id}`);
       setSheetDialogOpen(false);
       void queryClient.invalidateQueries({ queryKey: ['kpi-sheets'] });
     },
   });
-  const [active, setActive] = useState(sheets[0]?.id ?? '');
+  const [activeId, setActive] = useState(sheets[0]?.id ?? '');
+  const active = sheets.some((sheet) => sheet.id === activeId) ? activeId : (sheets[0]?.id ?? '');
   const [revision, setRevision] = useState(saved.revision);
-  const [savedContent, setSavedContent] = useState(JSON.stringify(saved.sheets));
+  const [savedContent, setSavedContent] = useState(JSON.stringify(widgetDrafts));
   const [appliedFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters);
   const [editing, setEditing] = useState<DashboardWidget | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -159,17 +178,19 @@ const LiveDashboard = ({
   };
   const widgets = sheets.find((sheet) => sheet.id === active)?.widgets ?? [];
   const updateWidgets = (transform: (current: DashboardWidget[]) => DashboardWidget[]) =>
-    setSheets((items) =>
-      items.map((sheet) =>
-        sheet.id === active ? { ...sheet, widgets: transform(sheet.widgets) } : sheet,
-      ),
+    setWidgetDrafts((items) =>
+      active
+        ? {
+            ...items,
+            [active]: transform(items[active] ?? widgets),
+          }
+        : items,
     );
   const save = useMutation({
     mutationFn: () => Promise.resolve(saveSampleDashboard(sheets, revision)),
     onSuccess: (value) => {
       setRevision(value.revision);
-      setSavedContent(JSON.stringify(value.sheets));
-      queryClient.setQueryData(['analytics-dashboard'], value);
+      setSavedContent(JSON.stringify(widgetDrafts));
     },
   });
   const firstWidget = widgets[0];
@@ -234,9 +255,15 @@ const LiveDashboard = ({
       dimensions: widget.query?.dimensions ?? [],
     })),
   });
-  const dirty = JSON.stringify(sheets) !== savedContent;
+  const dirty = JSON.stringify(widgetDrafts) !== savedContent;
   const newWidget = () =>
     editWidget({ id: crypto.randomUUID(), title: '', visual: 'card', size: 'small', query: null });
+  const openSheetDialog = () => {
+    setSheetTitle(`${t('defaultSheet')} ${sheets.length + 1}`);
+    setSheetDescription('');
+    createSheet.reset();
+    setSheetDialogOpen(true);
+  };
   return (
     <section className="bi-dashboard">
       <nav className="bi-toolbar" aria-label={t('titleDashboard')}>
@@ -245,7 +272,7 @@ const LiveDashboard = ({
         </div>
         <div className="bi-toolbar-actions">
           <IconTooltip label={t('addWidget')}>
-            <DialogAction variant="outline" size="icon" onOpen={newWidget}>
+            <DialogAction variant="outline" size="icon" onOpen={newWidget} disabled={!active}>
               <Plus aria-hidden="true" />
             </DialogAction>
           </IconTooltip>
@@ -253,18 +280,27 @@ const LiveDashboard = ({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => void queryClient.invalidateQueries({ queryKey: ['dashboard-widget'] })}
+              disabled={refreshing}
+              onClick={() => {
+                void queryClient.invalidateQueries({ queryKey: ['dashboard-widget'] });
+                void queryClient.invalidateQueries({ queryKey: ['kpi-sheets'] });
+              }}
             >
               <RefreshCw aria-hidden="true" />
             </Button>
           </IconTooltip>
-          <IconTooltip label={t(save.isPending ? 'saving' : 'saveDashboard')}>
+          <IconTooltip label={t(save.isPending ? 'saving' : 'saveLocalWidgets')}>
             <Button size="icon" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
               <Save aria-hidden="true" />
             </Button>
           </IconTooltip>
         </div>
       </nav>
+      {refreshError && (
+        <p className="analytics-alert" role="alert">
+          {refreshError}
+        </p>
+      )}
       {save.isError && (
         <p className="analytics-alert" role="alert">
           {save.error.message}{' '}
@@ -275,7 +311,13 @@ const LiveDashboard = ({
       )}
       <div className="bi-board-layout">
         <div className="bi-canvas-area">
-          {!metadata.datasets.length ? (
+          {!sheets.length ? (
+            <div className="bi-empty-board">
+              <h2>{t('noSheets')}</h2>
+              <p>{t('noSheetsHelp')}</p>
+              <Button onClick={openSheetDialog}>{d('createSheet')}</Button>
+            </div>
+          ) : !metadata.datasets.length ? (
             <div className="bi-empty-board">
               <h2>{t('noDatasets')}</h2>
               <p>{t(metadata.can_manage ? 'noDatasetsAdmin' : 'noDatasetsUser')}</p>
@@ -317,7 +359,10 @@ const LiveDashboard = ({
                     first={index === 0}
                     last={index === widgets.length - 1}
                     onDuplicate={() =>
-                      updateWidgets((items) => [...items, { ...widget, id: crypto.randomUUID() }])
+                      updateWidgets((items) => [
+                        ...items,
+                        { ...widget, id: crypto.randomUUID(), savedWidgetId: undefined },
+                      ])
                     }
                     onMove={(offset) =>
                       updateWidgets((items) => {
@@ -340,54 +385,31 @@ const LiveDashboard = ({
           <footer className="bi-canvas-footer">
             <div className="bi-sheet-tabs" role="tablist" aria-label={t('sheets')}>
               {sheets.map((sheet) => (
-                <Button
-                  variant="ghost"
-                  key={sheet.id}
-                  role="tab"
-                  title={sheet.description || undefined}
-                  aria-description={sheet.description || undefined}
-                  aria-selected={active === sheet.id}
-                  onClick={() => setActive(sheet.id)}
-                >
-                  {sheet.name}
-                </Button>
+                <IconTooltip key={sheet.id} label={sheet.description || sheet.name}>
+                  <Button
+                    variant="ghost"
+                    role="tab"
+                    aria-label={sheet.name}
+                    aria-description={sheet.description || undefined}
+                    aria-selected={active === sheet.id}
+                    onClick={() => setActive(sheet.id)}
+                  >
+                    {sheet.name}
+                  </Button>
+                </IconTooltip>
               ))}
             </div>
             <IconTooltip label={t('addSheet')}>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => {
-                  setSheetTitle(`${t('defaultSheet')} ${sheets.length + 1}`);
-                  setSheetDescription('');
-                  createSheet.reset();
-                  setSheetDialogOpen(true);
-                }}
+                onClick={openSheetDialog}
                 disabled={sheets.length >= 20 || createSheet.isPending}
               >
                 <Plus aria-hidden="true" />
               </Button>
             </IconTooltip>
-            <IconTooltip label={t('deleteSheet')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bi-delete-sheet"
-                disabled={sheets.length <= 1}
-                onClick={() => {
-                  const current = sheets.find((sheet) => sheet.id === active);
-                  if (!current || sheets.length <= 1) return;
-                  // eslint-disable-next-line no-alert
-                  if (!window.confirm(t('confirmDeleteSheet', { name: current.name }))) return;
-                  const remaining = sheets.filter((sheet) => sheet.id !== active);
-                  setSheets(remaining);
-                  setActive(remaining[0].id);
-                }}
-              >
-                <Trash2 aria-hidden="true" />
-              </Button>
-            </IconTooltip>
-            <small>{t(dirty ? 'unsaved' : 'saved')}</small>
+            <small>{t(dirty ? 'unsavedLocalWidgets' : 'localWidgets')}</small>
           </footer>
         </div>
         <DashboardChat />
@@ -460,10 +482,13 @@ const LiveDashboard = ({
           <DashboardWidgetEditor
             key={editing.id}
             widget={editing}
+            sheetId={sheets.find((sheet) => sheet.id === active)?.serverId ?? 0}
             onCancel={() => setEditorOpen(false)}
             metadata={metadata}
             visualLabel={(value) => d(`visuals.${value}`)}
-            onApply={(widget) => {
+            onApply={(updated) => {
+              const widget = updated;
+              void queryClient.invalidateQueries({ queryKey: ['kpi-sheets'] });
               updateWidgets((items) =>
                 items.some((item) => item.id === widget.id)
                   ? items.map((item) => (item.id === widget.id ? widget : item))
@@ -486,6 +511,7 @@ const WidgetEditor = ({
   onCancel,
 }: {
   widget: DashboardWidget;
+  sheetId: number;
   metadata: AnalyticsMetadata;
   visualLabel: (value: WidgetVisual) => string;
   onApply: (widget: DashboardWidget) => void;
@@ -599,7 +625,12 @@ const WidgetEditor = ({
 
 const DashboardWidgetEditor = (props: Parameters<typeof WidgetEditor>[0]) =>
   props.widget.kpiQuery || !props.widget.query ? (
-    <KpiWidgetEditor widget={props.widget} onApply={props.onApply} onCancel={props.onCancel} />
+    <KpiWidgetEditor
+      sheetId={props.sheetId}
+      widget={props.widget}
+      onApply={props.onApply}
+      onCancel={props.onCancel}
+    />
   ) : (
     <WidgetEditor {...props} />
   );

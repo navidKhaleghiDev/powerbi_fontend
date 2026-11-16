@@ -4,6 +4,7 @@ import type { Query } from '@cubejs-client/core';
 export type WidgetVisual =
   'bar' | 'horizontalBar' | 'line' | 'pie' | 'radar' | 'heatmap' | 'table' | 'card';
 export interface DashboardWidget {
+  savedWidgetId?: number;
   id: string;
   title: string;
   visual: WidgetVisual;

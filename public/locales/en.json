@@ -1188,6 +1188,11 @@
     "information": "Chat information"
   },
   "analytics": {
+    "noSheets": "No sheets yet",
+    "noSheetsHelp": "Create your first sheet to get started.",
+    "saveLocalWidgets": "Save widget draft on this device",
+    "unsavedLocalWidgets": "Unsaved widget draft",
+    "localWidgets": "Widget drafts are stored on this device",
     "cancel": "Cancel",
     "required": "This field is required.",
     "invalid": "Check this field's format or length.",
@@ -1357,6 +1362,14 @@
     "joinLeft": "Source column",
     "joinRight": "Joined column",
     "dimension": "Dimension",
+    "aggregations": {
+      "sum": "Sum",
+      "avg": "Average",
+      "min": "Minimum",
+      "max": "Maximum",
+      "count": "Count",
+      "uniqExact": "Distinct count"
+    },
     "aggregation": "Aggregation",
     "measure": "Measure",
     "noMeasure": "No measure",

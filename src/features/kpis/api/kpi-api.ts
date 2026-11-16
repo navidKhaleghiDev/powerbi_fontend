@@ -127,3 +127,78 @@ export const createKpiSheet = async (sheet: KpiSheetCreate): Promise<KpiCreatedS
   }
   return result;
 };
+
+export interface KpiSheet extends KpiCreatedSheet {
+  widgets?: KpiSheetWidget[];
+}
+
+export const listKpiSheets = async (signal?: AbortSignal): Promise<KpiSheet[]> => {
+  const payload = await readJson<unknown>(await apiRequest(API_ENDPOINTS.kpiSheets, { signal }));
+  if (
+    !Array.isArray(payload) ||
+    !payload.every((sheet: unknown) => {
+      if (!sheet || typeof sheet !== 'object') return false;
+      const value = sheet as Record<string, unknown>;
+      return (
+        Number.isInteger(value.id) &&
+        typeof value.title === 'string' &&
+        (value.description === null || typeof value.description === 'string') &&
+        (value.widgets === undefined ||
+          (Array.isArray(value.widgets) &&
+            value.widgets.every((widget: unknown) => {
+              if (!widget || typeof widget !== 'object') return false;
+              const item = widget as Record<string, unknown>;
+              return (
+                Number.isInteger(item.id) &&
+                typeof item.title === 'string' &&
+                typeof item.table_name === 'string' &&
+                ['sum', 'avg', 'min', 'max', 'count', 'uniqExact'].includes(
+                  String(item.aggregation),
+                ) &&
+                (item.chart_type === undefined ||
+                  (typeof item.chart_type === 'string' &&
+                    ['bar', 'line', 'pie', 'table', 'number'].includes(item.chart_type)))
+              );
+            })))
+      );
+    })
+  )
+    throw new Error('The sheets response has an unexpected format');
+  return payload as KpiSheet[];
+};
+
+export interface KpiSheetWidget {
+  id: number;
+  title: string;
+  chart_type?: KpiChartType;
+  table_name: string;
+  dimension?: string;
+  measure?: string | null;
+  aggregation: KpiAggregation;
+  join_table_name?: string | null;
+  join_type?: 'INNER' | 'LEFT' | '' | null;
+  join_left_column?: string | null;
+  join_right_column?: string | null;
+  limit?: number;
+  filters?: KpiFilter[];
+}
+
+export const querySavedSheetWidget = async (
+  id: number,
+  signal?: AbortSignal,
+): Promise<KpiResult> => {
+  const payload = await readJson<{ query: KpiResult }>(
+    await apiRequest(API_ENDPOINTS.kpiWidget(id), { signal }),
+  );
+  return assertKpiResult(payload.query);
+};
+
+export const createKpiSheetWidget = (
+  sheetId: number,
+  widget: KpiQuery & {
+    title: string;
+    chart_type: KpiChartType;
+    x_label?: string;
+    y_label?: string;
+  },
+): Promise<KpiSheetWidget> => postJson(API_ENDPOINTS.kpiCreateWidget(sheetId), widget);

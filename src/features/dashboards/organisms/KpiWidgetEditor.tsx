@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { toDashboardWidget } from '@/features/dashboards/lib/server-sheets';
 import { WidgetEditorActions } from '@/features/dashboards/molecules/WidgetEditorActions';
-import { getKpiAvailableTables } from '@/features/kpis/api/kpi-api';
+import { createKpiSheetWidget, getKpiAvailableTables } from '@/features/kpis/api/kpi-api';
 import {
   isValidChart,
   newChart,
@@ -17,10 +18,12 @@ import type { DashboardWidget } from '@/features/dashboards/lib/dashboard';
 
 export const KpiWidgetEditor = ({
   widget,
+  sheetId,
   onApply,
   onCancel,
 }: {
   widget: DashboardWidget;
+  sheetId: number;
   onApply: (widget: DashboardWidget) => void;
   onCancel: () => void;
 }) => {
@@ -47,28 +50,26 @@ export const KpiWidgetEditor = ({
     queryFn: ({ signal }) => getKpiAvailableTables(signal),
     retry: false,
   });
+  const create = useMutation({
+    mutationFn: () =>
+      createKpiSheetWidget(sheetId, {
+        ...toKpiQuery(chart),
+        title: chart.title.trim(),
+        chart_type: chart.chart_type,
+      }),
+    retry: false,
+    onSuccess: (created) => onApply(toDashboardWidget(created)),
+  });
   return (
     <form
       className="analytics-form"
       onSubmit={(event) => {
         event.preventDefault();
         if (!tables.isSuccess || !tables.data.length || !isValidChart(chart)) return;
-        onApply({
-          ...widget,
-          title: chart.title.trim(),
-          visual: chart.chart_type === 'number' ? 'card' : chart.chart_type,
-          size:
-            chart.chart_type === 'number'
-              ? 'small'
-              : chart.chart_type === 'table'
-                ? 'wide'
-                : 'medium',
-          query: null,
-          kpiQuery: toKpiQuery(chart),
-        });
+        if (!create.isPending) create.mutate();
       }}
     >
-      <div className="bi-widget-drawer-content">
+      <fieldset disabled={create.isPending} className="bi-widget-drawer-content">
         {tables.isPending ? (
           <p role="status">{t('loadingTables')}</p>
         ) : tables.isError ? (
@@ -83,10 +84,14 @@ export const KpiWidgetEditor = ({
         ) : (
           <KpiChartEditor embedded chart={chart} tables={tables.data} onChange={setChart} />
         )}
-      </div>
+      </fieldset>
+      {create.isError && <p role="alert">{create.error.message}</p>}
       <WidgetEditorActions
         onCancel={onCancel}
-        disabled={!tables.isSuccess || !tables.data.length || !isValidChart(chart)}
+        pending={create.isPending}
+        disabled={
+          create.isPending || !tables.isSuccess || !tables.data.length || !isValidChart(chart)
+        }
       />
     </form>
   );

@@ -32,7 +32,7 @@ import {
   type AnalyticsFilters,
   type Dataset,
 } from '@/features/datasets/api/analytics';
-import { queryKpi } from '@/features/kpis/api/kpi-api';
+import { queryKpi, querySavedSheetWidget } from '@/features/kpis/api/kpi-api';
 import { KpiResultView } from '@/features/kpis/organisms/KpiResultView';
 import { AppDialog } from '@/shared/components/molecules/app-dialog';
 import { useOutsideClick } from '@/shared/hooks/useOutsideClick';
@@ -156,8 +156,10 @@ export const AnalyticsWidgetCard = ({
     staleTime: 60_000,
   });
   const kpi = useQuery({
-    queryKey: ['dashboard-widget', 'kpi', widget.kpiQuery],
+    queryKey: ['dashboard-widget', 'kpi', widget.savedWidgetId, widget.kpiQuery],
     queryFn: ({ signal }) => {
+      if (widget.savedWidgetId !== undefined)
+        return querySavedSheetWidget(widget.savedWidgetId, signal);
       if (!widget.kpiQuery) throw new Error(t('unavailable'));
       return queryKpi(widget.kpiQuery, signal);
     },

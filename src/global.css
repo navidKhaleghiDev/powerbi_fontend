@@ -7057,8 +7057,8 @@ body.workspace-canvas .bi-widget-drawer :is(input, select):disabled {
     0 0 0 5px rgb(148 163 184 / 10%);
   --kpi-accent: #3478f6;
 }
-.analytics-widget.bi-widget-visual-card .bi-widget-heading-text {
-  visibility: hidden;
+.analytics-widget.bi-widget-visual-card .analytics-widget-heading-text {
+  min-width: 0;
 }
 .kpi-reference-layout,
 .analytics-widget.bi-widget-visual-card .analytics-kpi-layout {
@@ -7283,6 +7283,64 @@ body.workspace-canvas .bi-widget-content > .bi-widget-state {
   text-align: center;
   color: var(--night-text);
   overflow-wrap: anywhere;
+}
+/* Count cards share the workspace palette and keep the metric above the trend. */
+body.workspace-canvas .analytics-widget.bi-widget-visual-card {
+  border-radius: 20px;
+  border-color: var(--night-border);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+  container-type: inline-size;
+}
+body.workspace-canvas .analytics-widget.bi-widget-visual-card .bi-widget-content {
+  padding: 12px 18px 20px;
+}
+body.workspace-canvas
+  .analytics-widget.bi-widget-visual-card
+  :is(.kpi-reference-layout, .analytics-kpi-layout) {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  color: var(--night-text);
+}
+body.workspace-canvas
+  .analytics-widget.bi-widget-visual-card
+  :is(.kpi-reference-copy > span, .kpi-reference-title) {
+  display: none;
+}
+body.workspace-canvas
+  .analytics-widget.bi-widget-visual-card
+  :is(.kpi-reference-copy strong, .bi-kpi strong) {
+  color: var(--night-text);
+  font-size: clamp(28px, 11cqi, 44px);
+  font-weight: 750;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: plaintext;
+  overflow-wrap: anywhere;
+}
+body.workspace-canvas
+  .analytics-widget.bi-widget-visual-card
+  :is(.kpi-reference-sparkline, .analytics-kpi-trend) {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  color: var(--kpi-accent);
+}
+body.workspace-canvas .analytics-widget.bi-widget-visual-card .kpi-reference-sparkline {
+  direction: ltr;
+}
+body.workspace-canvas .analytics-widget.bi-widget-visual-card .analytics-kpi-trend {
+  height: auto;
+}
+body.workspace-canvas
+  .analytics-widget.bi-widget-visual-card
+  :is(.analytics-kpi-unit, .analytics-kpi-trend small) {
+  color: var(--night-muted);
 }
 body.workspace-canvas .analytics-widget.bi-widget-visual-card .kpi-reference-icon {
   flex-basis: 52px;
