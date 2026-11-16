@@ -63,6 +63,7 @@ export const KpiResultView = ({
           <svg
             className="kpi-reference-sparkline"
             viewBox="0 0 160 84"
+            preserveAspectRatio="none"
             role="img"
             aria-label={title}
           >

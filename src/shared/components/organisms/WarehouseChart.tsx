@@ -107,7 +107,7 @@ export const WarehouseChart = ({
         : kind === 'heatmap'
           ? '#9c9ca3'
           : '#d4d4d8';
-  const primary = chartColor ?? defaultColor;
+  const primary = chartColor ?? (dashboard ? '#5279fa' : defaultColor);
   const colors =
     categoryColors ??
     (kind === 'pie' ? ['#8b65ff', '#3267ff', '#5bdab5', '#f5b75c', '#ef7197'] : chartColors);
@@ -119,7 +119,7 @@ export const WarehouseChart = ({
     return Number.isFinite(value) ? value : null;
   });
   const number = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 });
-  const font = { family: fontFamily, size: 12 };
+  const font = { family: fontFamily, size: dashboard ? 10 : 12 };
   const common = {
     responsive: true,
     maintainAspectRatio: false,
@@ -137,7 +137,7 @@ export const WarehouseChart = ({
       tooltip: {
         rtl,
         textDirection: rtl ? 'rtl' : 'ltr',
-        backgroundColor: '#0f172a',
+        backgroundColor: dashboard ? '#202023' : '#0f172a',
         titleFont: font,
         bodyFont: font,
         padding: 12,
@@ -158,7 +158,7 @@ export const WarehouseChart = ({
         grid: { display: false },
         border: { display: false },
         ticks: {
-          color: '#d4d4d8',
+          color: dashboard ? '#85858f' : '#d4d4d8',
           font,
           maxRotation: 0,
           autoSkip: true,
@@ -172,10 +172,10 @@ export const WarehouseChart = ({
       y: {
         beginAtZero: true,
         position: rtl ? ('right' as const) : ('left' as const),
-        grid: { color: '#3d3d42' },
+        grid: { color: dashboard ? 'rgba(255,255,255,0.06)' : '#3d3d42' },
         border: { display: false },
         ticks: {
-          color: '#d4d4d8',
+          color: dashboard ? '#85858f' : '#d4d4d8',
           font,
           maxTicksLimit: 7,
           padding: 10,
@@ -233,7 +233,7 @@ export const WarehouseChart = ({
                 r: {
                   beginAtZero: true,
                   ticks: { display: false },
-                  grid: { color: '#3d3d42' },
+                  grid: { color: dashboard ? 'rgba(255,255,255,0.06)' : '#3d3d42' },
                   angleLines: { color: '#3d3d42' },
                   pointLabels: { color: '#d4d4d8', font },
                 },
@@ -277,7 +277,7 @@ export const WarehouseChart = ({
                   data: values,
                   backgroundColor: `${primary}bb`,
                   hoverBackgroundColor: primary,
-                  borderRadius: dashboard ? 6 : 9,
+                  borderRadius: dashboard ? 3 : 9,
                   maxBarThickness: dashboard ? 38 : 64,
                 },
               ],
@@ -295,11 +295,27 @@ export const WarehouseChart = ({
                   label: title,
                   data: values,
                   borderColor: primary,
-                  backgroundColor: `${primary}28`,
+                  backgroundColor: (context) => {
+                    const { ctx, chartArea } = context.chart;
+                    if (!dashboard || !chartArea) return `${primary}28`;
+                    const gradient = ctx.createLinearGradient(
+                      0,
+                      chartArea.top,
+                      0,
+                      chartArea.bottom,
+                    );
+                    gradient.addColorStop(0, `${primary}38`);
+                    gradient.addColorStop(1, `${primary}00`);
+                    return gradient;
+                  },
                   fill: true,
-                  tension: 0.35,
+                  tension: dashboard ? 0 : 0.35,
                   borderWidth: 2,
-                  pointRadius: values.length > 60 ? 0 : dashboard ? 3 : 2.5,
+                  pointRadius: dashboard
+                    ? values.map((_, index) => (index === values.length - 1 ? 4 : 0))
+                    : values.length > 60
+                      ? 0
+                      : 2.5,
                   pointBackgroundColor: '#171719',
                   pointBorderWidth: 2,
                   pointHoverRadius: 6,

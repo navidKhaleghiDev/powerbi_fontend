@@ -251,7 +251,7 @@ export const AnalyticsWidgetCard = ({
       className={`bi-widget analytics-widget bi-widget-${widget.size} bi-widget-visual-${widget.visual}`}
       style={
         {
-          '--widget-accent': widget.chartColor ?? '#d4d4d8',
+          '--widget-accent': widget.chartColor ?? '#5279fa',
           ...(transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : {}),
         } as CSSProperties
       }
@@ -269,6 +269,11 @@ export const AnalyticsWidgetCard = ({
         </Button>
         <div className="analytics-widget-heading-text">
           <h2>{widget.title || selected?.metric.title}</h2>
+          {!widget.kpiQuery && filters.from && filters.to && (
+            <p className="analytics-widget-period" dir="auto">
+              {filters.from} – {filters.to}
+            </p>
+          )}
         </div>
         <div className="bi-widget-actions">
           {refreshing && (
@@ -358,6 +363,11 @@ export const AnalyticsWidgetCard = ({
             </div>
           </details>
         </div>
+        {widget.visual === 'card' && (
+          <span className="analytics-widget-metric-icon" aria-hidden="true">
+            <Activity />
+          </span>
+        )}
       </header>
       <div className="bi-widget-content" aria-busy={refreshing}>
         {widget.kpiQuery ? (
@@ -413,6 +423,7 @@ export const AnalyticsWidgetCard = ({
                 <>
                   <svg
                     viewBox="0 0 180 80"
+                    preserveAspectRatio="none"
                     role="img"
                     aria-label={t('trendLabel', { period: t(trendDimension) })}
                   >
