@@ -6,6 +6,7 @@ import { toDashboardWidget } from '@/features/dashboards/lib/server-sheets';
 import { WidgetEditorActions } from '@/features/dashboards/molecules/WidgetEditorActions';
 import { createKpiSheetWidget, getKpiAvailableTables } from '@/features/kpis/api/kpi-api';
 import {
+  DEFAULT_KPI_ROW_LIMIT,
   isValidChart,
   newChart,
   toKpiQuery,
@@ -32,6 +33,7 @@ export const KpiWidgetEditor = ({
   const [chart, setChart] = useState<ChartDraft>(() => ({
     ...newChart(),
     ...widget.kpiQuery,
+    limit: DEFAULT_KPI_ROW_LIMIT,
     title: widget.title,
     chart_type:
       widget.visual === 'card'

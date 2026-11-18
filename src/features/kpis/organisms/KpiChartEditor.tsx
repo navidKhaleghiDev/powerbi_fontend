@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { BarChart3, ChartLine, ChartPie, Eye, Hash, Plus, Table2, Trash2 } from 'lucide-react';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import {
@@ -12,6 +12,7 @@ import {
 } from '@/features/kpis/api/kpi-api';
 import {
   isValidChart,
+  isValidKpiQuery,
   toKpiQuery,
   type ChartDraft,
   type FilterDraft,
@@ -25,6 +26,8 @@ import { Radio } from '@/shared/ui/atoms/radio/radio';
 const aggregations: KpiAggregation[] = ['sum', 'avg', 'min', 'max', 'count', 'uniqExact'];
 const chartTypes: KpiChartType[] = ['bar', 'line', 'pie', 'table', 'number'];
 const chartIcons = { bar: BarChart3, line: ChartLine, pie: ChartPie, table: Table2, number: Hash };
+const isNumericColumn = (type: string): boolean =>
+  /(?:U?Int\d+|Float\d+|Decimal(?:\d+)?\()/.test(type);
 const operators: KpiFilterOperator[] = [
   'eq',
   'ne',
@@ -54,8 +57,18 @@ export const KpiChartEditor = ({
 }) => {
   const t = useTranslations('kpis');
   const id = useId();
-  const preview = useMutation({ mutationFn: () => queryKpi(toKpiQuery(chart)) });
+  const [previewRequested, setPreviewRequested] = useState(false);
+  const manualPreview = useMutation({ mutationFn: () => queryKpi(toKpiQuery(chart)) });
   const source = tables.find((table) => table.name === chart.table_name);
+  const previewQuery = toKpiQuery(chart);
+  const canAutoPreview = embedded && previewRequested && Boolean(source) && isValidKpiQuery(chart);
+  const autoPreview = useQuery({
+    queryKey: ['kpi-widget-preview', previewQuery],
+    queryFn: ({ signal }) => queryKpi(previewQuery, signal),
+    enabled: canAutoPreview,
+    retry: false,
+  });
+  const waitingForSource = embedded && !source;
   const joined = tables.find((table) => table.name === chart.join_table_name);
   const fields = [
     ...(source?.columns.map((column) => ({
@@ -70,7 +83,7 @@ export const KpiChartEditor = ({
     })) ?? []),
   ];
   const change = (patch: Partial<ChartDraft>) => {
-    preview.reset();
+    manualPreview.reset();
     onChange({ ...chart, ...patch });
   };
   const changeFilter = (filterId: string, patch: Partial<FilterDraft>) =>
@@ -79,23 +92,238 @@ export const KpiChartEditor = ({
         filter.id === filterId ? { ...filter, ...patch } : filter,
       ),
     });
+  const tableField = (
+    <label className="grid min-w-0 gap-1 text-sm">
+      {t('table')}
+      <NativeSelect
+        required
+        value={chart.table_name}
+        onChange={(event) =>
+          change({
+            table_name: event.target.value,
+            dimension: '',
+            measure: '',
+            join_table_name: '',
+            join_left_column: '',
+            join_right_column: '',
+            filters: [],
+          })
+        }
+      >
+        <option value="">{t('choose')}</option>
+        {tables.map((table) => (
+          <option key={table.name} value={table.name}>
+            {table.name}
+          </option>
+        ))}
+      </NativeSelect>
+    </label>
+  );
+  const measureHelpId = `${id}-measure-help`;
+  const measureField = (
+    <div className={`grid min-w-0 gap-1 text-sm ${embedded ? 'md:col-span-2' : ''}`}>
+      <label htmlFor={`${id}-measure`}>{t('measure')}</label>
+      <NativeSelect
+        id={`${id}-measure`}
+        aria-describedby={embedded ? measureHelpId : undefined}
+        required={chart.aggregation !== 'count'}
+        disabled={!source}
+        value={chart.measure}
+        onChange={(event) => change({ measure: event.target.value })}
+      >
+        <option value="">{t('noMeasure')}</option>
+        {fields
+          .filter(
+            (field) => !['sum', 'avg'].includes(chart.aggregation) || isNumericColumn(field.type),
+          )
+          .map((field) => (
+            <option key={field.value} value={field.value}>
+              {field.label}
+            </option>
+          ))}
+      </NativeSelect>
+      {embedded && (
+        <p id={measureHelpId} className="text-xs leading-relaxed text-slate-500">
+          {t('measureHelp')}
+        </p>
+      )}
+    </div>
+  );
+  const dimensionHelpId = `${id}-dimension-help`;
+  const dimensionField = (
+    <div className="grid min-w-0 gap-1 text-sm">
+      <label htmlFor={`${id}-dimension`}>{t('dimension')}</label>
+      <NativeSelect
+        id={`${id}-dimension`}
+        aria-describedby={embedded ? dimensionHelpId : undefined}
+        required
+        disabled={!source}
+        value={chart.dimension}
+        onChange={(event) => change({ dimension: event.target.value })}
+      >
+        <option value="">{t('choose')}</option>
+        {fields.map((field) => (
+          <option key={field.value} value={field.value}>
+            {field.label}
+          </option>
+        ))}
+      </NativeSelect>
+      {embedded && (
+        <p id={dimensionHelpId} className="text-xs leading-relaxed text-slate-500">
+          {t('dimensionHelp')}
+        </p>
+      )}
+    </div>
+  );
+  const aggregationHelpId = `${id}-aggregation-help`;
+  const aggregationField = (
+    <div className="grid min-w-0 gap-1 text-sm">
+      <label htmlFor={`${id}-aggregation`}>{t('aggregation')}</label>
+      <NativeSelect
+        id={`${id}-aggregation`}
+        aria-describedby={embedded ? aggregationHelpId : undefined}
+        disabled={waitingForSource}
+        value={chart.aggregation}
+        onChange={(event) => {
+          const aggregation = event.target.value as KpiAggregation;
+          const selectedMeasure = fields.find((field) => field.value === chart.measure);
+          change({
+            aggregation,
+            measure:
+              ['sum', 'avg'].includes(aggregation) &&
+              selectedMeasure &&
+              !isNumericColumn(selectedMeasure.type)
+                ? ''
+                : chart.measure,
+          });
+        }}
+      >
+        {aggregations.map((aggregation) => (
+          <option key={aggregation} value={aggregation}>
+            {t(`aggregations.${aggregation}`)}
+          </option>
+        ))}
+      </NativeSelect>
+      {embedded && (
+        <p
+          id={aggregationHelpId}
+          aria-live="polite"
+          className="text-xs leading-relaxed text-slate-500"
+        >
+          {t(`aggregationDescriptions.${chart.aggregation}`)}
+        </p>
+      )}
+    </div>
+  );
+  const chartTypeField = embedded ? (
+    <fieldset className="kpi-chart-type-field md:col-span-2" disabled={waitingForSource}>
+      <legend>{t('chartType')}</legend>
+      <div className="kpi-chart-type-options">
+        {chartTypes.map((type) => {
+          const Icon = chartIcons[type];
+          return (
+            <label key={type} className="kpi-chart-type-option">
+              <Radio
+                name={`${id}-chart-type`}
+                value={type}
+                checked={chart.chart_type === type}
+                onClick={() => setPreviewRequested(true)}
+                onChange={() => {
+                  change({ chart_type: type });
+                  setPreviewRequested(true);
+                }}
+              />
+              <Icon size={22} aria-hidden="true" />
+              <span>{t(`chartTypes.${type}`)}</span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  ) : (
+    <label className="grid gap-1 text-sm">
+      {t('chartType')}
+      <NativeSelect
+        value={chart.chart_type}
+        onChange={(event) => change({ chart_type: event.target.value as KpiChartType })}
+      >
+        {chartTypes.map((type) => (
+          <option key={type} value={type}>
+            {t(`chartTypes.${type}`)}
+          </option>
+        ))}
+      </NativeSelect>
+    </label>
+  );
+  const previewSection = (
+    <div className="kpi-editor-preview space-y-3">
+      {embedded ? (
+        <>
+          <h4 className="font-medium">{t('preview')}</h4>
+          {!previewRequested && (
+            <p className="kpi-editor-empty">{t('editorSelectTypeForPreview')}</p>
+          )}
+          {previewRequested && !canAutoPreview && (
+            <p className="kpi-editor-empty">{t('editorCompleteFields')}</p>
+          )}
+          {canAutoPreview && autoPreview.isPending && <p role="status">{t('loading')}</p>}
+          {canAutoPreview && autoPreview.isError && <p role="alert">{autoPreview.error.message}</p>}
+          {canAutoPreview && autoPreview.data && (
+            <KpiResultView
+              result={autoPreview.data}
+              title={chart.title.trim() || t('preview')}
+              kind={chart.chart_type}
+            />
+          )}
+        </>
+      ) : (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!isValidChart(chart) || manualPreview.isPending}
+            onClick={() => manualPreview.mutate()}
+          >
+            <Eye size={16} aria-hidden="true" />
+            {t('preview')}
+          </Button>
+          {manualPreview.isPending && <p role="status">{t('loading')}</p>}
+          {manualPreview.isError && <p role="alert">{manualPreview.error.message}</p>}
+          {manualPreview.data && (
+            <div aria-labelledby={id}>
+              <h4 id={id} className="sr-only">
+                {t('preview')}
+              </h4>
+              <KpiResultView
+                result={manualPreview.data}
+                title={chart.title}
+                kind={chart.chart_type}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
   return (
     <section
       className={
         embedded ? 'kpi-drawer-editor' : 'space-y-4 rounded-xl border border-slate-200 bg-white p-4'
       }
     >
-      <div className="kpi-editor-section-heading flex items-center justify-between gap-3">
-        <h3 className="font-semibold">{t('chart')}</h3>
-        {onRemove && (
-          <Button type="button" variant="ghost" onClick={onRemove}>
-            {t('removeChart')}
-          </Button>
-        )}
-      </div>
+      {!embedded && (
+        <div className="kpi-editor-section-heading flex items-center justify-between gap-3">
+          <h3 className="font-semibold">{t('chart')}</h3>
+          {onRemove && (
+            <Button type="button" variant="ghost" onClick={onRemove}>
+              {t('removeChart')}
+            </Button>
+          )}
+        </div>
+      )}
       <div className="kpi-editor-fields grid gap-3 md:grid-cols-2">
-        <label className="grid gap-1 text-sm md:col-span-2">
-          {t('chartTitle')}
+        <label className={`grid min-w-0 gap-1 text-sm ${embedded ? '' : 'md:col-span-2'}`}>
+          {t(embedded ? 'widgetTitle' : 'chartTitle')}
           <Input
             required
             maxLength={100}
@@ -103,71 +331,13 @@ export const KpiChartEditor = ({
             onChange={(event) => change({ title: event.target.value })}
           />
         </label>
-        {embedded ? (
-          <fieldset className="kpi-chart-type-field md:col-span-2">
-            <legend>{t('chartType')}</legend>
-            <div className="kpi-chart-type-options">
-              {chartTypes.map((type) => {
-                const Icon = chartIcons[type];
-                return (
-                  <label key={type} className="kpi-chart-type-option">
-                    <Radio
-                      name={`${id}-chart-type`}
-                      value={type}
-                      checked={chart.chart_type === type}
-                      onChange={() => change({ chart_type: type })}
-                    />
-                    <Icon size={22} aria-hidden="true" />
-                    <span>{t(`chartTypes.${type}`)}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-        ) : (
-          <label className="grid gap-1 text-sm">
-            {t('chartType')}
-            <NativeSelect
-              value={chart.chart_type}
-              onChange={(event) => change({ chart_type: event.target.value as KpiChartType })}
-            >
-              {chartTypes.map((type) => (
-                <option key={type} value={type}>
-                  {t(`chartTypes.${type}`)}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
-        )}
-        {embedded && (
-          <h4 className="kpi-editor-section-heading md:col-span-2">{t('editorData')}</h4>
-        )}
-        <label className="grid gap-1 text-sm">
-          {t('table')}
-          <NativeSelect
-            required
-            value={chart.table_name}
-            onChange={(event) =>
-              change({
-                table_name: event.target.value,
-                dimension: '',
-                measure: '',
-                join_table_name: '',
-                join_left_column: '',
-                join_right_column: '',
-                filters: [],
-              })
-            }
-          >
-            <option value="">{t('choose')}</option>
-            {tables.map((table) => (
-              <option key={table.name} value={table.name}>
-                {table.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        <fieldset className="min-w-0 space-y-2 md:col-span-2">
+        {embedded && tableField}
+        {embedded && measureField}
+        {embedded && dimensionField}
+        {embedded && aggregationField}
+        {!embedded && chartTypeField}
+        {!embedded && tableField}
+        <fieldset className="min-w-0 space-y-2 md:col-span-2" disabled={waitingForSource}>
           <legend className="text-sm">{t('joinTable')}</legend>
           <div className="kpi-join-options">
             {[
@@ -242,70 +412,24 @@ export const KpiChartEditor = ({
             </label>
           </>
         )}
-        <label className="grid gap-1 text-sm">
-          {t('dimension')}
-          <NativeSelect
-            required
-            disabled={!source}
-            value={chart.dimension}
-            onChange={(event) => change({ dimension: event.target.value })}
-          >
-            <option value="">{t('choose')}</option>
-            {fields.map((field) => (
-              <option key={field.value} value={field.value}>
-                {field.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t('aggregation')}
-          <NativeSelect
-            value={chart.aggregation}
-            onChange={(event) =>
-              change({ aggregation: event.target.value as KpiAggregation, measure: '' })
-            }
-          >
-            {aggregations.map((aggregation) => (
-              <option key={aggregation} value={aggregation}>
-                {t(`aggregations.${aggregation}`)}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t('measure')}
-          <NativeSelect
-            required={chart.aggregation !== 'count'}
-            disabled={!source}
-            value={chart.measure}
-            onChange={(event) => change({ measure: event.target.value })}
-          >
-            <option value="">{t('noMeasure')}</option>
-            {fields
-              .filter(
-                (field) =>
-                  !['sum', 'avg'].includes(chart.aggregation) ||
-                  /(?:U?Int\d+|Float\d+|Decimal(?:\d+)?\()/.test(field.type),
-              )
-              .map((field) => (
-                <option key={field.value} value={field.value}>
-                  {field.label}
-                </option>
-              ))}
-          </NativeSelect>
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t('limit')}
-          <Input
-            type="number"
-            min={1}
-            max={1000}
-            value={chart.limit}
-            onChange={(event) => change({ limit: Number(event.target.value) })}
-          />
-        </label>
+        {embedded && chartTypeField}
+        {!embedded && dimensionField}
+        {!embedded && aggregationField}
+        {!embedded && measureField}
+        {!embedded && (
+          <label className="grid gap-1 text-sm">
+            {t('limit')}
+            <Input
+              type="number"
+              min={1}
+              max={1000}
+              value={chart.limit}
+              onChange={(event) => change({ limit: Number(event.target.value) })}
+            />
+          </label>
+        )}
       </div>
+      {embedded && previewSection}
       <div className="kpi-editor-filters space-y-2">
         <div className="flex items-center justify-between">
           <h4 className="font-medium">{t('filters')}</h4>
@@ -382,32 +506,7 @@ export const KpiChartEditor = ({
           </div>
         ))}
       </div>
-      <div className="kpi-editor-preview space-y-3">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!isValidChart(chart) || preview.isPending}
-          onClick={() => preview.mutate()}
-        >
-          <Eye size={16} aria-hidden="true" />
-          {t('preview')}
-        </Button>
-        {embedded && !preview.data && !preview.isPending && !preview.isError && (
-          <p className="kpi-editor-empty">
-            {t(isValidChart(chart) ? 'editorPreviewReady' : 'editorCompleteFields')}
-          </p>
-        )}
-        {preview.isPending && <p role="status">{t('loading')}</p>}
-        {preview.isError && <p role="alert">{preview.error.message}</p>}
-        {preview.data && (
-          <div aria-labelledby={id}>
-            <h4 id={id} className="sr-only">
-              {t('preview')}
-            </h4>
-            <KpiResultView result={preview.data} title={chart.title} kind={chart.chart_type} />
-          </div>
-        )}
-      </div>
+      {!embedded && previewSection}
     </section>
   );
 };

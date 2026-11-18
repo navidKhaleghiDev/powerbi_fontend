@@ -67,7 +67,10 @@ export const login = async (credentials: LoginCredentials): Promise<void> => {
 
 const refreshAccessToken = async (): Promise<string | null> => {
   const refresh = readToken(REFRESH_TOKEN_KEY);
-  if (!refresh) return null;
+  if (!refresh) {
+    if (getAccessToken()) clearAuthTokens();
+    return null;
+  }
 
   const headers = new Headers({ 'Content-Type': 'application/json' });
   const response = await rawApiRequest(REFRESH_ENDPOINT, {
@@ -75,8 +78,9 @@ const refreshAccessToken = async (): Promise<string | null> => {
     headers,
     body: JSON.stringify({ refresh }),
   });
+  if (readToken(REFRESH_TOKEN_KEY) !== refresh) return getAccessToken();
   if (!response.ok) {
-    clearAuthTokens();
+    if (response.status === 401) clearAuthTokens();
     throw new Error(await readError(response));
   }
   const result: unknown = await response.json();

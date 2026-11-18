@@ -13,6 +13,8 @@ export interface FilterDraft {
   operator: KpiFilterOperator;
   value: string;
 }
+export const DEFAULT_KPI_ROW_LIMIT = 100;
+
 export interface ChartDraft {
   id: string;
   title: string;
@@ -40,7 +42,7 @@ export const newChart = (): ChartDraft => ({
   join_type: 'INNER',
   join_left_column: '',
   join_right_column: '',
-  limit: 100,
+  limit: DEFAULT_KPI_ROW_LIMIT,
   filters: [],
 });
 const numericValue = (value: string): string | number =>
@@ -78,10 +80,8 @@ export const toKpiChart = (chart: ChartDraft, position: number): KpiChartCreate 
     : {}),
   filters: chart.filters.filter((filter) => filter.column).map(toFilter),
 });
-export const isValidChart = (chart: ChartDraft): boolean =>
+export const isValidKpiQuery = (chart: ChartDraft): boolean =>
   Boolean(
-    chart.title.trim() &&
-    chart.title.trim().length <= 100 &&
     chart.table_name &&
     chart.dimension &&
     Number.isInteger(chart.limit) &&
@@ -99,6 +99,9 @@ export const isValidChart = (chart: ChartDraft): boolean =>
             filter.value.split(',').filter((value) => value.trim()).length <= 1000)),
     ),
   );
+
+export const isValidChart = (chart: ChartDraft): boolean =>
+  Boolean(chart.title.trim() && chart.title.trim().length <= 100 && isValidKpiQuery(chart));
 
 export const toKpiQuery = (chart: ChartDraft): KpiQuery => {
   const { title: _title, chart_type: _type, position: _position, ...query } = toKpiChart(chart, 0);

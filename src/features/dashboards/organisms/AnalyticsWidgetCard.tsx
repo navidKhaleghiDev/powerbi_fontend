@@ -250,6 +250,7 @@ export const AnalyticsWidgetCard = ({
       data-dragging={isDragging || undefined}
       data-drop-target={(isOver && !isDragging) || undefined}
       data-table-width={widget.tableWidth ?? 'full'}
+      data-widget-source={widget.kpiQuery ? 'kpi' : undefined}
       className={`bi-widget analytics-widget bi-widget-${widget.size} bi-widget-visual-${widget.visual}`}
       style={
         {

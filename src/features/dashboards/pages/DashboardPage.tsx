@@ -9,7 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { PanelsTopLeft, Plus, RefreshCw, Save } from 'lucide-react';
+import { Plus, RefreshCw, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'use-intl';
@@ -177,6 +177,9 @@ const LiveDashboard = ({
     setEditorOpen(true);
   };
   const widgets = sheets.find((sheet) => sheet.id === active)?.widgets ?? [];
+  const editingExistingWidget = editing
+    ? widgets.some((widget) => widget.id === editing.id)
+    : false;
   const updateWidgets = (transform: (current: DashboardWidget[]) => DashboardWidget[]) =>
     setWidgetDrafts((items) =>
       active
@@ -472,12 +475,22 @@ const LiveDashboard = ({
         onClose={() => setEditorOpen(false)}
         onAfterClose={() => setEditing(null)}
       >
-        <div className="bi-widget-drawer-heading">
-          <span className="bi-widget-drawer-icon" aria-hidden="true">
-            <PanelsTopLeft size={24} />
-          </span>
-          <h2 className="sr-only">{t('configureWidget')}</h2>
-        </div>
+        <header className="bi-widget-drawer-header">
+          <div className="bi-widget-drawer-header-copy">
+            <h2>{t(editingExistingWidget ? 'editWidgetTitle' : 'createWidgetTitle')}</h2>
+            <p>{t('widgetDrawerDescription')}</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="bi-widget-drawer-close"
+            aria-label={t('close')}
+            onClick={() => setEditorOpen(false)}
+          >
+            <X aria-hidden="true" />
+          </Button>
+        </header>
         {editing && (
           <DashboardWidgetEditor
             key={editing.id}

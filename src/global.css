@@ -6822,11 +6822,45 @@ body.workspace-canvas
   overscroll-behavior: contain;
 }
 
-.app-dialog.bi-widget-drawer > header {
+.app-dialog.bi-widget-drawer > header.bi-widget-drawer-header {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: inherit;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 20px clamp(16px, 3vw, 32px);
+  border-bottom: 1px solid var(--night-border);
+  background: var(--night-panel);
+}
+
+.bi-widget-drawer-header-copy {
+  min-width: 0;
+}
+
+.app-dialog.bi-widget-drawer > header h2 {
+  color: var(--night-text);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.app-dialog.bi-widget-drawer > header p {
+  margin: 6px 0 0;
+  color: var(--night-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.app-dialog.bi-widget-drawer > header .bi-widget-drawer-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--night-border);
+  background: var(--night-raised);
+  color: var(--night-text);
 }
 
 /* Keep widget actions visible while the editor body scrolls. */
@@ -6876,23 +6910,6 @@ body.workspace-canvas
 .bi-widget-drawer .analytics-form {
   flex: 1;
   height: auto;
-}
-
-.bi-widget-drawer-heading {
-  flex-shrink: 0;
-  padding: 24px clamp(16px, 3vw, 32px) 0;
-}
-
-.bi-widget-drawer-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--night-border);
-  border-radius: 12px;
-  background: var(--night-raised);
-  color: var(--night-text);
 }
 
 .kpi-join-options {
@@ -7013,7 +7030,7 @@ body.workspace-canvas .kpi-chart-type-option input[type='radio'] {
   outline-offset: 3px;
 }
 
-.bi-widget-drawer .kpi-join-option:has(input:disabled) {
+.bi-widget-drawer :is(.kpi-chart-type-option, .kpi-join-option):has(input:disabled) {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -7043,9 +7060,6 @@ body.workspace-canvas .bi-widget-drawer :is(input, select):disabled {
   }
   .bi-widget-drawer-actions > button {
     flex: 1;
-  }
-  .bi-widget-drawer-heading {
-    padding-top: 16px;
   }
 }
 
@@ -7368,6 +7382,50 @@ body.workspace-canvas .bi-widget-visual-table .bi-table-scroll :is(th, td) {
 body.workspace-canvas .bi-widget-visual-table .bi-table-scroll tbody tr:hover td {
   background: var(--app-accent-soft);
 }
+
+/* Give API-backed sheet widgets room for their data at the canvas's actual width. */
+body.workspace-canvas .bi-widget-grid {
+  container: widget-board / inline-size;
+}
+
+body.workspace-canvas .bi-widget-grid > .bi-widget[data-widget-source='kpi'] {
+  grid-column: 1 / -1;
+  height: 390px;
+  min-height: 0;
+}
+
+body.workspace-canvas .bi-widget-grid > .bi-widget-visual-card[data-widget-source='kpi'] {
+  height: auto;
+  min-height: 220px;
+}
+
+body.workspace-canvas .bi-widget-grid > .bi-widget-visual-table[data-widget-source='kpi'] {
+  height: 450px;
+}
+
+body.workspace-canvas
+  .bi-widget-grid
+  > .bi-widget[data-widget-source='kpi']:not(.bi-widget-visual-card, .bi-widget-visual-table)
+  .bi-widget-content {
+  overflow: auto;
+}
+
+@media (min-width: 1021px) {
+  @container widget-board (min-width: 700px) {
+    body.workspace-canvas .bi-widget-grid > .bi-widget-visual-card[data-widget-source='kpi'] {
+      grid-column: span 6;
+    }
+  }
+
+  @container widget-board (min-width: 1100px) {
+    body.workspace-canvas
+      .bi-widget-grid
+      > .bi-widget[data-widget-source='kpi']:not(.bi-widget-visual-card, .bi-widget-visual-table) {
+      grid-column: span 6;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bi-widget-refresh-status svg {
     animation: none;

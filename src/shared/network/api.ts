@@ -52,7 +52,7 @@ export const apiRequest = async (endpoint: string, init: RequestInit = {}): Prom
   const retryHeaders = new Headers(init.headers);
   retryHeaders.set('Authorization', `Bearer ${refreshedAccess}`);
   const retryResponse = await rawApiRequest(endpoint, { ...init, headers: retryHeaders });
-  if (retryResponse.status === 401) clearAuthTokens();
+  if (retryResponse.status === 401 && getAccessToken() === refreshedAccess) clearAuthTokens();
   if (!retryResponse.ok) throw new Error(await readError(retryResponse));
   return retryResponse;
 };
